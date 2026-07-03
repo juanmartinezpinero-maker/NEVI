@@ -42,3 +42,9 @@ export interface WasteSummary {
   wastedItemsCount: number;
   currency: string;
 }
+
+export interface ScannedItem {
+  name: string;
+  price: number;
+  icon: string;
+}
