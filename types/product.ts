@@ -13,3 +13,22 @@ export interface SavingsSummary {
   previousMonth: number;
   currency: string;
 }
+
+export interface ShoppingListItem {
+  id: string;
+  name: string;
+  icon: string;
+  urgency: UrgencyLevel;
+  reason: string;
+}
+
+export interface CategorySpend {
+  category: string;
+  amount: number;
+}
+
+export interface WasteSummary {
+  wastedAmount: number;
+  wastedItemsCount: number;
+  currency: string;
+}

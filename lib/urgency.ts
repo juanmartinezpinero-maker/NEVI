@@ -17,3 +17,9 @@ export const urgencyTextClasses: Record<UrgencyLevel, string> = {
   warning: "text-warm-orange",
   urgent: "text-coral-red",
 };
+
+export const urgencyDotClasses: Record<UrgencyLevel, string> = {
+  ok: "bg-sage",
+  warning: "bg-warm-orange",
+  urgent: "bg-coral-red",
+};
