@@ -8,6 +8,16 @@ export interface Product {
   cycleDays: number;
 }
 
+export interface ProductRow {
+  id: string;
+  user_id: string;
+  name: string;
+  icon: string;
+  cycle_days: number;
+  last_purchased_at: string;
+  created_at: string;
+}
+
 export interface SavingsSummary {
   currentMonth: number;
   previousMonth: number;

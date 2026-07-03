@@ -16,6 +16,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const progress = Math.max(0, Math.min(1, daysRemaining / cycleDays));
   const offset = CIRCUMFERENCE * (1 - progress);
   const ringColor = urgencyColors[urgency];
+  const displayDays = Math.max(0, daysRemaining);
 
   return (
     <div className="flex flex-col items-center gap-2 rounded-2xl bg-white p-4 shadow-sm shadow-black/5">
@@ -59,7 +60,9 @@ export function ProductCard({ product }: ProductCardProps) {
         {name}
       </p>
       <p className={`text-xs font-semibold ${urgencyTextClasses[urgency]}`}>
-        {daysRemaining} {daysRemaining === 1 ? "día" : "días"}
+        {daysRemaining <= 0
+          ? "Toca comprar"
+          : `${displayDays} ${displayDays === 1 ? "día" : "días"}`}
       </p>
     </div>
   );
