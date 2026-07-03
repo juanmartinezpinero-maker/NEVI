@@ -6,7 +6,7 @@ interface ComingSoonProps {
 
 export function ComingSoon({ message }: ComingSoonProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 pb-28 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-deep-blue/10 text-deep-blue">
         <SparklesIcon className="h-6 w-6" />
       </div>

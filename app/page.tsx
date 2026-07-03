@@ -3,12 +3,19 @@ import { SavingsCard } from "@/components/SavingsCard";
 import { ProductCard } from "@/components/ProductCard";
 import { AIInsightBanner } from "@/components/AIInsightBanner";
 import { BottomNav } from "@/components/BottomNav";
-import { mockUserName, mockSavings, mockProducts, mockAIInsight } from "@/lib/mock-data";
+import { mockSavings, mockProducts, mockAIInsight } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/server";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userName = user?.email?.split("@")[0] ?? "";
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col bg-warm-bg px-4">
-      <Header userName={mockUserName} />
+      <Header userName={userName} />
 
       <main className="flex flex-1 flex-col gap-5 pb-28">
         <SavingsCard savings={mockSavings} />
