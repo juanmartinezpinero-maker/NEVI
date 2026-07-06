@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { SavingsCard } from "@/components/SavingsCard";
 import { WasteCard } from "@/components/WasteCard";
 import { CategoryBar } from "@/components/CategoryBar";
-import { BottomNav } from "@/components/BottomNav";
+import { AppShell } from "@/components/AppShell";
 import { getMonthlySpend, getCategorySpend, getWasteSummary } from "@/lib/purchases";
 
 export default async function AhorroPage() {
@@ -14,12 +14,14 @@ export default async function AhorroPage() {
   const maxAmount = Math.max(1, ...categorySpend.map((c) => c.amount));
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col bg-warm-bg px-4">
+    <AppShell>
       <PageHeader title="Ahorro y desperdicio" />
 
-      <main className="flex flex-1 flex-col gap-5 pb-28">
-        <SavingsCard savings={spend} />
-        <WasteCard waste={waste} />
+      <main className="flex flex-1 flex-col gap-5 pb-28 md:pb-8">
+        <div className="flex flex-col gap-5 md:grid md:grid-cols-2">
+          <SavingsCard savings={spend} />
+          <WasteCard waste={waste} />
+        </div>
 
         <section>
           <h2 className="mb-3 font-heading text-lg font-semibold text-ink">
@@ -46,8 +48,6 @@ export default async function AhorroPage() {
           )}
         </section>
       </main>
-
-      <BottomNav />
-    </div>
+    </AppShell>
   );
 }

@@ -2,8 +2,21 @@ import { createClient } from "@/lib/supabase/server";
 import type { CategorySpend, SavingsSummary, WasteSummary } from "@/types/product";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const DEFAULT_CYCLE_DAYS = 7;
 const MIN_CYCLE_DAYS = 1;
+const FALLBACK_CYCLE_DAYS = 14;
+
+const DEFAULT_CYCLE_BY_CATEGORY: Record<string, number> = {
+  Frescos: 6,
+  Bebidas: 10,
+  Higiene: 30,
+  Limpieza: 45,
+  Despensa: 20,
+  Otros: FALLBACK_CYCLE_DAYS,
+};
+
+function defaultCycleDaysFor(category: string): number {
+  return DEFAULT_CYCLE_BY_CATEGORY[category] ?? FALLBACK_CYCLE_DAYS;
+}
 
 function daysBetween(from: string, to: Date): number {
   const start = new Date(from);
@@ -59,7 +72,7 @@ export async function recordScannedPurchase(item: {
       user_id: user.id,
       name: item.name,
       icon: item.icon,
-      cycle_days: DEFAULT_CYCLE_DAYS,
+      cycle_days: defaultCycleDaysFor(item.category),
       last_purchased_at: todayStr,
     });
   }

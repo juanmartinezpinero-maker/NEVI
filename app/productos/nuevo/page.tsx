@@ -1,15 +1,15 @@
 import { PageHeader } from "@/components/PageHeader";
-import { BottomNav } from "@/components/BottomNav";
+import { AppShell } from "@/components/AppShell";
 import { createProductAction } from "./actions";
 
 export default function NuevoProductoPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col bg-warm-bg px-4">
+    <AppShell>
       <PageHeader title="Añadir producto" />
 
-      <main className="flex flex-1 flex-col pb-28">
+      <main className="flex flex-1 flex-col pb-28 md:pb-8">
         <form action={createProductAction} className="flex flex-col gap-4">
           <div>
             <label htmlFor="name" className="mb-1 block text-sm font-medium text-ink">
@@ -76,8 +76,6 @@ export default function NuevoProductoPage() {
           </button>
         </form>
       </main>
-
-      <BottomNav />
-    </div>
+    </AppShell>
   );
 }

@@ -1,20 +1,20 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { ShoppingListItem } from "@/components/ShoppingListItem";
-import { BottomNav } from "@/components/BottomNav";
+import { AppShell } from "@/components/AppShell";
 import { getShoppingList } from "@/lib/products";
 
 export default async function ListaPage() {
   const shoppingList = await getShoppingList();
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col bg-warm-bg px-4">
+    <AppShell>
       <PageHeader
         title="Lista inteligente"
         subtitle="Lo que probablemente necesitas antes de tu próxima compra"
       />
 
-      <main className="flex flex-1 flex-col gap-2 pb-28">
+      <main className="flex flex-1 flex-col gap-2 pb-28 md:pb-8">
         {shoppingList.length === 0 ? (
           <div className="rounded-2xl bg-white p-5 text-center shadow-sm shadow-black/5">
             <p className="text-sm text-ink/60">
@@ -32,8 +32,6 @@ export default async function ListaPage() {
           shoppingList.map((item) => <ShoppingListItem key={item.id} item={item} />)
         )}
       </main>
-
-      <BottomNav />
-    </div>
+    </AppShell>
   );
 }

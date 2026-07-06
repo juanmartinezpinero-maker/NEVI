@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { SavingsCard } from "@/components/SavingsCard";
 import { ProductCard } from "@/components/ProductCard";
 import { AIInsightBanner } from "@/components/AIInsightBanner";
-import { BottomNav } from "@/components/BottomNav";
+import { AppShell } from "@/components/AppShell";
 import { mockAIInsight } from "@/lib/mock-data";
 import { createClient } from "@/lib/supabase/server";
 import { getProducts } from "@/lib/products";
@@ -21,10 +21,10 @@ export default async function DashboardPage() {
   const userName = session?.user.email?.split("@")[0] ?? "";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col bg-warm-bg px-4">
+    <AppShell>
       <Header userName={userName} />
 
-      <main className="flex flex-1 flex-col gap-5 pb-28">
+      <main className="flex flex-1 flex-col gap-5 pb-28 md:pb-8">
         <SavingsCard savings={spend} />
 
         <section>
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -61,8 +61,6 @@ export default async function DashboardPage() {
 
         <AIInsightBanner message={mockAIInsight} />
       </main>
-
-      <BottomNav />
-    </div>
+    </AppShell>
   );
 }

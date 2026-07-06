@@ -44,7 +44,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex justify-center">
+    <nav className="fixed inset-x-0 bottom-0 z-20 flex justify-center md:hidden">
       <div className="relative mx-auto w-full max-w-[400px] border-t border-black/5 bg-white/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur">
         <div className="flex items-center justify-between">
           {navItems.map((item) => (
