@@ -30,7 +30,7 @@ export async function recordScannedPurchase(item: {
   icon: string;
   category: string;
   price: number;
-}) {
+}): Promise<{ name: string; icon: string; cycleDays: number }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -67,15 +67,20 @@ export async function recordScannedPurchase(item: {
       .from("products")
       .update({ cycle_days: newCycleDays, last_purchased_at: todayStr })
       .eq("id", existing.id);
-  } else {
-    await supabase.from("products").insert({
-      user_id: user.id,
-      name: item.name,
-      icon: item.icon,
-      cycle_days: defaultCycleDaysFor(item.category),
-      last_purchased_at: todayStr,
-    });
+
+    return { name: item.name, icon: item.icon, cycleDays: newCycleDays };
   }
+
+  const cycleDays = defaultCycleDaysFor(item.category);
+  await supabase.from("products").insert({
+    user_id: user.id,
+    name: item.name,
+    icon: item.icon,
+    cycle_days: cycleDays,
+    last_purchased_at: todayStr,
+  });
+
+  return { name: item.name, icon: item.icon, cycleDays };
 }
 
 export async function markProductAsWasted(productId: string) {
