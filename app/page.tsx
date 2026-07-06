@@ -11,11 +11,14 @@ import { getMonthlySpend } from "@/lib/purchases";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const userName = user?.email?.split("@")[0] ?? "";
-  const [products, spend] = await Promise.all([getProducts(), getMonthlySpend()]);
+  const [
+    {
+      data: { session },
+    },
+    products,
+    spend,
+  ] = await Promise.all([supabase.auth.getSession(), getProducts(), getMonthlySpend()]);
+  const userName = session?.user.email?.split("@")[0] ?? "";
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col bg-warm-bg px-4">
