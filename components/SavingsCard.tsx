@@ -12,7 +12,7 @@ export function SavingsCard({ savings }: SavingsCardProps) {
 
   return (
     <section className="rounded-3xl bg-linear-to-br from-sage to-sage-dark p-5 text-white shadow-lg shadow-sage/20">
-      <p className="text-sm font-medium text-white/80">Ahorro este mes</p>
+      <p className="text-sm font-medium text-white/80">Gasto este mes</p>
       <p className="mt-1 font-heading text-4xl font-semibold tabular-nums">
         {currentMonth.toFixed(2)}
         <span className="ml-1 text-2xl">{currency}</span>

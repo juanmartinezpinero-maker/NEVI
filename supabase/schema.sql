@@ -25,3 +25,44 @@ create policy "Users can update own products"
 create policy "Users can delete own products"
   on products for delete
   using (auth.uid() = user_id);
+
+create table if not exists purchases (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  icon text not null,
+  category text not null,
+  price numeric(10, 2) not null,
+  purchased_at date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
+alter table purchases enable row level security;
+
+create policy "Users can view own purchases"
+  on purchases for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own purchases"
+  on purchases for insert
+  with check (auth.uid() = user_id);
+
+create table if not exists waste_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  icon text not null,
+  amount numeric(10, 2) not null default 0,
+  wasted_at date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
+alter table waste_events enable row level security;
+
+create policy "Users can view own waste events"
+  on waste_events for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own waste events"
+  on waste_events for insert
+  with check (auth.uid() = user_id);

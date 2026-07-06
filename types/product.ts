@@ -47,4 +47,26 @@ export interface ScannedItem {
   name: string;
   price: number;
   icon: string;
+  category: string;
+}
+
+export interface PurchaseRow {
+  id: string;
+  user_id: string;
+  name: string;
+  icon: string;
+  category: string;
+  price: number;
+  purchased_at: string;
+  created_at: string;
+}
+
+export interface WasteEventRow {
+  id: string;
+  user_id: string;
+  name: string;
+  icon: string;
+  amount: number;
+  wasted_at: string;
+  created_at: string;
 }

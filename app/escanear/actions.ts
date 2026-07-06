@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { anthropic } from "@/lib/anthropic";
-import { addProduct } from "@/lib/products";
+import { recordScannedPurchase } from "@/lib/purchases";
 import type { ScannedItem } from "@/types/product";
 
 const RECEIPT_SCHEMA = {
@@ -25,8 +25,13 @@ const RECEIPT_SCHEMA = {
             type: "string",
             description: "Un único emoji que represente el producto",
           },
+          category: {
+            type: "string",
+            description:
+              "Categoría del producto en español, una de: Frescos, Despensa, Bebidas, Limpieza, Higiene, Otros",
+          },
         },
-        required: ["name", "price", "icon"],
+        required: ["name", "price", "icon", "category"],
         additionalProperties: false,
       },
     },
@@ -85,14 +90,12 @@ export async function scanReceiptAction(formData: FormData): Promise<ScannedItem
 }
 
 export async function saveScannedProductsAction(items: ScannedItem[]) {
-  const today = new Date().toISOString().slice(0, 10);
-
   for (const item of items) {
-    await addProduct({
+    await recordScannedPurchase({
       name: item.name,
       icon: item.icon,
-      cycleDays: 7,
-      lastPurchasedAt: today,
+      category: item.category,
+      price: item.price,
     });
   }
 
