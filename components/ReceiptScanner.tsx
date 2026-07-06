@@ -100,7 +100,6 @@ export function ReceiptScanner() {
         <input
           type="file"
           accept="image/*"
-          capture="environment"
           className="hidden"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
