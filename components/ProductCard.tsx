@@ -1,7 +1,8 @@
+import Link from "next/link";
 import type { Product } from "@/types/product";
 import { getUrgencyLevel, urgencyColors, urgencyTextClasses } from "@/lib/urgency";
 import { markProductWastedAction } from "@/app/actions";
-import { TrashIcon } from "@/components/icons";
+import { PencilIcon, TrashIcon } from "@/components/icons";
 
 interface ProductCardProps {
   product: Product;
@@ -22,15 +23,24 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="relative flex flex-col items-center gap-2 rounded-2xl bg-white p-4 shadow-sm shadow-black/5">
-      <form action={markProductWastedAction.bind(null, product.id)} className="absolute right-2 top-2">
-        <button
-          type="submit"
-          aria-label={`Marcar ${name} como desperdiciado`}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-ink/30 hover:bg-coral-red/10 hover:text-coral-red"
+      <div className="absolute right-2 top-2 flex items-center gap-1">
+        <Link
+          href={`/productos/${product.id}/editar`}
+          aria-label={`Editar ${name}`}
+          className="flex h-7 w-7 items-center justify-center rounded-full text-ink/30 hover:bg-black/5 hover:text-ink/60"
         >
-          <TrashIcon className="h-4 w-4" />
-        </button>
-      </form>
+          <PencilIcon className="h-4 w-4" />
+        </Link>
+        <form action={markProductWastedAction.bind(null, product.id)}>
+          <button
+            type="submit"
+            aria-label={`Marcar ${name} como desperdiciado`}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-ink/30 hover:bg-coral-red/10 hover:text-coral-red"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </button>
+        </form>
+      </div>
 
       <div className="relative" style={{ width: SIZE, height: SIZE }}>
         <svg

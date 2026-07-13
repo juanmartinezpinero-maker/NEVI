@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Product, ProductRow, ShoppingListItem } from "@/types/product";
 import { getUrgencyLevel } from "@/lib/urgency";
+import { getHouseholdId } from "@/lib/household";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -63,14 +64,42 @@ export async function addProduct(input: {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("No autenticado");
+  const householdId = await getHouseholdId();
 
   const { error } = await supabase.from("products").insert({
     user_id: user.id,
+    household_id: householdId,
     name: input.name,
     icon: input.icon,
     cycle_days: input.cycleDays,
     last_purchased_at: input.lastPurchasedAt,
   });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function getProduct(id: string): Promise<ProductRow | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+
+  if (error || !data) return null;
+  return data;
+}
+
+export async function updateProduct(
+  id: string,
+  input: { name: string; icon: string; cycleDays: number; lastPurchasedAt: string },
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("products")
+    .update({
+      name: input.name,
+      icon: input.icon,
+      cycle_days: input.cycleDays,
+      last_purchased_at: input.lastPurchasedAt,
+    })
+    .eq("id", id);
 
   if (error) throw new Error(error.message);
 }

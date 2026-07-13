@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { CategorySpend, SavingsSummary, WasteSummary } from "@/types/product";
+import { getHouseholdId } from "@/lib/household";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MIN_CYCLE_DAYS = 1;
@@ -36,12 +37,14 @@ export async function recordScannedPurchase(item: {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("No autenticado");
+  const householdId = await getHouseholdId();
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
 
   const { error: purchaseError } = await supabase.from("purchases").insert({
     user_id: user.id,
+    household_id: householdId,
     name: item.name,
     icon: item.icon,
     category: item.category,
@@ -74,6 +77,7 @@ export async function recordScannedPurchase(item: {
   const cycleDays = defaultCycleDaysFor(item.category);
   await supabase.from("products").insert({
     user_id: user.id,
+    household_id: householdId,
     name: item.name,
     icon: item.icon,
     cycle_days: cycleDays,
@@ -89,6 +93,7 @@ export async function markProductAsWasted(productId: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("No autenticado");
+  const householdId = await getHouseholdId();
 
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -107,6 +112,7 @@ export async function markProductAsWasted(productId: string) {
 
   const { error: wasteError } = await supabase.from("waste_events").insert({
     user_id: user.id,
+    household_id: householdId,
     name: product.name,
     icon: product.icon,
     amount: lastPurchase?.price ?? 0,
