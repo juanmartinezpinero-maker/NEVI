@@ -41,8 +41,13 @@ create table if not exists households (
   id uuid primary key default gen_random_uuid(),
   name text not null default 'Mi familia',
   invite_code text not null unique default upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6)),
+  member_count integer,
+  dietary_notes text,
   created_at timestamptz not null default now()
 );
+
+alter table households add column if not exists member_count integer;
+alter table households add column if not exists dietary_notes text;
 
 create table if not exists household_members (
   user_id uuid primary key references auth.users (id) on delete cascade,

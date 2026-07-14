@@ -3,12 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CameraIcon, HomeIcon, ListIcon, TrendIcon, UserIcon } from "@/components/icons";
+import { CameraIcon, HomeIcon, ListIcon, PlateIcon, TrendIcon, UserIcon } from "@/components/icons";
 
 const navItems = [
   { href: "/", label: "Inicio", Icon: HomeIcon },
   { href: "/lista", label: "Lista inteligente", Icon: ListIcon },
   { href: "/ahorro", label: "Ahorro y desperdicio", Icon: TrendIcon },
+  { href: "/recetas", label: "Ideas de recetas", Icon: PlateIcon },
   { href: "/perfil", label: "Perfil", Icon: UserIcon },
 ] as const;
 

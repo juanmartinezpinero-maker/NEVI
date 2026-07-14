@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CameraIcon, HomeIcon, ListIcon, TrendIcon, UserIcon } from "@/components/icons";
+import { CameraIcon, HomeIcon, ListIcon, PlateIcon, TrendIcon, UserIcon } from "@/components/icons";
 
 const navItems = [
   { href: "/", label: "Inicio", Icon: HomeIcon },
@@ -11,6 +11,7 @@ const navItems = [
 
 const navItemsRight = [
   { href: "/ahorro", label: "Ahorro", Icon: TrendIcon },
+  { href: "/recetas", label: "Recetas", Icon: PlateIcon },
   { href: "/perfil", label: "Perfil", Icon: UserIcon },
 ] as const;
 

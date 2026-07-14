@@ -4,6 +4,8 @@ export interface Household {
   id: string;
   name: string;
   inviteCode: string;
+  memberCount: number | null;
+  dietaryNotes: string | null;
 }
 
 export async function getHouseholdId(): Promise<string> {
@@ -35,12 +37,18 @@ export async function getHousehold(): Promise<Household | null> {
 
   const { data, error } = await supabase
     .from("households")
-    .select("id, name, invite_code")
+    .select("id, name, invite_code, member_count, dietary_notes")
     .eq("id", householdId)
     .single();
   if (error || !data) return null;
 
-  return { id: data.id, name: data.name, inviteCode: data.invite_code };
+  return {
+    id: data.id,
+    name: data.name,
+    inviteCode: data.invite_code,
+    memberCount: data.member_count,
+    dietaryNotes: data.dietary_notes,
+  };
 }
 
 export async function renameHousehold(name: string) {
@@ -48,6 +56,20 @@ export async function renameHousehold(name: string) {
   const householdId = await getHouseholdId();
 
   const { error } = await supabase.from("households").update({ name }).eq("id", householdId);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateHouseholdPreferences(input: {
+  memberCount: number | null;
+  dietaryNotes: string;
+}) {
+  const supabase = await createClient();
+  const householdId = await getHouseholdId();
+
+  const { error } = await supabase
+    .from("households")
+    .update({ member_count: input.memberCount, dietary_notes: input.dietaryNotes || null })
+    .eq("id", householdId);
   if (error) throw new Error(error.message);
 }
 

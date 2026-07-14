@@ -1,11 +1,14 @@
 import { PageHeader } from "@/components/PageHeader";
-import { ComingSoon } from "@/components/ComingSoon";
 import { AppShell } from "@/components/AppShell";
 import { LogoutButton } from "@/components/LogoutButton";
 import { CopyInviteCodeButton } from "@/components/CopyInviteCodeButton";
 import { createClient } from "@/lib/supabase/server";
 import { getHousehold } from "@/lib/household";
-import { renameHouseholdAction, joinHouseholdAction } from "./actions";
+import {
+  renameHouseholdAction,
+  joinHouseholdAction,
+  updateHouseholdPreferencesAction,
+} from "./actions";
 
 export default async function PerfilPage() {
   const supabase = await createClient();
@@ -74,7 +77,53 @@ export default async function PerfilPage() {
           </section>
         )}
 
-        <ComingSoon message="Aquí podrás gestionar tus preferencias muy pronto." />
+        {household && (
+          <section className="rounded-2xl bg-white p-4 shadow-sm shadow-black/5">
+            <p className="mb-1 text-sm font-semibold text-ink">Preferencias para recetas</p>
+            <p className="mb-3 text-xs text-ink/60">
+              Se usan para ajustar el plan semanal y las ideas de recetas.
+            </p>
+
+            <form action={updateHouseholdPreferencesAction} className="flex flex-col gap-3">
+              <div>
+                <label htmlFor="memberCount" className="mb-1 block text-xs font-medium text-ink">
+                  ¿Cuántos comensales sois habitualmente?
+                </label>
+                <input
+                  id="memberCount"
+                  name="memberCount"
+                  type="number"
+                  min={1}
+                  defaultValue={household.memberCount ?? ""}
+                  placeholder="4"
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="dietaryNotes" className="mb-1 block text-xs font-medium text-ink">
+                  Restricciones o preferencias alimentarias
+                </label>
+                <textarea
+                  id="dietaryNotes"
+                  name="dietaryNotes"
+                  rows={2}
+                  defaultValue={household.dietaryNotes ?? ""}
+                  placeholder="Ej: vegetariano, sin gluten, alergia a los frutos secos..."
+                  className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm text-ink outline-none focus:border-sage"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="self-start rounded-lg bg-sage px-3 py-2 text-sm font-semibold text-white"
+              >
+                Guardar preferencias
+              </button>
+            </form>
+          </section>
+        )}
+
         <LogoutButton />
       </main>
     </AppShell>

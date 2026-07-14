@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { renameHousehold, joinHousehold } from "@/lib/household";
+import { renameHousehold, joinHousehold, updateHouseholdPreferences } from "@/lib/household";
 
 export async function renameHouseholdAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -20,4 +20,14 @@ export async function joinHouseholdAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/lista");
   revalidatePath("/ahorro");
+}
+
+export async function updateHouseholdPreferencesAction(formData: FormData) {
+  const memberCountRaw = String(formData.get("memberCount") ?? "").trim();
+  const dietaryNotes = String(formData.get("dietaryNotes") ?? "").trim();
+  const memberCount = memberCountRaw ? Number(memberCountRaw) : null;
+
+  await updateHouseholdPreferences({ memberCount, dietaryNotes });
+  revalidatePath("/perfil");
+  revalidatePath("/recetas");
 }

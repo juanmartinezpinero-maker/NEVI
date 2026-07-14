@@ -70,3 +70,18 @@ export interface WasteEventRow {
   wasted_at: string;
   created_at: string;
 }
+
+export interface RecipeIdea {
+  title: string;
+  description: string;
+  usesIngredients: string[];
+  steps: string[];
+}
+
+export interface MealPlanDay {
+  day: string;
+  title: string;
+  description: string;
+  usesIngredients: string[];
+  steps: string[];
+}
