@@ -1,0 +1,160 @@
+import { expect, test, type Page } from "@playwright/test";
+
+async function login(page: Page, email: string, next = "/") {
+  await page.goto(`/entrar?next=${encodeURIComponent(next)}`);
+  await completeLogin(page, email);
+}
+
+async function completeLogin(page: Page, email: string) {
+  await page.getByLabel("Tu email").fill(email);
+  await page.getByRole("button", { name: "Recibir código" }).click();
+  const code = (await page.getByTestId("dev-code").locator("strong").textContent())!.trim();
+  await page.getByLabel("Código de 6 cifras").fill(code);
+  await page.getByRole("button", { name: "Entrar" }).click();
+}
+
+async function completeProfile(page: Page) {
+  await expect(page).toHaveURL(/\/entrar\/perfil/);
+  await page.getByText("25-34").click();
+  await page.getByText("Prefiero no decirlo").click();
+  await page.getByLabel("País de residencia").selectOption("ES");
+  await page.getByRole("checkbox", { name: /16 años o más/ }).check();
+  await page.getByRole("button", { name: /a votar/ }).click();
+}
+
+test.describe.configure({ mode: "serial" });
+
+test("portada: pregunta del día, tendencias, categorías y buscador", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /El mundo opina/ })).toBeVisible();
+  await expect(page.getByText("Pregunta del día")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /En tendencia/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Deportes/ }).first()).toBeVisible();
+  await page.locator("#home-search").fill("messi");
+  await page.locator("#home-search").press("Enter");
+  await expect(page).toHaveURL(/buscar\?q=messi/);
+  await expect(page.getByRole("heading", { name: "¿Messi o Cristiano?" })).toBeVisible();
+});
+
+test("voto anónimo en un duelo: resultados inmediatos, persistentes y sin doble voto", async ({ page }) => {
+  await page.goto("/p/messi-o-cristiano");
+  await expect(page.getByText(/demostración/).first()).toBeVisible();
+  await page.getByRole("button", { name: "Votar Messi" }).click();
+  await expect(page.getByText("✓ Tu voto:")).toBeVisible();
+  await expect(page.getByText(/votos · \d+% de cuentas verificadas/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Compartir resultado/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /wa\.me/);
+  // Tras recargar, sigue viendo resultados (no puede volver a votar).
+  await page.reload();
+  await expect(page.getByText("✓ Tu voto:")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Votar Messi" })).toHaveCount(0);
+  // Desglose demográfico bloqueado hasta registrarse.
+  await expect(page.getByRole("link", { name: /Regístrate gratis para verlos/ })).toBeVisible();
+});
+
+test("opción «Otra»: se escribe dentro de su casilla y se agrupa", async ({ page }) => {
+  await page.goto("/p/cual-es-la-mejor-serie-de-la-historia");
+  await page.getByRole("button", { name: /Otra… escribe la tuya/ }).click();
+  await page.getByLabel("Escribe tu respuesta").fill("the office");
+  await page.getByRole("button", { name: "Votar", exact: true }).click();
+  await expect(page.getByText("✓ Tu voto:")).toBeVisible();
+  // «the office» se agrupó con la entrada existente «The Office».
+  await expect(page.getByText(/Tu voto: The Office/)).toBeVisible();
+});
+
+test("registro sin contraseña guarda los votos anónimos y desbloquea desgloses", async ({ page }) => {
+  await page.goto("/p/playa-o-montana");
+  await page.getByRole("button", { name: "Votar Playa" }).click();
+  await expect(page.getByText("✓ Tu voto:")).toBeVisible();
+  await page.getByRole("link", { name: /Guarda tu voto/ }).click();
+  await completeLogin(page, "ana@e2e.test");
+  await completeProfile(page);
+  await expect(page).toHaveURL(/\/p\/playa-o-montana/);
+  await expect(page.getByRole("heading", { name: "¿Qué opina cada grupo?" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Países" })).toBeVisible();
+  await expect(page.getByText(/gana/).first()).toBeVisible();
+  await page.goto("/perfil");
+  await expect(page.getByText("¿Playa o montaña?")).toBeVisible();
+  await expect(page.getByText("Votaste: Playa")).toBeVisible();
+});
+
+test("crear pregunta → moderación por admin → publicada y encontrable", async ({ page, browser }) => {
+  await login(page, "creador@e2e.test", "/crear");
+  await completeProfile(page);
+  await expect(page).toHaveURL(/\/crear/);
+  await page.getByLabel("Pregunta").fill("¿Croquetas de jamón o de pollo?");
+  await page.getByLabel("Categoría").selectOption("comida");
+  await page.getByLabel("Opción 1", { exact: true }).fill("Jamón");
+  await page.getByLabel("Opción 2", { exact: true }).fill("Pollo");
+  await page.getByRole("button", { name: "Enviar a moderación" }).click();
+  await expect(page).toHaveURL(/perfil\?propuesta=ok/);
+  await expect(page.getByText("⏳ En moderación")).toBeVisible();
+
+  // Un usuario normal no entra al panel.
+  await page.goto("/admin");
+  await expect(page).not.toHaveURL(/\/admin/);
+
+  const adminCtx = await browser.newContext();
+  const admin = await adminCtx.newPage();
+  await login(admin, "admin@e2e.test", "/admin/moderacion");
+  await completeProfile(admin);
+  await expect(admin.getByRole("heading", { name: /Croquetas de jamón o de pollo/ })).toBeVisible();
+  await admin.getByRole("button", { name: /Aprobar y publicar/ }).click();
+  await expect(admin.getByText("No hay preguntas pendientes")).toBeVisible();
+  await adminCtx.close();
+
+  await page.goto("/buscar?q=croquetas");
+  await page.getByRole("heading", { name: "¿Croquetas de jamón o de pollo?" }).click();
+  await expect(page).toHaveURL(/\/p\/croquetas-de-jamon-o-de-pollo/);
+  await page.getByRole("button", { name: "Jamón" }).click();
+  await expect(page.getByText("100%", { exact: true })).toBeVisible();
+});
+
+test("detección de duplicados al proponer", async ({ page }) => {
+  await login(page, "creador@e2e.test", "/crear");
+  await page.getByLabel("Pregunta").fill("¿Coca-Cola o Pepsi?");
+  await expect(page.getByText("Ya hay preguntas parecidas")).toBeVisible();
+  await expect(page.getByRole("link", { name: "¿Pepsi o Coca-Cola?" })).toBeVisible();
+});
+
+test("enlace de creador: atribución de clics y votos en el panel", async ({ page, browser }) => {
+  await login(page, "admin@e2e.test", "/admin/enlaces");
+  await page.getByLabel("Nombre del creador").fill("Lucía TikTok");
+  await page.getByLabel("Código").fill("lucia");
+  await page.getByLabel("Encuesta de destino").selectOption({ label: "¿Café o té?" });
+  await page.getByRole("button", { name: "Crear enlace" }).click();
+  await expect(page.getByText("/r/lucia")).toBeVisible();
+
+  const visitorCtx = await browser.newContext();
+  const visitor = await visitorCtx.newPage();
+  await visitor.goto("/r/lucia");
+  await expect(visitor).toHaveURL(/\/p\/cafe-o-te/);
+  await visitor.getByRole("button", { name: "Votar Café" }).click();
+  await expect(visitor.getByText("✓ Tu voto:")).toBeVisible();
+  await visitorCtx.close();
+
+  await page.goto("/admin/enlaces");
+  await expect(page.getByText("1 clics")).toBeVisible();
+  await expect(page.getByText("1 votos")).toBeVisible();
+  await page.goto("/admin");
+  await expect(page.getByText("Atribución por enlace / creador")).toBeVisible();
+  await expect(page.getByRole("cell", { name: /Lucía TikTok/ })).toBeVisible();
+});
+
+test("imágenes para compartir (Stories 9:16 y Open Graph) y metadatos", async ({ page, request }) => {
+  const story = await request.get("/api/story/pepsi-o-coca-cola");
+  expect(story.status()).toBe(200);
+  expect(story.headers()["content-type"]).toContain("image/png");
+  const buf = await story.body();
+  // Cabecera PNG: ancho y alto en bytes 16-23.
+  expect(buf.readUInt32BE(16)).toBe(1080);
+  expect(buf.readUInt32BE(20)).toBe(1920);
+
+  await page.goto("/p/pepsi-o-coca-cola");
+  const og = await page.locator('meta[property="og:image"]').getAttribute("content");
+  expect(og).toContain("/p/pepsi-o-coca-cola/opengraph-image");
+  const ogRes = await request.get(new URL(og!).pathname + new URL(og!).search);
+  expect(ogRes.status()).toBe(200);
+  expect((await ogRes.body()).readUInt32BE(16)).toBe(1200);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Pepsi o Coca-Cola/);
+});
