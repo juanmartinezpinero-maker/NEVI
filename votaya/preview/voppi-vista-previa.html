@@ -1,8 +1,6 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>voppi!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
-</head><body>
 <style>
 /* Marca voppi!: lima #e6ff7f, tinta #222128 y rosa #eb5f7d. Inter muy gruesa y apretada como el logotipo, esquinas generosas.
    Móvil: feed a pantalla completa tipo historias. Escritorio: portada editorial con la pregunta del día y rejilla. */
@@ -263,6 +261,11 @@ h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 800; letter-sp
 @container app (min-width: 600px) { .stats { grid-template-columns: repeat(4, 1fr); } }
 .stats > div { padding: 16px; border-radius: 20px; background: var(--wash); }
 .stats > div:first-child { background: var(--lime); }
+.stats > div:nth-child(2) { background: var(--ink); color: #fff; }
+.stats > div:nth-child(2) b { color: var(--lime); }
+.stats > div:nth-child(2) .kicker { color: rgb(255 255 255 / .7); }
+.searchpill { display: flex; gap: 6px; background: var(--wash); border-radius: 999px; padding: 6px; margin-bottom: 14px; }
+.searchpill input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 0 12px; font-size: 16px; font-weight: 500; outline: none; }
 .stats b { display: block; font-weight: 900; font-size: 32px; letter-spacing: -.04em; }
 .levelbar { height: 10px; background: var(--wash); margin-top: 8px; border-radius: 999px; overflow: hidden; }
 .levelbar i { display: block; height: 100%; background: var(--pink); border-radius: 999px; }
@@ -513,13 +516,17 @@ const pages = {
   },
   explore() {
     const q = view.q || "", cat = view.cat || "";
-    const filtered = POLLS.filter((p) => (!cat || p.cat === cat) && (!q || norm(p.title + p.options.map((o) => o.l).join(" ")).includes(norm(q))));
+    const sort = view.sort || "top";
+    const ageDays = (p) => { const m = /(\d+)\s*(h|d|sem)/.exec(p.ago || ""); return m ? Number(m[1]) * (m[2] === "h" ? 1 / 24 : m[2] === "sem" ? 7 : 1) : 30; };
+    const filtered = POLLS.filter((p) => (!cat || p.cat === cat) && (!q || norm(p.title + p.options.map((o) => o.l).join(" ")).includes(norm(q))))
+      .sort((a, b) => sort === "new" ? ageDays(a) - ageDays(b) : sort === "trend" ? b.votes / (1 + ageDays(b)) - a.votes / (1 + ageDays(a)) : b.votes - a.votes);
     const counts = Object.fromEntries(Object.keys(CATS).map((k) => [k, POLLS.filter((p) => p.cat === k).length]));
     const tileImg = { comida: "pizza", deportes: "stadium", entretenimiento: "cinema", "estilo-de-vida": "beach", tecnologia: "phoneA", marcas: "colaRed", paises: "city", productos: "social", politica: "ballot" };
-    return `<div class="field m" style="margin-bottom:18px"><input id="xq" value="${esc(q)}" placeholder="Buscar: Messi, pizza, series…" aria-label="Buscar encuestas"></div>
+    return `${cat ? `<button class="kicker" data-cat="">← Explorar</button>` : ""}<h1 style="font-size:clamp(40px,8cqi,56px);margin:2px 0 14px;${cat ? `color:${CATS[cat][1]}` : ""}">${cat ? CATS[cat][0] : "Explorar"}</h1>
+      <div class="searchpill"><input id="xq" value="${esc(q)}" placeholder="Busca: Messi, pizza, series, países…" aria-label="Buscar encuestas"><button class="btn btn-ink" data-go="explore" tabindex="-1">Buscar</button></div>
       ${!q && !cat ? `<section style="margin-bottom:30px"><div class="sechead"><h2>Tendencias hoy</h2><button class="kicker" style="color:var(--ink)" data-go="feed">Modo historias →</button></div><div class="hscroll">${trendingList(8).map((p) => `<button data-poll="${p.id}">${photo(coverOf(p), p.title, p.cat)}<span class="kicker" style="color:${CATS[p.cat][1]}">${CATS[p.cat][0]}</span><b>${esc(p.title)}</b><span class="mono muted" style="font-size:12px">${fmt(p.votes)} votos</span></button>`).join("")}</div></section>
       <section style="margin-bottom:30px"><div class="sechead"><h2>Categorías</h2></div><div class="tiles">${Object.entries(CATS).map(([k, c]) => `<button data-cat="${k}">${photo(tileImg[k], c[0], k)}<b>${c[0]}</b><small>${counts[k]} encuestas</small></button>`).join("")}</div></section>` : ""}
-      <section><div class="sechead"><h2>${cat ? CATS[cat][0] : q ? `Resultados para «${esc(q)}»` : "Todas las encuestas"}</h2><span class="kicker">${filtered.length} encuestas</span></div>${catChips(cat)}
+      <section><div class="sechead"><h2>${cat ? "Encuestas" : q ? `Resultados para «${esc(q)}»` : "Todas las encuestas"}</h2><span class="kicker">${filtered.length} encuestas</span></div>${catChips(cat)}<div class="texttabs" role="tablist" style="margin:4px 0 16px">${[["top", "Más votadas"], ["new", "Nuevas"], ["trend", "En tendencia"]].map(([k, l]) => `<button role="tab" aria-selected="${k === sort}" data-sort="${k}">${l}</button>`).join("")}</div>
       <div class="m">${filtered.map((p) => `<button class="listrow" data-poll="${p.id}">${photo(coverOf(p), p.title, p.cat)}<span><span class="kicker" style="color:${CATS[p.cat][1]}">${CATS[p.cat][0]} · ${fmt(results(p).total)} votos</span><b>${esc(p.title)}</b>${votes[p.id] ? `<span class="voted-tag">Votada ✓</span>` : `<span style="font-weight:700;color:var(--a);font-size:13px">Votar →</span>`}</span></button>`).join("")}</div>
       <div class="grid d">${filtered.map(card).join("")}</div></section>`;
   },
@@ -619,7 +626,8 @@ document.addEventListener("click", (e) => {
   if (d.vote) { castVote(d.vote, Number(d.i)); if (earnedNow) toast(`+${earnedNow} puntos`); return render(); }
   if (d.pother) { $("#otherslot").innerHTML = `<form class="otherrow" id="potherForm" data-id="${d.pother}"><input id="potherText" maxlength="60" placeholder="Escribe tu respuesta" aria-label="Escribe tu respuesta"><button class="btn btn-ink">Votar</button></form>`; return $("#potherText").focus(); }
   if (d.poll) return go("poll", { id: d.poll });
-  if (d.cat !== undefined) return go("explore", { cat: d.cat, q: view.q });
+  if (d.cat !== undefined) return go("explore", { cat: d.cat, q: view.q, sort: view.sort });
+  if (d.sort) { view.sort = d.sort; return render(); }
   if (d.homecat !== undefined) { view.cat = d.homecat; return render(); }
   if (d.rankcat !== undefined) return go("rankings", { t: view.t, cat: d.rankcat });
   if (d.rank) return go("rankings", { t: d.rank, cat: view.cat });
@@ -690,4 +698,3 @@ modeBtn.addEventListener("click", () => {
 
 render();
 </script>
-</body></html>
