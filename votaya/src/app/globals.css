@@ -1,56 +1,55 @@
 @import "tailwindcss";
 
-/* Estilo claro: fondo blanco roto, tarjetas blancas, acento rojo frambuesa y héroe morado. */
+/* Marca voppi!: lima, tinta y rosa. Inter muy gruesa y apretada como el logotipo; esquinas generosas. */
 @theme {
-  --color-ink: #14121f;
-  --color-page: #f6f6fa;
-  --color-line: #e8e8ef;
-  --color-muted: #6b6b80;
-  --color-brand: #e5254f;
-  --color-brand-dark: #c81d43;
-  --color-violet: #6d28d9;
+  --color-ink: #222128;
+  --color-ink-2: #3b3a42;
+  --color-page: #ffffff;
+  --color-wash: #f6f6f2;
+  --color-line: #e7e6e1;
+  --color-muted: #6f6e77;
+  --color-lime: #e6ff7f;
+  --color-lime-deep: #d4f05a;
+  --color-pink: #eb5f7d;
+  --color-pink-soft: #fde3e9;
+  --color-brand: #eb5f7d;
+  --color-brand-dark: #d94a69;
+  --color-violet: #222128;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: var(--font-display-face), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --animate-pop: pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
-  --animate-rise: rise 0.5s ease-out both;
-  --animate-float: float 4s ease-in-out infinite;
+  --animate-rise: rise 0.45s ease-out both;
+  --animate-grow: grow var(--auto-ms, 2600ms) linear forwards;
 }
 
 @keyframes pop {
-  0% { transform: scale(0.92); }
-  60% { transform: scale(1.04); }
+  0% { transform: scale(0.94); }
+  60% { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
 @keyframes rise {
-  from { opacity: 0.3; transform: translateY(10px); }
+  from { opacity: 0.3; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+@keyframes grow {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
 :root { color-scheme: light; }
 html { background: var(--color-page); -webkit-tap-highlight-color: transparent; }
 body { background: var(--color-page); color: var(--color-ink); min-height: 100dvh; }
 
-.text-gradient {
-  background: linear-gradient(90deg, #ff4d8d, #ff7a59);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.bg-brand-gradient { background: linear-gradient(135deg, #f43f6b, #e5254f); }
-.bg-hero { background: radial-gradient(60rem 30rem at 85% 30%, #c026d3 0%, transparent 60%), linear-gradient(120deg, #3b1585 0%, #6d28d9 55%, #a21caf 100%); }
-.card {
-  background: #fff;
-  border: 1px solid var(--color-line);
-  border-radius: 1rem;
-  box-shadow: 0 1px 2px rgb(20 18 31 / 0.04), 0 4px 16px rgb(20 18 31 / 0.04);
-}
+/* Titulares: Inter negra con interletrado apretado, como el logo. */
+.font-display { font-weight: 800; letter-spacing: -0.04em; }
+.kicker { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted); }
+.text-gradient { color: var(--color-pink); }
+.bg-brand-gradient { background: var(--color-pink); }
+.bg-hero { background: var(--color-ink); }
+.card { background: #fff; border-radius: 1.4rem; box-shadow: inset 0 0 0 1px var(--color-line); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
-:focus-visible { outline: 3px solid #fb7193; outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--color-pink); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

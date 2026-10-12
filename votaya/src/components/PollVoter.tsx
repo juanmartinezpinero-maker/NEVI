@@ -2,20 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { voteAction, type Progress } from "@/app/actions/vote";
 import type { OptionView, Results } from "@/lib/polls";
+import { Photo } from "./Photo";
 import { ShareBar } from "./ShareBar";
 
-type PollProps = {
-  id: string;
-  slug: string;
-  title: string;
-  allowOther: boolean;
-  options: OptionView[];
-};
-
-const BAR_COLORS = ["bg-violet-500", "bg-pink-500", "bg-amber-400", "bg-cyan-400", "bg-lime-400", "bg-rose-400", "bg-sky-400", "bg-emerald-400", "bg-orange-400", "bg-fuchsia-400", "bg-slate-300"];
+type PollProps = { id: string; slug: string; title: string; allowOther: boolean; imageUrl?: string | null; options: OptionView[] };
+type State = { results: Results; myOptionId: string | null; myWriteInId: string | null };
 
 export function PollVoter({
   poll,
@@ -24,327 +18,243 @@ export function PollVoter({
   shareUrl,
   nextHref,
   compact = false,
+  tone,
 }: {
   poll: PollProps;
-  initial: { results: Results; myOptionId: string | null; myWriteInId: string | null } | null;
+  initial: State | null;
   verified: boolean;
   shareUrl: string;
   nextHref?: string;
   compact?: boolean;
+  tone?: string;
 }) {
   const router = useRouter();
-  const [state, setState] = useState(initial);
+  const [state, setState] = useState<State | null>(initial);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
   const [otherOpen, setOtherOpen] = useState(false);
   const [otherText, setOtherText] = useState("");
-  const [pending, startTransition] = useTransition();
   const [earned, setEarned] = useState(0);
   const [progress, setProgress] = useState<Progress | null>(null);
-  const otherRef = useRef<HTMLInputElement>(null);
+  const [pending, startTransition] = useTransition();
+  const [animate, setAnimate] = useState(Boolean(initial));
   const duel = poll.options.length === 2 && !poll.allowOther;
 
   useEffect(() => {
-    if (otherOpen) otherRef.current?.focus();
-  }, [otherOpen]);
+    if (!state) return;
+    const t = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(t);
+  }, [state]);
 
   function vote(choice: { optionId?: string; otherText?: string }) {
     setError(null);
-    setSelected(choice.optionId ?? "other");
     startTransition(async () => {
       const res = await voteAction(poll.id, choice);
       if (res.ok) {
+        setAnimate(false);
         setState({ results: res.results, myOptionId: res.myOptionId, myWriteInId: res.myWriteInId });
         setEarned(res.points);
         setProgress(res.progress);
-        if (navigator.vibrate) navigator.vibrate(30);
+        try {
+          navigator.vibrate?.(20);
+        } catch {}
         if (!compact) router.refresh();
       } else {
-        setSelected(null);
-        if (res.error === "already_voted" && res.results) {
-          setState({ results: res.results, myOptionId: null, myWriteInId: null });
-        }
+        if (res.error === "already_voted" && res.results) setState({ results: res.results, myOptionId: null, myWriteInId: null });
         setError({ code: res.error, message: res.message });
       }
     });
   }
 
-  if (state) {
-    return (
-      <>
-        {earned > 0 && (
-          <p role="status" className="animate-pop mb-3 rounded-2xl bg-amber-50 p-3 text-center font-bold text-amber-800 ring-1 ring-amber-200">
-            ⭐ +{earned} puntos
-            {progress && progress.streak > 1 && <> · 🔥 {progress.streak} días seguidos</>}
-            {progress?.next && (
-              <span className="block text-sm font-semibold">
-                Te {progress.remaining === 1 ? "falta 1 voto" : `faltan ${progress.remaining} votos`} para ser {progress.next}
-              </span>
-            )}
-          </p>
-        )}
-        <ResultsView poll={poll} state={state} verified={verified} shareUrl={shareUrl} nextHref={nextHref} compact={compact} />
-      </>
-    );
-  }
+  const results = state?.results;
+  const pctOf = (id: string) => results?.rows.find((r) => r.id === id)?.pct ?? 0;
+  const myWriteIn = results?.writeIns.find((w) => w.id === state?.myWriteInId);
+  const myLabel = state ? (myWriteIn?.label ?? poll.options.find((o) => o.id === state.myOptionId)?.label ?? null) : null;
 
   return (
-    <div className="space-y-3">
-      {duel ? (
-        <div className="relative grid grid-cols-2 gap-3">
-          {poll.options.map((o, i) => (
-            <button
-              key={o.id}
-              onClick={() => vote({ optionId: o.id })}
-              disabled={pending}
-              aria-label={`Votar ${o.label}`}
-              className={`group relative flex aspect-[4/5] flex-col items-center justify-end overflow-hidden rounded-2xl p-4 text-center font-display text-xl font-extrabold text-white shadow-lg transition hover:shadow-xl active:scale-95 disabled:opacity-80 sm:aspect-[4/3] sm:text-2xl ${
-                i === 0 ? "bg-gradient-to-br from-violet-500 to-indigo-600" : "bg-gradient-to-br from-rose-500 to-orange-500"
-              } ${selected === o.id ? "animate-pop ring-4 ring-brand" : ""}`}
-            >
-              {o.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={o.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105" />
-              ) : (
-                <span className="absolute inset-0 flex items-center justify-center text-7xl" aria-hidden>
-                  {o.emoji ?? (i === 0 ? "🅰️" : "🅱️")}
-                </span>
-              )}
-              <span className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/75 to-transparent" aria-hidden />
-              <span className="relative leading-tight drop-shadow">{o.label}</span>
-              <span className="relative mt-2 rounded-full bg-white px-4 py-1.5 text-sm font-bold text-brand opacity-90 group-hover:opacity-100">Votar</span>
-            </button>
-          ))}
-          <span className="pointer-events-none absolute left-1/2 top-[40%] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-brand font-display text-lg font-black text-white shadow-xl">
-            VS
-          </span>
-        </div>
-      ) : (
-        <ul className="space-y-2.5">
-          {poll.options.map((o) => (
-            <li key={o.id}>
-              <button
-                onClick={() => vote({ optionId: o.id })}
-                disabled={pending}
-                className={`flex w-full items-center gap-3 rounded-2xl border border-line bg-white px-3 py-3 text-left text-base font-bold shadow-sm transition hover:border-rose-300 hover:bg-rose-50 active:scale-[0.98] disabled:opacity-70 ${
-                  selected === o.id ? "animate-pop border-brand bg-rose-50" : ""
-                }`}
-              >
-                {o.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={o.imageUrl} alt="" className="h-14 w-16 rounded-xl object-cover" />
-                ) : (
-                  <span className="text-2xl" aria-hidden>
-                    {o.emoji ?? "•"}
-                  </span>
-                )}
-                <span className="flex-1">{o.label}</span>
-                <span className="text-muted" aria-hidden>
-                  ›
-                </span>
-              </button>
-            </li>
-          ))}
-          {poll.allowOther && (
-            <li>
-              {otherOpen ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (otherText.trim()) vote({ otherText: otherText.trim() });
-                  }}
-                  className="flex items-center gap-2 rounded-2xl border-2 border-rose-300 bg-slate-100 p-2 pl-4"
-                >
-                  <span className="text-2xl" aria-hidden>
-                    ✍️
-                  </span>
-                  <label htmlFor={`other-${poll.id}`} className="sr-only">
-                    Escribe tu respuesta
-                  </label>
-                  <input
-                    id={`other-${poll.id}`}
-                    ref={otherRef}
-                    value={otherText}
-                    onChange={(e) => setOtherText(e.target.value)}
-                    maxLength={60}
-                    placeholder="Escribe tu respuesta…"
-                    className="min-w-0 flex-1 bg-transparent py-2 text-base font-bold outline-none placeholder:text-muted"
-                  />
-                  <button
-                    type="submit"
-                    disabled={pending || !otherText.trim()}
-                    className="bg-brand-gradient rounded-xl px-4 py-2 font-extrabold text-white disabled:opacity-50"
-                  >
-                    Votar
-                  </button>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setOtherOpen(true)}
-                  className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-3.5 text-left text-base font-bold text-muted hover:border-rose-300 hover:text-ink"
-                >
-                  <span className="text-2xl" aria-hidden>
-                    ✍️
-                  </span>
-                  Otra… escribe la tuya
-                </button>
-              )}
-            </li>
-          )}
-        </ul>
-      )}
-      {pending && <p className="text-center text-sm text-muted">Contando tu voto…</p>}
-      {error && (
-        <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-          <p>{error.message}</p>
-          {error.code === "needs_signup" && (
-            <Link href={`/entrar?next=/p/${poll.slug}`} className="mt-2 inline-block font-bold text-amber-700 underline">
-              Registrarme gratis →
-            </Link>
-          )}
-        </div>
-      )}
-      <p className="text-center text-xs text-muted">Vota para ver qué opina el mundo · Gratis y sin registro</p>
-    </div>
-  );
-}
-
-function ResultsView({
-  poll,
-  state,
-  verified,
-  shareUrl,
-  nextHref,
-  compact,
-}: {
-  poll: PollProps;
-  state: { results: Results; myOptionId: string | null; myWriteInId: string | null };
-  verified: boolean;
-  shareUrl: string;
-  nextHref?: string;
-  compact: boolean;
-}) {
-  const [animate, setAnimate] = useState(false);
-  useEffect(() => {
-    const t = requestAnimationFrame(() => setAnimate(true));
-    return () => cancelAnimationFrame(t);
-  }, []);
-  const { results, myOptionId, myWriteInId } = state;
-  const max = Math.max(...results.rows.map((r) => r.count));
-  const myRow = results.rows.find((r) => (myWriteInId ? r.isOther : r.id === myOptionId));
-  const myWriteIn = results.writeIns.find((w) => w.id === myWriteInId);
-  const leader = results.rows.find((r) => r.count === max && max > 0);
-  const duel = results.rows.length === 2 && !results.rows.some((r) => r.isOther);
-  const verifiedPct = results.total ? Math.round((results.verified / results.total) * 100) : 0;
-  const shareText = myRow
-    ? `He votado «${myWriteIn?.label ?? myRow.label}» en «${poll.title}». ¿Y tú? 🗳️`
-    : `«${poll.title}» — mira qué opina el mundo 🗳️`;
-
-  return (
-    <div className="animate-rise space-y-4" aria-live="polite">
-      {myRow && (
-        <p className="text-center text-sm font-semibold text-brand">
-          ✓ Tu voto: <strong>{myWriteIn?.label ?? myRow.label}</strong>
-          {myRow.pct ? ` · coincides con el ${myWriteIn ? Math.round((myWriteIn.count / results.total) * 100) : myRow.pct}%` : ""}
+    <div className="grid gap-4">
+      {earned > 0 && (
+        <p role="status" className="animate-pop rounded-full bg-lime px-4 py-2.5 text-center text-sm font-extrabold">
+          +{earned} puntos
+          {progress && progress.streak > 1 ? ` · racha de ${progress.streak} días` : ""}
+          {progress?.next ? ` · ${progress.remaining} votos para ser ${progress.next}` : ""}
         </p>
       )}
 
       {duel ? (
         <div>
-          <div className="flex justify-between font-display text-3xl font-black sm:text-4xl">
-            <span className="text-violet">{results.rows[0].pct}%</span>
-            <span className="text-brand">{results.rows[1].pct}%</span>
-          </div>
-          <div className="mt-2 flex h-6 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${results.rows[0].label} ${results.rows[0].pct}%, ${results.rows[1].label} ${results.rows[1].pct}%`}>
-            <div className="bg-gradient-to-r from-violet to-violet-400 transition-all duration-1000" style={{ width: animate ? `${results.rows[0].pct}%` : "50%" }} />
-            <div className="flex-1 bg-gradient-to-r from-rose-400 to-brand" />
-          </div>
-          <div className="mt-2 flex justify-between text-sm font-bold">
-            <span>
-              {results.rows[0].emoji} {results.rows[0].label} {myOptionId === results.rows[0].id && "· tu voto"}
+          <div className="relative grid grid-cols-2 gap-2">
+            {poll.options.map((o, i) => {
+              const mine = state?.myOptionId === o.id;
+              return (
+                <button
+                  key={o.id}
+                  onClick={() => !state && vote({ optionId: o.id })}
+                  disabled={pending || Boolean(state)}
+                  aria-label={state ? `${o.label} ${pctOf(o.id)}%` : `Votar ${o.label}`}
+                  className="group relative aspect-[3/4] overflow-hidden rounded-[24px] text-left text-white disabled:cursor-default sm:aspect-[4/3]"
+                >
+                  <Photo src={o.imageUrl ?? poll.imageUrl} alt="" label={o.label} tone={tone} className="absolute inset-0 h-full w-full transition group-hover:scale-[1.02]" initialsClass="text-7xl sm:text-8xl" />
+                  <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" aria-hidden />
+                  <span className="absolute inset-x-3 bottom-3 flex flex-col items-start gap-2 sm:inset-x-5 sm:bottom-4 sm:flex-row sm:items-end sm:justify-between">
+                    <b className="text-2xl font-black leading-none tracking-[-0.04em] sm:text-4xl">
+                      {o.label}
+                      {mine ? " ✓" : ""}
+                    </b>
+                    <span className={`rounded-full px-3.5 py-2 text-sm font-extrabold ${i ? "bg-lime text-ink" : "bg-pink text-white"}`}>
+                      {state ? `${pctOf(o.id)}%` : "Votar"}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+            <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white bg-ink px-3 py-2.5 text-sm font-black text-lime">
+              VS
             </span>
-            <span className="text-right">
-              {myOptionId === results.rows[1].id && "tu voto · "}
-              {results.rows[1].label} {results.rows[1].emoji}
-            </span>
           </div>
+          {results && (
+            <div className="mt-3">
+              <div className="flex h-3 overflow-hidden rounded-full" role="img" aria-label={`${poll.options[0].label} ${pctOf(poll.options[0].id)}%, ${poll.options[1].label} ${pctOf(poll.options[1].id)}%`}>
+                <span className="bg-pink transition-[width] duration-700" style={{ width: animate ? `${pctOf(poll.options[0].id)}%` : "50%" }} />
+                <span className="flex-1 bg-ink" />
+              </div>
+              <div className="mt-2 flex justify-between text-[15px] font-extrabold">
+                <span className="text-pink">
+                  {poll.options[0].label} {pctOf(poll.options[0].id)}%
+                </span>
+                <span>
+                  {pctOf(poll.options[1].id)}% {poll.options[1].label}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
-        <ul className="space-y-2">
-          {results.rows.map((r, i) => {
-            const mine = myWriteInId ? r.isOther : r.id === myOptionId;
+        <div className="grid gap-2">
+          {(results ? results.rows : poll.options.map((o) => ({ id: o.id, label: o.label, pct: 0, isOther: false }))).map((r) => {
+            const opt = poll.options.find((o) => o.id === r.id);
+            const mine = state ? (r.isOther ? Boolean(state.myWriteInId) : state.myOptionId === r.id) : false;
             return (
-              <li key={r.id} className={`relative overflow-hidden rounded-2xl border bg-white ${mine ? "border-brand ring-1 ring-brand" : "border-line"}`}>
-                <div
-                  className={`absolute inset-y-0 left-0 ${BAR_COLORS[i % BAR_COLORS.length]} opacity-25 transition-all duration-1000 ease-out`}
-                  style={{ width: animate ? `${r.pct}%` : "0%" }}
+              <button
+                key={r.id}
+                onClick={() => !state && !r.isOther && vote({ optionId: r.id })}
+                disabled={pending || Boolean(state)}
+                className={`relative flex w-full items-center gap-3 overflow-hidden rounded-[22px] border-2 bg-white py-2 pl-2 pr-4 text-left text-base font-extrabold transition disabled:cursor-default ${
+                  mine ? "border-ink" : "border-line hover:border-ink"
+                }`}
+              >
+                <span
+                  className={`absolute inset-y-0 left-0 transition-[width] duration-700 ${mine ? "bg-pink" : "bg-lime"}`}
+                  style={{ width: results && animate ? `${r.pct}%` : 0 }}
                   aria-hidden
                 />
-                <div className="relative flex items-center gap-3 px-4 py-3">
-                  <span className="text-xl" aria-hidden>
-                    {r.emoji ?? "•"}
-                  </span>
-                  <span className="flex-1 font-bold">
-                    {r.label}
-                    {r === leader && <span className="ml-1" aria-label="ganando">👑</span>}
-                    {mine && <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-[11px] font-black uppercase text-white">Tu voto</span>}
-                  </span>
-                  <span className="font-display text-lg font-black tabular-nums">{r.pct}%</span>
-                </div>
-              </li>
+                <Photo src={opt?.imageUrl} alt="" label={r.isOther ? "+" : r.label} tone={r.isOther ? "#b9b7ae" : tone} className="h-12 w-12 shrink-0 rounded-[15px]" initialsClass="text-lg" />
+                <span className="relative flex-1">
+                  {r.isOther ? "Otra respuesta" : r.label}
+                  {mine ? " ✓" : ""}
+                </span>
+                {results && <span className="relative text-base font-black tabular-nums">{r.pct}%</span>}
+              </button>
             );
           })}
-        </ul>
+          {!state && poll.allowOther && (
+            otherOpen ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (otherText.trim()) vote({ otherText: otherText.trim() });
+                }}
+                className="flex gap-2 rounded-full border-2 border-ink bg-white p-1.5"
+              >
+                <label htmlFor={`other-${poll.id}`} className="sr-only">
+                  Escribe tu respuesta
+                </label>
+                <input
+                  id={`other-${poll.id}`}
+                  autoFocus
+                  value={otherText}
+                  onChange={(e) => setOtherText(e.target.value)}
+                  maxLength={60}
+                  placeholder="Escribe tu respuesta…"
+                  className="min-w-0 flex-1 bg-transparent px-3 text-base font-semibold outline-none"
+                />
+                <button type="submit" disabled={pending || !otherText.trim()} className="rounded-full bg-ink px-5 py-2.5 font-extrabold text-lime disabled:opacity-50">
+                  Votar
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={() => setOtherOpen(true)}
+                className="flex w-full items-center gap-3 rounded-[22px] border-2 border-dashed border-line py-2 pl-2 pr-4 text-left font-bold text-muted hover:border-ink hover:text-ink"
+              >
+                <span className="grid h-12 w-12 place-items-center rounded-[15px] bg-wash text-2xl font-black" aria-hidden>
+                  +
+                </span>
+                Otra respuesta… escribe la tuya
+              </button>
+            )
+          )}
+          {results && results.writeIns.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1.5" aria-label="Respuestas escritas por la comunidad">
+              {results.writeIns.slice(0, 12).map((w) => (
+                <span key={w.id} className={`rounded-full px-3 py-1 text-[13px] font-semibold ${w.id === state?.myWriteInId ? "bg-pink text-white" : "bg-wash"}`}>
+                  {w.label} <span className="tabular-nums opacity-70">· {w.count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
-      {results.writeIns.length > 0 && (
-        <details className="rounded-2xl border border-line bg-white p-3 text-sm" open={!compact && Boolean(myWriteInId)}>
-          <summary className="cursor-pointer font-bold">✍️ Respuestas escritas por la comunidad ({results.writeIns.length})</summary>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {results.writeIns.slice(0, 12).map((w) => (
-              <li key={w.id} className={`rounded-full px-3 py-1 ${w.id === myWriteInId ? "bg-brand text-white" : "bg-slate-100"}`}>
-                {w.label} <span className="text-muted">· {w.count}</span>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-
-      <p className="text-center text-xs text-muted">
-        {results.total.toLocaleString("es-ES")} {results.total === 1 ? "voto" : "votos"} · {verifiedPct}% de cuentas verificadas · Votación popular, no representativa
-      </p>
-
-      {!verified && (
-        <Link
-          href={`/entrar?next=/p/${poll.slug}`}
-          className="block rounded-2xl border border-rose-300 bg-rose-50 p-4 text-center"
-        >
-          <span className="block font-display text-lg font-extrabold">🔒 Guarda tu voto</span>
-          <span className="text-sm text-muted">Regístrate en 30 segundos, gana 50 puntos y descubre qué opina tu país, tu edad y tu género.</span>
-        </Link>
-      )}
-
-      {compact ? (
-        <Link href={`/p/${poll.slug}`} className="block rounded-2xl bg-ink py-3 text-center font-extrabold text-white">
-          Ver resultados completos y compartir →
-        </Link>
-      ) : (
-        <>
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(`${myRow ? `Yo voté «${myWriteIn?.label ?? myRow.label}». ` : ""}${poll.title} ¿Y tú? 👉 ${shareUrl}?src=reto`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-4 text-base font-extrabold text-white shadow-lg shadow-green-200"
-          >
-            💬 Reta a un amigo por WhatsApp
-          </a>
-          <ShareBar pollId={poll.id} slug={poll.slug} url={shareUrl} text={shareText} />
-          {nextHref && (
-            <Link href={nextHref} className="block rounded-2xl bg-ink py-3.5 text-center text-base font-extrabold text-white">
-              Siguiente pregunta →
+      {pending && <p className="text-center text-sm text-muted">Contando tu voto…</p>}
+      {error && (
+        <div role="alert" className="rounded-[18px] bg-pink-soft p-3.5 text-sm">
+          <p>{error.message}</p>
+          {error.code === "needs_signup" && (
+            <Link href={`/entrar?next=/p/${poll.slug}`} className="mt-2 inline-block font-extrabold underline">
+              Crear cuenta gratis
             </Link>
           )}
-        </>
+        </div>
+      )}
+
+      {!state && <p className="text-sm text-muted">Vota para ver los resultados. Es gratis y sin registro.</p>}
+
+      {results && (
+        <div className="animate-rise grid gap-3">
+          {myLabel && (
+            <p className="text-sm">
+              ✓ Tu voto: <b>{myLabel}</b> · {results.total.toLocaleString("es-ES")} {results.total === 1 ? "voto" : "votos"} · votación popular, no representativa
+            </p>
+          )}
+          {!verified && (
+            <Link href={`/entrar?next=/p/${poll.slug}`} className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] bg-lime p-4">
+              <span className="font-semibold">Guarda tu voto, suma puntos y mira qué opina tu país.</span>
+              <span className="rounded-full bg-ink px-4 py-2 text-sm font-extrabold text-lime">Crear cuenta gratis</span>
+            </Link>
+          )}
+          {compact ? (
+            <Link href={`/p/${poll.slug}`} className="rounded-full bg-ink py-3 text-center font-extrabold text-lime">
+              Ver resultados completos
+            </Link>
+          ) : (
+            <>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${myLabel ? `Yo voté «${myLabel}». ` : ""}${poll.title} ¿Y tú? ${shareUrl}?src=reto`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-[#1fae54] py-3.5 text-center text-base font-extrabold text-white"
+              >
+                Reta a un amigo por WhatsApp
+              </a>
+              <ShareBar pollId={poll.id} slug={poll.slug} url={shareUrl} text={`${myLabel ? `He votado «${myLabel}» en «${poll.title}». ` : `«${poll.title}». `}¿Y tú?`} />
+              {nextHref && (
+                <Link href={nextHref} className="rounded-full bg-ink py-3.5 text-center text-base font-extrabold text-lime">
+                  Siguiente pregunta
+                </Link>
+              )}
+            </>
+          )}
+        </div>
       )}
     </div>
   );

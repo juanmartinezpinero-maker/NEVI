@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 
 export const MAIN_NAV = [
   { href: "/", label: "Inicio" },
-  { href: "/encuestas", label: "Encuestas" },
+  { href: "/encuestas", label: "Explorar" },
   { href: "/rankings", label: "Rankings" },
-  { href: "/tendencias", label: "Tendencias" },
-  { href: "/descubrir", label: "⚡ Modo rápido" },
+  { href: "/descubrir", label: "Modo historias" },
   { href: "/recompensas", label: "Premios" },
 ];
 
@@ -23,10 +22,9 @@ export function NavLinks({ rewards = false }: { rewards?: boolean }) {
             <Link
               href={it.href}
               aria-current={active ? "page" : undefined}
-              className={`relative px-3 py-5 text-sm font-semibold ${active ? "text-ink" : "text-muted hover:text-ink"}`}
+              className={`rounded-full px-3.5 py-2 text-sm font-bold ${active ? "bg-ink text-lime" : "text-ink-2 hover:bg-white/60"}`}
             >
               {it.label}
-              {active && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-brand" />}
             </Link>
           </li>
         );

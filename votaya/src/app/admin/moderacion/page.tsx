@@ -17,7 +17,7 @@ export default async function ModerationPage() {
     : [];
   const similar = await Promise.all(pending.map((p) => findSimilarPolls(p.poll.title)));
 
-  if (!pending.length) return <p className="card p-6 text-center text-muted">🎉 No hay preguntas pendientes de moderar.</p>;
+  if (!pending.length) return <p className="card p-6 text-center text-muted">No hay preguntas pendientes de moderar.</p>;
   return (
     <ul className="space-y-4">
       {pending.map(({ poll, author }, i) => (
@@ -29,9 +29,9 @@ export default async function ModerationPage() {
           {poll.description && <p className="text-sm text-muted">{poll.description}</p>}
           <ul className="flex flex-wrap gap-2 text-sm">
             {options.filter((o) => o.pollId === poll.id).map((o) => (
-              <li key={o.id} className="rounded-full bg-slate-100 px-3 py-1">{o.emoji} {o.label}</li>
+              <li key={o.id} className="rounded-full bg-wash px-3 py-1">{o.emoji} {o.label}</li>
             ))}
-            {poll.allowOther && <li className="rounded-full border border-dashed border-line px-3 py-1">✍️ Otra</li>}
+            {poll.allowOther && <li className="rounded-full border border-dashed border-line px-3 py-1">+ Otra</li>}
           </ul>
           {similar[i].filter((s) => s.id !== poll.id).length > 0 && (
             <p className="text-sm text-amber-700">
@@ -42,13 +42,13 @@ export default async function ModerationPage() {
             <form action={moderatePollAction}>
               <input type="hidden" name="id" value={poll.id} />
               <input type="hidden" name="decision" value="approve" />
-              <button className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold">✓ Aprobar y publicar</button>
+              <button className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-lime">Aprobar y publicar</button>
             </form>
             <form action={moderatePollAction} className="flex flex-1 gap-2">
               <input type="hidden" name="id" value={poll.id} />
               <input type="hidden" name="decision" value="reject" />
               <input name="note" placeholder="Motivo del rechazo" aria-label="Motivo del rechazo" className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 text-sm" />
-              <button className="rounded-full bg-rose-600 px-4 py-2 text-sm font-bold">Rechazar</button>
+              <button className="rounded-full bg-pink text-white px-4 py-2 text-sm font-bold">Rechazar</button>
             </form>
           </div>
         </li>

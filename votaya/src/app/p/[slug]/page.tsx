@@ -25,7 +25,7 @@ export async function generateMetadata(props: PageProps<"/p/[slug]">): Promise<M
     title: poll.title,
     description: desc,
     alternates: { canonical: `/p/${poll.slug}` },
-    openGraph: { title: `${poll.title} · VotaYa`, description: desc, url: `/p/${poll.slug}`, type: "article" },
+    openGraph: { title: `${poll.title} · voppi!`, description: desc, url: `/p/${poll.slug}`, type: "article" },
     twitter: { card: "summary_large_image", title: poll.title, description: desc },
   };
 }
@@ -55,44 +55,36 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
   const optionList = [...poll.options.map((o) => ({ id: o.id, label: o.label })), { id: "other", label: "Otra" }];
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <TrackView pollId={poll.id} />
       <div className="min-w-0 space-y-6">
         {poll.status !== "published" && (
-          <p className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="rounded-[18px] bg-lime p-3 text-sm">
             Vista previa · Estado: <strong>{poll.status === "pending" ? "pendiente de moderación" : poll.status}</strong>
           </p>
         )}
-        <article className="card p-5 sm:p-7">
-          <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted" aria-label="Categoría">
-            <Link href={`/encuestas?cat=${poll.category}`} className="rounded-full bg-slate-100 px-3 py-1 hover:text-ink">
-              {cat?.emoji} {cat?.name}
+        <article>
+          <nav className="kicker mb-3 flex flex-wrap items-center gap-x-3 gap-y-1" aria-label="Categoría">
+            <Link href={`/encuestas?cat=${poll.category}`} className="hover:underline" style={{ color: cat?.tone }}>
+              {cat?.name}
             </Link>
-            {poll.sponsored && <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">Patrocinada{poll.sponsorName ? ` por ${poll.sponsorName}` : ""}</span>}
-            <span className="rounded-full bg-slate-100 px-3 py-1" title="Cualquiera puede votar: no es una muestra representativa">
-              {poll.kind === "study" ? "📊 Estudio representativo" : "🗳️ Votación popular"}
-            </span>
+            {poll.sponsored && <span className="text-pink">Patrocinada{poll.sponsorName ? ` por ${poll.sponsorName}` : ""}</span>}
+            <span title="Cualquiera puede votar: no es una muestra representativa">{poll.kind === "study" ? "Estudio representativo" : "Votación popular"}</span>
             <span>{formatCount(results?.total ?? poll.voteCount)} votos</span>
           </nav>
-          <h1 className="font-display text-3xl font-extrabold leading-tight sm:text-4xl">
-            {poll.emoji && <span aria-hidden>{poll.emoji} </span>}
-            {poll.title}
-          </h1>
-          {poll.description && <p className="mt-2 text-muted">{poll.description}</p>}
+          <h1 className="text-[34px] font-black leading-[1.02] tracking-[-0.05em] sm:text-[48px]">{poll.title}</h1>
+          {poll.description && <p className="mt-3 text-lg text-ink-2">{poll.description}</p>}
           {poll.reward && rewardsEnabled() && (
-            <Link href="/recompensas" className="mt-3 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-amber-50 p-3 ring-1 ring-emerald-200">
-              <span className="text-2xl" aria-hidden>
-                🎁
-              </span>
+            <Link href="/recompensas" className="mt-3 flex items-center gap-3 rounded-[18px] bg-lime p-3">
               <span className="text-sm">
-                <strong className="block text-emerald-900">{poll.reward.title}</strong>
-                <span className="text-emerald-800">Vota, suma puntos y canjéalo por ⭐ {poll.reward.costPoints} puntos</span>
+                <strong className="block">{poll.reward.title}</strong>
+                <span>Vota, suma puntos y canjéalo por {poll.reward.costPoints} puntos</span>
               </span>
             </Link>
           )}
           {poll.isDemo && (
-            <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              ⚠️ Encuesta de demostración: los votos iniciales son datos ficticios generados para mostrar la plataforma.
+            <p className="mt-3 rounded-[14px] bg-wash px-3 py-2 text-xs text-muted">
+              Encuesta de demostración: los votos iniciales son datos ficticios generados para mostrar la plataforma.
             </p>
           )}
           <div className="mt-6">
@@ -103,13 +95,14 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
               verified={verified}
               shareUrl={`${base}/p/${poll.slug}`}
               nextHref={nextHref}
+              tone={cat?.tone}
             />
           </div>
         </article>
 
         {existing && (
-          <section className="card p-5 sm:p-7" aria-labelledby="segments">
-            <h2 id="segments" className="mb-4 font-display text-2xl font-extrabold">
+          <section className="rounded-[26px] bg-wash p-5 sm:p-7" aria-labelledby="segments">
+            <h2 id="segments" className="mb-4 text-[26px] font-black tracking-[-0.045em]">
               ¿Qué opina cada grupo?
             </h2>
             {segments ? (
@@ -138,16 +131,16 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
                   {["🇪🇸 España", "🇲🇽 México", "🇦🇷 Argentina"].map((c) => (
                     <div key={c}>
                       <p className="mb-1 text-sm font-bold">{c}</p>
-                      <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
-                        <div className="w-3/5 bg-violet" />
-                        <div className="w-2/5 bg-brand" />
+                      <div className="flex h-3 overflow-hidden rounded-full bg-line">
+                        <div className="w-3/5 bg-pink" />
+                        <div className="w-2/5 bg-ink" />
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/60 text-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-wash/60 text-center">
                   <p className="font-bold">Resultados por país, edad y género</p>
-                  <Link href={`/entrar?next=/p/${poll.slug}`} className="bg-brand-gradient rounded-full px-5 py-2 font-bold text-white">
+                  <Link href={`/entrar?next=/p/${poll.slug}`} className="rounded-full bg-ink px-5 py-2.5 font-extrabold text-lime">
                     Regístrate gratis para verlos
                   </Link>
                 </div>
@@ -162,8 +155,8 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
       </div>
 
       <aside className="space-y-4">
-        <h2 className="font-display text-xl font-extrabold">Más preguntas para ti</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+        <h2 className="text-[22px] font-extrabold tracking-[-0.04em]">Más preguntas para ti</h2>
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-1">
           {recommended.map((p) => (
             <PollCard key={p.id} poll={p} />
           ))}

@@ -23,8 +23,8 @@ export default async function AdminPollDetail(props: PageProps<"/admin/encuestas
           <input type="hidden" name="id" value={poll.id} />
           <input type="hidden" name="action" value="edit" />
           <label className="sr-only" htmlFor="title">Título</label>
-          <input id="title" name="title" defaultValue={poll.title} className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2 font-bold" />
-          <button className="rounded-xl bg-slate-100 px-4 font-bold">Guardar</button>
+          <input id="title" name="title" defaultValue={poll.title} className="min-w-0 flex-1 rounded-[16px] border-2 border-line bg-white px-3 py-2 font-bold" />
+          <button className="rounded-xl bg-wash px-4 font-bold">Guardar</button>
         </form>
         <p className="text-sm text-muted">
           {results.total} votos · {results.verified} verificados · estado {poll.status} · <Link className="underline" href={`/p/${poll.slug}`}>/p/{poll.slug}</Link>
@@ -55,7 +55,7 @@ export default async function AdminPollDetail(props: PageProps<"/admin/encuestas
                 </form>
                 <form action={toggleWriteInAction}>
                   <input type="hidden" name="id" value={w.id} />
-                  <button className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">{w.hidden ? "Mostrar" : "Ocultar"}</button>
+                  <button className="rounded-full bg-wash px-3 py-1 text-xs font-bold">{w.hidden ? "Mostrar" : "Ocultar"}</button>
                 </form>
                 {allWriteIns.length > 1 && (
                   <form action={mergeWriteInAction} className="flex gap-1">
@@ -65,7 +65,7 @@ export default async function AdminPollDetail(props: PageProps<"/admin/encuestas
                         <option key={x.id} value={x.id}>{x.label}</option>
                       ))}
                     </select>
-                    <button className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">Unir</button>
+                    <button className="rounded-full bg-wash px-3 py-1 text-xs font-bold">Unir</button>
                   </form>
                 )}
               </li>

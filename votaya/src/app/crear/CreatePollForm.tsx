@@ -7,7 +7,7 @@ import { CATEGORIES } from "@/lib/categories";
 
 type Opt = { key: number; label: string; emoji: string; imageUrl: string };
 
-const input = "w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none focus:border-rose-300";
+const input = "w-full rounded-[16px] border-2 border-line bg-white px-4 py-3 text-base font-medium outline-none focus:border-ink";
 
 export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
   const [state, action, pending] = useActionState<CreatePollState, FormData>(createPollAction, {});
@@ -39,7 +39,7 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
         <input name="title" required minLength={8} maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="¿Tortilla con o sin cebolla?" className={input} />
       </label>
       {shownSimilar.length > 0 && (
-        <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm" role="status">
+        <div className="rounded-[18px] bg-lime p-3.5 text-sm" role="status">
           <p className="font-bold">Ya hay preguntas parecidas:</p>
           <ul className="mt-1 list-disc pl-5">
             {shownSimilar.map((s) => (
@@ -55,12 +55,11 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
             ))}
           </ul>
           <label className="mt-2 flex items-center gap-2">
-            <input type="checkbox" name="confirmDuplicate" className="accent-rose-600" /> La mía es diferente, enviarla igualmente
+            <input type="checkbox" name="confirmDuplicate" className="accent-[#eb5f7d]" /> La mía es diferente, enviarla igualmente
           </label>
         </div>
       )}
-      <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
-        <label className="block">
+      <label className="block">
           <span className="mb-1 block text-sm font-bold">Categoría</span>
           <select name="category" required value={meta.category} onChange={(e) => setMeta({ ...meta, category: e.target.value })} className={input}>
             <option value="" disabled>
@@ -68,16 +67,11 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
             </option>
             {CATEGORIES.map((c) => (
               <option key={c.slug} value={c.slug}>
-                {c.emoji} {c.name}
+                {c.name}
               </option>
             ))}
           </select>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm font-bold">Emoji</span>
-          <input name="emoji" value={meta.emoji} onChange={(e) => setMeta({ ...meta, emoji: e.target.value })} maxLength={8} placeholder="🥔" className={`${input} text-center`} />
-        </label>
-      </div>
+      </label>
       <label className="block">
         <span className="mb-1 block text-sm font-bold">
           Descripción <span className="font-normal text-muted">(opcional)</span>
@@ -88,12 +82,11 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
       <fieldset className="space-y-2">
         <legend className="mb-1 text-sm font-bold">Opciones ({opts.length}/10)</legend>
         {opts.map((o, i) => (
-          <div key={o.key} className="space-y-2 rounded-2xl border border-line p-2">
+          <div key={o.key} className="space-y-2">
             <div className="flex gap-2">
-              <input name="optionEmoji" aria-label={`Emoji opción ${i + 1}`} value={o.emoji} onChange={(e) => update(o.key, { emoji: e.target.value })} maxLength={8} placeholder="🙂" className={`${input} w-16 px-2 text-center`} />
               <input name="optionLabel" aria-label={`Opción ${i + 1}`} value={o.label} onChange={(e) => update(o.key, { label: e.target.value })} maxLength={60} required={i < 2} placeholder={`Opción ${i + 1}`} className={input} />
               {opts.length > 2 && (
-                <button type="button" aria-label={`Quitar opción ${i + 1}`} onClick={() => setOpts((x) => x.filter((y) => y.key !== o.key))} className="rounded-xl px-3 text-muted hover:text-ink">
+                <button type="button" aria-label={`Quitar opción ${i + 1}`} onClick={() => setOpts((x) => x.filter((y) => y.key !== o.key))} className="rounded-full px-3 text-muted hover:text-ink">
                   ✕
                 </button>
               )}
@@ -107,18 +100,18 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
         ))}
         <div className="flex flex-wrap gap-2">
           {opts.length < 10 && (
-            <button type="button" onClick={() => setOpts((x) => [...x, { key: Date.now(), label: "", emoji: "", imageUrl: "" }])} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold">
+            <button type="button" onClick={() => setOpts((x) => [...x, { key: Date.now(), label: "", emoji: "", imageUrl: "" }])} className="rounded-full bg-wash px-4 py-2 text-sm font-bold hover:bg-line">
               + Añadir opción
             </button>
           )}
-          <button type="button" onClick={() => setShowImages((v) => !v)} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold">
-            🖼️ {showImages ? "Ocultar imágenes" : "Añadir imágenes"}
+          <button type="button" onClick={() => setShowImages((v) => !v)} className="rounded-full bg-wash px-4 py-2 text-sm font-bold hover:bg-line">
+            {showImages ? "Ocultar imágenes" : "Añadir imágenes"}
           </button>
         </div>
       </fieldset>
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="allowOther" checked={meta.allowOther} onChange={(e) => setMeta({ ...meta, allowOther: e.target.checked })} className="h-4 w-4 accent-rose-600" />
+        <input type="checkbox" name="allowOther" checked={meta.allowOther} onChange={(e) => setMeta({ ...meta, allowOther: e.target.checked })} className="h-4 w-4 accent-[#eb5f7d]" />
         Permitir «Otra» (los votantes pueden escribir su respuesta)
       </label>
       {showImages && (
@@ -129,11 +122,11 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
       )}
 
       {state.error && (
-        <p role="alert" className="text-sm text-rose-600">
+        <p role="alert" className="rounded-[14px] bg-pink-soft p-3 text-sm">
           {state.error}
         </p>
       )}
-      <button disabled={pending} className="bg-brand-gradient w-full rounded-2xl py-3.5 font-extrabold text-white disabled:opacity-60">
+      <button disabled={pending} className="w-full rounded-full bg-ink py-4 text-lg font-extrabold text-lime disabled:opacity-60">
         {pending ? "Enviando…" : isAdmin ? "Publicar ahora" : "Enviar a moderación"}
       </button>
       <p className="text-center text-xs text-muted">

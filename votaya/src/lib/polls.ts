@@ -319,6 +319,7 @@ export async function getUserHistory(userId: string) {
       slug: polls.slug,
       title: polls.title,
       emoji: polls.emoji,
+      imageUrl: polls.imageUrl,
       category: polls.category,
       option: pollOptions.label,
       writeIn: writeIns.label,

@@ -17,7 +17,7 @@ export default async function LoginPage(props: PageProps<"/entrar">) {
         <div className="mx-auto w-fit">
           <LogoMark size={56} />
         </div>
-        <h1 className="mt-3 font-display text-3xl font-extrabold">Entra en VotaYa</h1>
+        <h1 className="mt-3 font-display text-3xl font-extrabold">Entra en voppi!</h1>
         <p className="mt-1 text-muted">Guarda tus votos y mira qué opina tu país. Menos de 30 segundos.</p>
       </div>
       <LoginForm next={next} />

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
 
-/** Filtros por categoría en forma de píldoras desplazables. */
-export function CategoryChips({ active, extraQuery = "" }: { active?: string; extraQuery?: string }) {
-  const items = [{ slug: "", name: "Todas", emoji: "✨" }, ...CATEGORIES];
+/** Filtros por categoría: píldoras con un punto del color de cada tema. */
+export function CategoryChips({ active, extraQuery = "", base = "/encuestas" }: { active?: string; extraQuery?: string; base?: string }) {
+  const items = [{ slug: "", name: "Todas", tone: "#222128" }, ...CATEGORIES];
   return (
     <nav aria-label="Filtrar por categoría" className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
       {items.map((c) => {
@@ -12,13 +12,11 @@ export function CategoryChips({ active, extraQuery = "" }: { active?: string; ex
         return (
           <Link
             key={c.slug || "all"}
-            href={`/encuestas${q ? `?${q}` : ""}`}
+            href={`${base}${q ? `?${q}` : ""}`}
             aria-current={on ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
-              on ? "border-brand bg-brand text-white" : "border-line bg-white text-ink/80 hover:border-rose-300"
-            }`}
+            className={`flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13.5px] font-bold ${on ? "bg-lime ring-2 ring-inset ring-ink" : "bg-wash text-ink-2 hover:bg-line"}`}
           >
-            <span aria-hidden>{c.emoji}</span>
+            {c.slug && <span className="h-2 w-2 rounded-full" style={{ background: c.tone }} aria-hidden />}
             {c.name}
           </Link>
         );

@@ -25,7 +25,7 @@ export default async function UsersPage() {
                 <td>
                   <form action={setRoleAction}>
                     <input type="hidden" name="id" value={u.id} />
-                    <button name="role" value={u.role === "admin" ? "user" : "admin"} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold">
+                    <button name="role" value={u.role === "admin" ? "user" : "admin"} className="rounded-full bg-wash px-2 py-0.5 text-xs font-bold">
                       {u.role} ⇄
                     </button>
                   </form>

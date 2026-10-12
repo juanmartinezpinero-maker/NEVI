@@ -16,7 +16,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           {AGE_RANGES.map((a) => (
             <label key={a} className="cursor-pointer">
               <input type="radio" name="ageRange" value={a} defaultChecked={defaults.ageRange === a} className="peer sr-only" required />
-              <span className="block rounded-xl border border-line bg-white py-2.5 text-center text-sm font-bold peer-checked:border-rose-300 peer-checked:bg-rose-50 peer-focus-visible:ring-2 peer-focus-visible:ring-rose-300">
+              <span className="block rounded-[16px] border-2 border-line bg-white py-2.5 text-center text-sm font-bold peer-checked:border-ink peer-checked:bg-lime peer-focus-visible:ring-2 peer-focus-visible:ring-rose-300">
                 {a}
               </span>
             </label>
@@ -29,7 +29,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           {GENDERS.map((g) => (
             <label key={g.value} className="cursor-pointer">
               <input type="radio" name="gender" value={g.value} defaultChecked={defaults.gender === g.value} className="peer sr-only" required />
-              <span className="block rounded-xl border border-line bg-white py-2.5 text-center text-sm font-bold peer-checked:border-rose-300 peer-checked:bg-rose-50 peer-focus-visible:ring-2 peer-focus-visible:ring-rose-300">
+              <span className="block rounded-[16px] border-2 border-line bg-white py-2.5 text-center text-sm font-bold peer-checked:border-ink peer-checked:bg-lime peer-focus-visible:ring-2 peer-focus-visible:ring-rose-300">
                 {g.label}
               </span>
             </label>
@@ -42,7 +42,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           name="country"
           required
           defaultValue={defaults.country ?? ""}
-          className="w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none focus:border-rose-300"
+          className="w-full rounded-[16px] border-2 border-line bg-white px-4 py-3 text-base outline-none focus:border-ink"
         >
           <option value="" disabled>
             Elige tu país
@@ -56,7 +56,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
       </label>
       <div className="space-y-2 text-sm">
         <label className="flex items-start gap-2">
-          <input type="checkbox" name="terms" required className="mt-1 h-4 w-4 accent-rose-600" />
+          <input type="checkbox" name="terms" required className="mt-1 h-4 w-4 accent-[#eb5f7d]" />
           <span>
             Tengo 16 años o más y acepto las{" "}
             <Link href="/terminos" target="_blank" className="underline">
@@ -70,16 +70,16 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           </span>
         </label>
         <label className="flex items-start gap-2 text-muted">
-          <input type="checkbox" name="marketing" className="mt-1 h-4 w-4 accent-rose-600" />
+          <input type="checkbox" name="marketing" className="mt-1 h-4 w-4 accent-[#eb5f7d]" />
           <span>Quiero recibir por email las preguntas más virales (opcional).</span>
         </label>
       </div>
       {state.error && (
-        <p role="alert" className="text-sm text-rose-600">
+        <p role="alert" className="text-sm text-pink">
           {state.error}
         </p>
       )}
-      <button disabled={pending} className="bg-brand-gradient w-full rounded-2xl py-3.5 font-extrabold text-white disabled:opacity-60">
+      <button disabled={pending} className="w-full rounded-full bg-ink py-3.5 font-extrabold text-lime disabled:opacity-60">
         {pending ? "Guardando…" : "¡Listo, a votar!"}
       </button>
     </form>

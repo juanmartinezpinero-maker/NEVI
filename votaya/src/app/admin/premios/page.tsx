@@ -20,7 +20,7 @@ export default async function AdminRewardsPage() {
       .limit(100),
     db.select({ id: schema.polls.id, title: schema.polls.title }).from(schema.polls).where(eq(schema.polls.status, "published")).orderBy(desc(schema.polls.voteCount)).limit(100),
   ]);
-  const input = "rounded-xl border border-line bg-white px-3 py-2 text-sm";
+  const input = "rounded-[16px] border-2 border-line bg-white px-3 py-2 text-sm";
   return (
     <div className="space-y-6">
       <p className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -44,7 +44,7 @@ export default async function AdminRewardsPage() {
         </select>
         <input name="description" placeholder="Condiciones (p. ej. válido en locales adheridos hasta el 31/12)" aria-label="Descripción" className={`${input} sm:col-span-2`} />
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="isDemo" defaultChecked className="accent-rose-600" /> Premio de demostración (sin valor real)
+          <input type="checkbox" name="isDemo" defaultChecked className="accent-[#eb5f7d]" /> Premio de demostración (sin valor real)
         </label>
         <button className="rounded-xl bg-brand px-4 py-2 font-bold text-white">Crear premio</button>
       </form>
@@ -73,7 +73,7 @@ export default async function AdminRewardsPage() {
                 <td>
                   <form action={toggleRewardAction}>
                     <input type="hidden" name="id" value={r.id} />
-                    <button className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">{r.active ? "Activo · pausar" : "Pausado · activar"}</button>
+                    <button className="rounded-full bg-wash px-3 py-1 text-xs font-bold">{r.active ? "Activo · pausar" : "Pausado · activar"}</button>
                   </form>
                 </td>
               </tr>
@@ -111,7 +111,7 @@ export default async function AdminRewardsPage() {
                         <button name="status" value="delivered" className="rounded-full bg-emerald-600 px-2 py-1 text-xs font-bold text-white">
                           Entregado
                         </button>
-                        <button name="status" value="cancelled" className="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold">
+                        <button name="status" value="cancelled" className="rounded-full bg-line px-2 py-1 text-xs font-bold">
                           Cancelar y devolver puntos
                         </button>
                       </form>

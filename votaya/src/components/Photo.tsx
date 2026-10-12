@@ -2,19 +2,30 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** Imagen con respaldo: si la foto no carga, muestra un degradado con emoji. */
+const initials = (s: string) =>
+  s
+    .replace(/[¿?¡!()«»"]/g, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("");
+
+/** Foto con respaldo: si no hay imagen o falla, muestra las iniciales sobre el tono de la categoría. */
 export function Photo({
   src,
   alt,
-  emoji,
-  gradient = "from-rose-300 to-violet-400",
+  label,
+  tone = "#b9b7ae",
   className = "",
+  initialsClass = "text-4xl",
 }: {
   src: string | null | undefined;
   alt: string;
-  emoji?: string | null;
-  gradient?: string;
+  label: string;
+  tone?: string;
   className?: string;
+  initialsClass?: string;
 }) {
   const [failed, setFailed] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
@@ -23,15 +34,15 @@ export function Photo({
     const img = ref.current;
     if (img && img.complete && img.naturalWidth === 0) setFailed(true);
   }, [src]);
-  if (!src || failed) {
-    return (
-      <div className={`flex items-center justify-center bg-gradient-to-br ${gradient} ${className}`} role="img" aria-label={alt}>
-        <span className="text-4xl drop-shadow" aria-hidden>
-          {emoji ?? "🗳️"}
-        </span>
-      </div>
-    );
-  }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img ref={ref} src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+  return (
+    <span className={`${/(^|\s)!?(absolute|fixed)\b/.test(className) ? "" : "relative "}grid place-items-center overflow-hidden ${className}`} style={{ background: tone }} role={alt ? "img" : undefined} aria-label={alt || undefined}>
+      <span className={`font-black tracking-[-0.06em] text-white/90 ${initialsClass}`} aria-hidden>
+        {initials(label)}
+      </span>
+      {src && !failed && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img ref={ref} src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} className="absolute inset-0 h-full w-full object-cover" />
+      )}
+    </span>
+  );
 }

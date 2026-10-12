@@ -53,7 +53,7 @@ export default async function AdminHome() {
             {daily.map((d) => (
               <div key={d.day} className="flex h-full flex-1 flex-col items-center gap-1">
                 <div className="flex w-full flex-1 items-end">
-                  <div className="bg-brand-gradient w-full rounded-t" style={{ height: `${(d.n / maxDay) * 100}%`, minHeight: 2 }} title={`${d.day}: ${d.n}`} />
+                  <div className="bg-ink text-lime w-full rounded-t" style={{ height: `${(d.n / maxDay) * 100}%`, minHeight: 2 }} title={`${d.day}: ${d.n}`} />
                 </div>
                 <span className="text-[9px] text-muted">{d.day.slice(0, 2)}</span>
               </div>
@@ -97,7 +97,7 @@ export default async function AdminHome() {
           </ul>
         </div>
         <div className="card p-5">
-          <h2 className="mb-3 font-display text-lg font-extrabold">⚠️ Actividad sospechosa (24 h)</h2>
+          <h2 className="mb-3 font-display text-lg font-extrabold">Actividad sospechosa (24 h)</h2>
           {suspicious.length ? (
             <ul className="space-y-1 text-sm">
               {suspicious.map((s) => (

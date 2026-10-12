@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
-import { SwipeDeck } from "@/components/SwipeDeck";
+import { StoryFeed } from "@/components/StoryFeed";
 import { getCurrentUser } from "@/lib/auth";
-import { CATEGORIES } from "@/lib/categories";
-import { getRecommended } from "@/lib/polls";
+import { CATEGORY_NAMES, CATEGORY_TONES, getFeedPolls } from "@/lib/feed";
+import { getVotedPollIds } from "@/lib/polls";
 import { getAnonId } from "@/lib/request";
 
-export const metadata: Metadata = { title: "Modo rápido", description: "Vota una pregunta tras otra en VotaYa." };
+export const metadata: Metadata = { title: "Modo historias", description: "Vota una pregunta tras otra a pantalla completa en voppi!" };
 
-/** Modo rápido tipo TikTok: cola de preguntas sin votar. */
-export default async function DiscoverPage() {
+export default async function StoriesPage() {
   const [user, anonId] = await Promise.all([getCurrentUser(), getAnonId()]);
-  const polls = await getRecommended(user?.id ?? null, anonId, 25);
-  const gradients = Object.fromEntries(CATEGORIES.map((c) => [c.slug, c.gradient]));
-  return <SwipeDeck polls={polls} gradients={gradients} />;
+  const voted = await getVotedPollIds(user?.id ?? null, anonId);
+  const polls = await getFeedPolls(user?.id ?? null, anonId, voted);
+  return <StoryFeed polls={polls} tones={CATEGORY_TONES} categoryNames={CATEGORY_NAMES} loggedIn={Boolean(user?.profileCompleted)} />;
 }

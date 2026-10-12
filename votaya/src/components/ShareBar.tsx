@@ -14,21 +14,21 @@ export function ShareBar({ pollId, slug, url, text }: { pollId: string; slug: st
   const storyUrl = `/api/story/${slug}`;
 
   const links = [
-    { id: "whatsapp", label: "WhatsApp", bg: "bg-[#25D366]", href: `https://wa.me/?text=${encodeURIComponent(`${text} ${withSrc("wa")}`)}` },
-    { id: "x", label: "X", bg: "bg-black", href: `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(withSrc("x"))}` },
-    { id: "telegram", label: "Telegram", bg: "bg-[#229ED9]", href: `https://t.me/share/url?url=${encodeURIComponent(withSrc("tg"))}&text=${encodeURIComponent(text)}` },
-    { id: "facebook", label: "Facebook", bg: "bg-[#1877F2]", href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(withSrc("fb"))}` },
+    { id: "whatsapp", label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(`${text} ${withSrc("wa")}`)}` },
+    { id: "x", label: "X", href: `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(withSrc("x"))}` },
+    { id: "telegram", label: "Telegram", href: `https://t.me/share/url?url=${encodeURIComponent(withSrc("tg"))}&text=${encodeURIComponent(text)}` },
+    { id: "facebook", label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(withSrc("fb"))}` },
   ];
 
   async function nativeShare() {
     trackShare(pollId, "native");
     setBusy(true);
     try {
-      const shareData: ShareData = { title: "VotaYa", text, url: withSrc("native") };
-      // En móvil, compartir la imagen 9:16 permite publicarla directamente en Stories de Instagram/TikTok.
+      const shareData: ShareData = { title: "voppi!", text, url: withSrc("native") };
+      // En móvil, compartir la imagen 9:16 permite publicarla en Stories de Instagram o TikTok.
       try {
         const blob = await fetch(storyUrl).then((r) => r.blob());
-        const file = new File([blob], `votaya-${slug}.png`, { type: "image/png" });
+        const file = new File([blob], `voppi-${slug}.png`, { type: "image/png" });
         if (navigator.canShare?.({ files: [file] })) shareData.files = [file];
       } catch {}
       if (navigator.share) await navigator.share(shareData);
@@ -49,46 +49,28 @@ export function ShareBar({ pollId, slug, url, text }: { pollId: string; slug: st
     } catch {}
   }
 
+  const pill = "rounded-full bg-wash px-3.5 py-2 text-center text-[13px] font-bold hover:bg-line";
   return (
-    <div className="space-y-3">
-      <button
-        onClick={nativeShare}
-        disabled={busy}
-        className="bg-brand-gradient w-full rounded-2xl py-3.5 text-base font-extrabold text-white shadow-lg shadow-rose-200 disabled:opacity-70"
-      >
-        {busy ? "Preparando…" : "📤 Compartir resultado"}
-      </button>
-      <div className="grid grid-cols-4 gap-2 text-xs font-bold">
+    <div className="grid gap-2">
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={nativeShare} disabled={busy} className="rounded-full border-2 border-ink py-2.5 text-sm font-extrabold disabled:opacity-60">
+          {busy ? "Preparando…" : "Compartir resultado"}
+        </button>
+        <a href={storyUrl} download={`voppi-${slug}-story.png`} onClick={() => trackShare(pollId, "story_download")} className="rounded-full border-2 border-ink py-2.5 text-center text-sm font-extrabold">
+          Imagen para Stories
+        </a>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
         {links.map((l) => (
-          <a
-            key={l.id}
-            href={l.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackShare(pollId, l.id)}
-            className={`${l.bg} rounded-xl py-2.5 text-center text-white`}
-          >
+          <a key={l.id} href={l.href} target="_blank" rel="noopener noreferrer" onClick={() => trackShare(pollId, l.id)} className={pill}>
             {l.label}
           </a>
         ))}
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-sm font-bold">
-        <a
-          href={storyUrl}
-          download={`votaya-${slug}-story.png`}
-          onClick={() => trackShare(pollId, "story_download")}
-          className="rounded-xl border border-line bg-slate-100 py-2.5 text-center hover:bg-slate-200"
-          title="Imagen vertical 9:16 para Stories de Instagram y TikTok"
-        >
-          📲 Imagen para Stories
-        </a>
-        <button onClick={copy} className="rounded-xl border border-line bg-slate-100 py-2.5 hover:bg-slate-200">
-          {copied ? "✓ Copiado" : "🔗 Copiar enlace"}
+        <button onClick={copy} className={pill}>
+          {copied ? "Copiado" : "Copiar enlace"}
         </button>
       </div>
-      <p className="text-center text-xs text-muted">
-        Instagram y TikTok no permiten compartir enlaces desde la web: descarga la imagen y súbela a tu Story o vídeo.
-      </p>
+      <p className="text-xs text-muted">Instagram y TikTok no permiten compartir enlaces desde la web: descarga la imagen y súbela a tu Story.</p>
     </div>
   );
 }

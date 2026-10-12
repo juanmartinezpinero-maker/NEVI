@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getBalance, getStreak } from "@/lib/points";
+import { rewardsEnabled } from "@/lib/site";
+import { IconSearch } from "./Icons";
 import { Logo } from "./Logo";
 import { NavLinks } from "./NavLinks";
-import { rewardsEnabled } from "@/lib/site";
 
 export async function Header() {
   const user = await getCurrentUser();
   const [points, streak] = user?.profileCompleted ? await Promise.all([getBalance(user.id), getStreak(user.id)]) : [null, 0];
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4" aria-label="Principal">
-        <Link href="/" aria-label="VotaYa, inicio" className="shrink-0">
+    <header id="site-header" className="sticky top-0 z-30 bg-lime">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center gap-5 px-4" aria-label="Principal">
+        <Link href="/" aria-label="voppi!, inicio" className="shrink-0">
           <Logo />
         </Link>
         <NavLinks rewards={rewardsEnabled()} />
@@ -20,53 +21,52 @@ export async function Header() {
             Buscar encuestas
           </label>
           <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted" aria-hidden>
-              🔍
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+              <IconSearch />
             </span>
             <input
               id="header-search"
               name="q"
-              placeholder="Buscar encuestas…"
-              className="w-full rounded-full border border-line bg-page py-2 pl-9 pr-4 text-sm outline-none focus:border-rose-300 focus:bg-white"
+              placeholder="Buscar encuestas"
+              className="w-full rounded-full bg-white/75 py-2.5 pl-10 pr-4 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-ink"
             />
           </div>
         </form>
         <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <Link href="/encuestas" className="rounded-full p-2 text-lg md:hidden" aria-label="Buscar encuestas">
-            🔍
+          <Link href="/encuestas" className="grid h-10 w-10 place-items-center rounded-full md:hidden" aria-label="Buscar encuestas">
+            <IconSearch />
           </Link>
           {user?.role === "admin" && (
-            <Link href="/admin" className="hidden rounded-full px-3 py-2 text-sm font-bold text-violet sm:inline">
+            <Link href="/admin" className="hidden rounded-full px-3 py-2 text-sm font-bold sm:inline">
               Admin
             </Link>
           )}
           {user ? (
             <>
-              {streak > 0 && (
-                <span className="rounded-full bg-orange-50 px-2.5 py-1.5 text-sm font-bold text-orange-700 ring-1 ring-orange-200" title={`${streak} días seguidos votando`}>
-                  🔥 {streak}
-                </span>
-              )}
               {points !== null && (
-                <Link href={rewardsEnabled() ? "/recompensas" : "/perfil"} className="rounded-full bg-amber-50 px-3 py-1.5 text-sm font-bold text-amber-700 ring-1 ring-amber-200" title="Tus puntos">
-                  ⭐ {points.toLocaleString("es-ES")}
+                <Link
+                  href={rewardsEnabled() ? "/recompensas" : "/perfil"}
+                  className="rounded-full bg-ink px-3 py-1.5 text-sm font-extrabold tabular-nums text-lime"
+                  title={streak ? `${streak} días seguidos votando` : "Tus puntos"}
+                >
+                  {streak > 0 ? `${streak}d · ` : ""}
+                  {points.toLocaleString("es-ES")} pts
                 </Link>
               )}
-              <Link
-                href="/perfil"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient font-bold text-white"
-                aria-label="Mi perfil"
-              >
+              <Link href="/crear" className="hidden rounded-full bg-pink px-4 py-2 text-sm font-extrabold text-white lg:inline">
+                Crear encuesta
+              </Link>
+              <Link href="/perfil" className="grid h-9 w-9 place-items-center rounded-full bg-ink font-bold text-lime" aria-label="Mi perfil">
                 {user.email[0].toUpperCase()}
               </Link>
             </>
           ) : (
             <>
-              <Link href="/entrar" className="hidden rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-slate-50 sm:inline">
-                Iniciar sesión
+              <Link href="/entrar" className="hidden rounded-full px-4 py-2 text-sm font-bold sm:inline">
+                Entrar
               </Link>
-              <Link href="/entrar" className="rounded-full bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-brand-dark">
-                Registrarse
+              <Link href="/entrar" className="rounded-full bg-ink px-4 py-2.5 text-sm font-extrabold text-lime">
+                Crear cuenta
               </Link>
             </>
           )}

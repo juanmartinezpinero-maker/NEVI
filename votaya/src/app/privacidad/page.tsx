@@ -4,9 +4,9 @@ export const metadata: Metadata = { title: "Política de privacidad" };
 
 export default function PrivacyPage() {
   return (
-    <article className="prose-invert mx-auto max-w-2xl space-y-4 text-[15px] leading-relaxed [&_h2]:mt-6 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-extrabold">
+    <article className="mx-auto max-w-2xl space-y-4 text-[15px] leading-relaxed [&_h2]:mt-6 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-extrabold">
       <h1 className="font-display text-3xl font-extrabold">Política de privacidad</h1>
-      <p className="text-sm text-amber-200">
+      <p className="text-sm font-semibold text-pink">
         Borrador para el MVP. Debe revisarlo un profesional legal antes del lanzamiento público (RGPD / LOPDGDD).
       </p>
       <h2>Qué datos tratamos</h2>
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         desvinculados de ti para no alterar resultados ya publicados.
       </p>
       <h2>Edad mínima</h2>
-      <p>VotaYa está dirigida a mayores de 16 años.</p>
+      <p>voppi! está dirigida a mayores de 16 años.</p>
     </article>
   );
 }

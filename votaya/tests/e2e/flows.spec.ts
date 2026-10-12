@@ -24,17 +24,17 @@ async function completeProfile(page: Page) {
 
 test.describe.configure({ mode: "serial" });
 
-test("portada: pregunta del día, tendencias, categorías y buscador", async ({ page }) => {
+test("portada móvil: feed de historias, explorar, categorías y buscador", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /El mundo opina/ })).toBeVisible();
-  await expect(page.getByText("⭐ Pregunta del día").first()).toBeVisible();
-  // En móvil: pregunta del día votable arriba y carrusel de tendencias.
-  await expect(page.locator("#daily")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "🔥 En tendencia" })).toBeVisible();
-  // Sección Encuestas: filtro por categoría y buscador.
-  await page.getByRole("link", { name: "Encuestas", exact: true }).first().click();
+  const feed = page.getByRole("region", { name: "Historias" });
+  await expect(feed).toBeVisible();
+  await expect(feed.getByText("Para ti")).toBeVisible();
+  await expect(feed.locator("h1")).toBeVisible();
+  // Explorar: filtro por categoría y buscador.
+  await feed.getByRole("link", { name: "Explorar" }).click();
   await expect(page).toHaveURL(/\/encuestas/);
-  await page.getByRole("navigation", { name: "Filtrar por categoría" }).getByRole("link", { name: /Política/ }).click();
+  await expect(page.getByRole("heading", { name: "Tendencias hoy" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Filtrar por categoría" }).getByRole("link", { name: "Sociedad" }).click();
   await expect(page).toHaveURL(/cat=politica/);
   await expect(page.getByRole("heading", { name: /semana laboral de 4 días/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "¿Messi o Cristiano?" })).toHaveCount(0);
@@ -45,14 +45,24 @@ test("portada: pregunta del día, tendencias, categorías y buscador", async ({ 
   await expect(page.getByRole("heading", { name: "¿Messi o Cristiano?" })).toBeVisible();
 });
 
+test("portada escritorio: pregunta del día y encuestas populares", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.getByText(/Pregunta del día/).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Encuestas populares" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Historias" })).toBeHidden();
+  await ctx.close();
+});
+
 test("voto anónimo en un duelo: resultados inmediatos, persistentes y sin doble voto", async ({ page }) => {
   await page.goto("/p/messi-o-cristiano");
   await expect(page.getByText(/demostración/).first()).toBeVisible();
   await page.getByRole("button", { name: "Votar Messi" }).click();
   await expect(page.getByText("✓ Tu voto:")).toBeVisible();
-  await expect(page.getByText(/votos · \d+% de cuentas verificadas/)).toBeVisible();
+  await expect(page.getByText(/votación popular, no representativa/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Compartir resultado/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "WhatsApp", exact: true })).toHaveAttribute("href", /wa\.me/);
+  await expect(page.getByRole("link", { name: /Reta a un amigo por WhatsApp/ })).toHaveAttribute("href", /wa\.me/);
   // Tras recargar, sigue viendo resultados (no puede volver a votar).
   await page.reload();
   await expect(page.getByText("✓ Tu voto:")).toBeVisible();
@@ -63,7 +73,7 @@ test("voto anónimo en un duelo: resultados inmediatos, persistentes y sin doble
 
 test("opción «Otra»: se escribe dentro de su casilla y se agrupa", async ({ page }) => {
   await page.goto("/p/cual-es-la-mejor-serie-de-la-historia");
-  await page.getByRole("button", { name: /Otra… escribe la tuya/ }).click();
+  await page.getByRole("button", { name: /escribe la tuya/ }).click();
   await page.getByLabel("Escribe tu respuesta").fill("the office");
   await page.getByRole("button", { name: "Votar", exact: true }).click();
   await expect(page.getByText("✓ Tu voto:")).toBeVisible();
@@ -86,7 +96,7 @@ test("registro sin contraseña guarda los votos anónimos y desbloquea desgloses
   await expect(page.getByText("¿Playa o montaña?")).toBeVisible();
   await expect(page.getByText("Votaste: Playa")).toBeVisible();
   // Puntos: 50 de bienvenida + 10 por el voto guardado.
-  await expect(page.getByText("⭐ 60").first()).toBeVisible();
+  await expect(page.getByTestId("points-balance")).toHaveText("60");
   await expect(page.getByText("encuestas votadas")).toBeVisible();
 });
 
@@ -100,7 +110,7 @@ test("crear pregunta → moderación por admin → publicada y encontrable", asy
   await page.getByLabel("Opción 2", { exact: true }).fill("Pollo");
   await page.getByRole("button", { name: "Enviar a moderación" }).click();
   await expect(page).toHaveURL(/perfil\?propuesta=ok/);
-  await expect(page.getByText("⏳ En moderación")).toBeVisible();
+  await expect(page.getByText("En moderación", { exact: true })).toBeVisible();
 
   // Un usuario normal no entra al panel.
   await page.goto("/admin");
@@ -175,7 +185,7 @@ test("puntos por votar y canje de un premio (modo demo)", async ({ page }) => {
   await login(page, "puntos@e2e.test", "/recompensas");
   await completeProfile(page);
   await expect(page).toHaveURL(/\/recompensas/);
-  await expect(page.getByText("⭐ 50").first()).toBeVisible();
+  await expect(page.getByTestId("points-balance")).toHaveText("50");
   // Votar suma 10 puntos por encuesta.
   const duels = ["perros-o-gatos", "cafe-o-te", "verano-o-invierno", "nike-o-adidas", "pepsi-o-coca-cola", "iphone-o-android", "real-madrid-o-barcelona", "pina-en-la-pizza", "tortilla-de-patatas-con-o-sin-cebolla", "mcdonald-s-o-burger-king"];
   for (const slug of duels) {
@@ -184,23 +194,43 @@ test("puntos por votar y canje de un premio (modo demo)", async ({ page }) => {
     await expect(page.getByText("+10 puntos")).toBeVisible();
   }
   await page.goto("/recompensas");
-  await expect(page.getByText("⭐ 150").first()).toBeVisible();
+  await expect(page.getByTestId("points-balance")).toHaveText("150");
   const card = page.locator("article", { hasText: "Café de especialidad gratis" });
   await card.getByRole("button", { name: "Canjear" }).click();
-  await expect(card.getByText(/DEMO-[A-Z0-9]{8}/)).toBeVisible();
+  await expect(card.getByText(/DEMO-[A-Z0-9]{8}/)).toBeVisible({ timeout: 15_000 });
   await page.goto("/perfil");
-  await expect(page.getByText("⭐ 0").first()).toBeVisible();
+  await expect(page.getByTestId("points-balance")).toHaveText("0");
 });
 
-test("modo rápido: votar y pasar a la siguiente pregunta", async ({ page }) => {
+test("modo historias: pantalla completa, «Otra» y paso automático a la siguiente", async ({ page }) => {
   await page.goto("/descubrir");
-  await expect(page.getByRole("main").getByText("⚡ Modo rápido")).toBeVisible();
-  const first = await page.locator("h1").first().textContent();
-  await page.locator("button[aria-label^='Votar '], ul button").first().click();
-  await expect(page.getByRole("button", { name: "Siguiente ↑" })).toBeVisible();
-  await expect(page.getByText("Tu voto").first()).toBeVisible();
-  await page.getByRole("button", { name: "Siguiente ↑" }).click();
-  await expect(page.locator("h1").first()).not.toHaveText(first!);
+  const feed = page.getByRole("region", { name: "Historias" });
+  await expect(feed.getByText("Para ti")).toBeVisible();
+  const title = feed.locator("h1");
+  // Ocupa toda la pantalla (salvo la barra inferior).
+  const box = (await feed.boundingBox())!;
+  expect(box.height).toBeGreaterThan(page.viewportSize()!.height * 0.8);
+
+  // Primera: votar y pasar con «Siguiente».
+  const first = await title.textContent();
+  await feed.locator("button").first().click();
+  await expect(feed.getByText("Tu voto:")).toBeVisible();
+  await feed.getByRole("button", { name: "Siguiente" }).click();
+  await expect(title).not.toHaveText(first!);
+
+  // Avanza hasta una pregunta con «Otra» y escribe una respuesta propia; luego pasa sola.
+  for (let i = 0; i < 12; i++) {
+    if (await feed.getByRole("button", { name: /escribe la tuya/ }).count()) break;
+    await feed.locator("button").first().click();
+    await expect(feed.getByText("Tu voto:")).toBeVisible();
+    await feed.getByRole("button", { name: "Siguiente" }).click();
+  }
+  const withOther = await title.textContent();
+  await feed.getByRole("button", { name: /escribe la tuya/ }).click();
+  await feed.getByLabel("Escribe tu respuesta").fill("Respuesta e2e");
+  await feed.getByRole("button", { name: "Votar", exact: true }).click();
+  await expect(feed.getByText("Tu voto:")).toBeVisible();
+  await expect(title).not.toHaveText(withOther!, { timeout: 6_000 });
 });
 
 test("tras votar con cuenta: racha, progreso de nivel y reto por WhatsApp", async ({ page }) => {
@@ -208,8 +238,8 @@ test("tras votar con cuenta: racha, progreso de nivel y reto por WhatsApp", asyn
   await completeProfile(page);
   await page.getByRole("button", { name: "Votar Perros" }).click();
   await expect(page.getByText("+10 puntos")).toBeVisible();
-  await expect(page.getByText(/Te faltan? \d+ votos? para ser Opinador/)).toBeVisible();
+  await expect(page.getByText(/\d+ votos? para ser Opinador/)).toBeVisible();
   await expect(page.getByRole("link", { name: /Reta a un amigo por WhatsApp/ })).toHaveAttribute("href", /wa\.me/);
   await page.reload();
-  await expect(page.getByText("🔥 1")).toBeVisible();
+  await expect(page.getByRole("link", { name: /^1d · \d+ pts$/ })).toBeVisible();
 });

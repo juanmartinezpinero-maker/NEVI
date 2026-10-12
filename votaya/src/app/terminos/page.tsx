@@ -6,9 +6,9 @@ export default function TermsPage() {
   return (
     <article className="mx-auto max-w-2xl space-y-4 text-[15px] leading-relaxed [&_h2]:mt-6 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-extrabold">
       <h1 className="font-display text-3xl font-extrabold">Condiciones de uso</h1>
-      <p className="text-sm text-amber-200">Borrador para el MVP pendiente de revisión legal.</p>
+      <p className="text-sm font-semibold text-pink">Borrador para el MVP pendiente de revisión legal.</p>
       <h2>El servicio</h2>
-      <p>VotaYa es una plataforma de entretenimiento para votar preguntas y consultar resultados agregados. Votar es gratuito.</p>
+      <p>voppi! es una plataforma de entretenimiento para votar preguntas y consultar resultados agregados. Votar es gratuito.</p>
       <h2>Votaciones populares</h2>
       <p>
         Los resultados reflejan solo la opinión de quienes han votado. No son estudios representativos de ninguna población salvo que

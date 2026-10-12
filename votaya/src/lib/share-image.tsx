@@ -6,7 +6,10 @@ import { getCategory } from "./categories";
 import { getPollBySlug, getResults } from "./polls";
 import { formatCount } from "./text";
 
-const COLORS = ["#8b5cf6", "#ec4899", "#f59e0b", "#22d3ee", "#a3e635", "#fb7185"];
+export const INK = "#222128";
+export const LIME = "#e6ff7f";
+export const PINK = "#eb5f7d";
+const COLORS = [PINK, INK, "#8a8893", "#b0476a", "#5c5b63", "#c4c3bd"];
 
 type Format = "story" | "og";
 
@@ -24,21 +27,12 @@ export function loadFonts() {
   return fontsPromise;
 }
 
-export function LogoSvg({ size }: { size: number }) {
+/** Logotipo voppi!: tinta con la exclamación rosa. */
+export function Wordmark({ size }: { size: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64">
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#8b5cf6" />
-          <stop offset="0.6" stopColor="#ec4899" />
-          <stop offset="1" stopColor="#f59e0b" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="18" fill="url(#g)" />
-      <rect x="14" y="34" width="9" height="16" rx="3" fill="#fff" fillOpacity="0.55" />
-      <rect x="27.5" y="24" width="9" height="26" rx="3" fill="#fff" fillOpacity="0.8" />
-      <path d="M41 30 l5 5 l10 -14" stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div style={{ display: "flex", fontSize: size, fontWeight: 800, letterSpacing: -size * 0.06, color: INK, lineHeight: 1 }}>
+      voppi<span style={{ color: PINK }}>!</span>
+    </div>
   );
 }
 
@@ -52,7 +46,7 @@ export async function renderShareImage(slug: string, format: Format) {
   const results = await getResults(poll.id);
   const rows = [...results.rows].sort((a, b) => b.count - a.count).slice(0, format === "story" ? 6 : 4);
   const cat = getCategory(poll.category);
-  const host = (process.env.NEXT_PUBLIC_SITE_URL ?? "votaya.app").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const host = (process.env.NEXT_PUBLIC_SITE_URL ?? "voppi.app").replace(/^https?:\/\//, "").replace(/\/$/, "");
   const story = format === "story";
 
   return new ImageResponse(
@@ -63,30 +57,28 @@ export async function renderShareImage(slug: string, format: Format) {
           height: "100%",
           display: "flex",
           flexDirection: story ? "column" : "row",
-          background: "linear-gradient(160deg, #1b1240 0%, #0c0a1d 55%, #2a0f2e 100%)",
-          color: "white",
+          background: LIME,
+          color: INK,
           padding: story ? 90 : 56,
           fontFamily: "Inter",
           gap: story ? 0 : 48,
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", flex: story ? "none" : 1, justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <LogoSvg size={story ? 84 : 60} />
-            <div style={{ display: "flex", fontSize: story ? 56 : 40, fontWeight: 800 }}>
-              Vota<span style={{ color: "#f472b6" }}>Ya</span>
-            </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <Wordmark size={story ? 96 : 64} />
+            <div style={{ display: "flex", fontSize: story ? 30 : 22, fontWeight: 500 }}>El mundo opina. ¿Y tú?</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", marginTop: story ? 120 : 0 }}>
-            <div style={{ display: "flex", fontSize: story ? 34 : 24, color: "#c4b5fd", fontWeight: 700, textTransform: "uppercase", letterSpacing: 3 }}>
+            <div style={{ display: "flex", fontSize: story ? 34 : 24, color: PINK, fontWeight: 800, textTransform: "uppercase", letterSpacing: 3 }}>
               {cat?.name ?? "Encuesta"}
             </div>
-            <div style={{ display: "flex", fontSize: story ? 84 : 52, fontWeight: 800, lineHeight: 1.08, marginTop: 16 }}>
+            <div style={{ display: "flex", fontSize: story ? 88 : 54, fontWeight: 800, lineHeight: 1.04, letterSpacing: story ? -4 : -2.5, marginTop: 16 }}>
               {poll.title}
             </div>
           </div>
           {!story && (
-            <div style={{ display: "flex", fontSize: 26, color: "#a7a3c7" }}>
+            <div style={{ display: "flex", fontSize: 26, color: INK }}>
               {formatCount(results.total)} votos · ¿Y tú? Vota en {host}
             </div>
           )}
@@ -99,17 +91,17 @@ export async function renderShareImage(slug: string, format: Format) {
                 <span style={{ display: "flex", maxWidth: "80%" }}>{r.label}</span>
                 <span style={{ display: "flex" }}>{r.pct}%</span>
               </div>
-              <div style={{ display: "flex", height: story ? 34 : 22, borderRadius: 999, background: "#2c2750", overflow: "hidden" }}>
+              <div style={{ display: "flex", height: story ? 34 : 22, borderRadius: 999, background: "rgba(34,33,40,0.12)", overflow: "hidden" }}>
                 <div style={{ display: "flex", width: `${Math.max(r.pct, 2)}%`, background: COLORS[i % COLORS.length], borderRadius: 999 }} />
               </div>
             </div>
           ))}
-          {poll.isDemo && <div style={{ display: "flex", fontSize: story ? 26 : 18, color: "#fcd34d" }}>Datos de demostración ficticios</div>}
+          {poll.isDemo && <div style={{ display: "flex", fontSize: story ? 26 : 18, color: INK }}>Datos de demostración ficticios</div>}
         </div>
 
         {story && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
-            <div style={{ display: "flex", fontSize: 38, color: "#a7a3c7" }}>{formatCount(results.total)} votos</div>
+            <div style={{ display: "flex", fontSize: 38, color: INK }}>{formatCount(results.total)} votos</div>
             <div
               style={{
                 display: "flex",
@@ -117,12 +109,13 @@ export async function renderShareImage(slug: string, format: Format) {
                 fontWeight: 800,
                 padding: "30px 60px",
                 borderRadius: 999,
-                background: "linear-gradient(90deg,#8b5cf6,#ec4899 60%,#f59e0b)",
+                background: INK,
+                color: LIME,
               }}
             >
-              ¿Y tú? Vota ya
+              ¿Y tú? Vota
             </div>
-            <div style={{ display: "flex", fontSize: 36, color: "#e9d5ff" }}>
+            <div style={{ display: "flex", fontSize: 36, color: INK }}>
               {host}
             </div>
           </div>
@@ -143,15 +136,13 @@ function Fallback({ format }: { format: Format }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(160deg, #1b1240, #0c0a1d 60%, #2a0f2e)",
-        color: "white",
+        background: LIME,
+        color: INK,
         fontFamily: "Inter",
       }}
     >
-      <div style={{ display: "flex", fontSize: format === "story" ? 140 : 110, fontWeight: 800 }}>
-        Vota<span style={{ color: "#f472b6" }}>Ya</span>
-      </div>
-      <div style={{ display: "flex", fontSize: format === "story" ? 60 : 44, color: "#c4b5fd", marginTop: 20 }}>El mundo opina. ¿Y tú?</div>
+      <Wordmark size={format === "story" ? 200 : 150} />
+      <div style={{ display: "flex", fontSize: format === "story" ? 60 : 44, marginTop: 20 }}>El mundo opina. ¿Y tú?</div>
     </div>
   );
 }

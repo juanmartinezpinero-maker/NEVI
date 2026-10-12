@@ -24,20 +24,20 @@ export default async function LinksPage() {
   return (
     <div className="space-y-6">
       <form action={createShareLinkAction} className="card grid gap-3 p-5 sm:grid-cols-[1fr_1fr_1.5fr_auto]">
-        <input name="label" required placeholder="Creador (p. ej. @lucia_tiktok)" aria-label="Nombre del creador" className="rounded-xl border border-line bg-white px-3 py-2" />
-        <input name="code" placeholder="código (opcional)" aria-label="Código" className="rounded-xl border border-line bg-white px-3 py-2" />
-        <select name="pollId" aria-label="Encuesta de destino" className="rounded-xl border border-line bg-white px-3 py-2">
+        <input name="label" required placeholder="Creador (p. ej. @lucia_tiktok)" aria-label="Nombre del creador" className="rounded-[16px] border-2 border-line bg-white px-3 py-2" />
+        <input name="code" placeholder="código (opcional)" aria-label="Código" className="rounded-[16px] border-2 border-line bg-white px-3 py-2" />
+        <select name="pollId" aria-label="Encuesta de destino" className="rounded-[16px] border-2 border-line bg-white px-3 py-2">
           <option value="">Portada</option>
           {polls.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
         </select>
-        <button className="bg-brand-gradient rounded-xl px-4 py-2 font-bold text-white">Crear enlace</button>
+        <button className="bg-ink text-lime rounded-xl px-4 py-2 font-bold text-white">Crear enlace</button>
       </form>
       <ul className="card divide-y divide-line">
         {links.map((l) => (
           <li key={l.code} className="flex flex-wrap items-center gap-3 p-4 text-sm">
             <div className="min-w-0 flex-1">
               <p className="font-bold">{l.label}</p>
-              <code className="select-all text-xs text-brand">{base}/r/{l.code}</code>
+              <code className="select-all text-xs text-pink">{base}/r/{l.code}</code>
               <p className="text-xs text-muted">Destino: {l.slug ? `/p/${l.slug}` : "portada"}</p>
             </div>
             <span>{l.clicks} clics</span><span>{l.votes} votos</span><span>{l.signups} registros</span>
@@ -45,7 +45,7 @@ export default async function LinksPage() {
         ))}
         {!links.length && <li className="p-6 text-center text-muted">Crea el primer enlace para un creador de contenido.</li>}
       </ul>
-      <p className="text-xs text-muted">También funciona añadir <code>?ref=codigo</code> a cualquier URL de VotaYa.</p>
+      <p className="text-xs text-muted">También funciona añadir <code>?ref=codigo</code> a cualquier URL de voppi!</p>
     </div>
   );
 }

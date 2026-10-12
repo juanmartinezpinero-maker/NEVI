@@ -1,36 +1,26 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { getCategory } from "@/lib/categories";
 import { countryFlag, countryName } from "@/lib/demographics";
-import { getUserStats, POINTS } from "@/lib/points";
+import { getStreak, getUserStats, POINTS } from "@/lib/points";
 import { getCountryRanking, listTrending } from "@/lib/polls";
 import { formatCount } from "@/lib/text";
-import { Photo } from "./Photo";
-import { rewardsEnabled } from "@/lib/site";
 
-export async function TrendingBox({ limit = 5 }: { limit?: number }) {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+export async function TrendingBox({ limit = 6 }: { limit?: number }) {
   const trending = await listTrending(24, limit);
   return (
-    <section className="card p-4" aria-labelledby="side-trending">
-      <h2 id="side-trending" className="mb-3 flex items-center gap-2 font-display text-base font-bold">
-        <span aria-hidden>🔥</span> Encuestas en tendencia
+    <section className="rounded-[22px] bg-wash p-5" aria-labelledby="side-trending">
+      <h2 id="side-trending" className="mb-2 text-[22px] font-extrabold tracking-[-0.04em]">
+        Tendencias
       </h2>
-      <ol className="space-y-3">
+      <ol>
         {trending.map((p, i) => (
-          <li key={p.id}>
-            <Link href={`/p/${p.slug}`} className="group flex items-center gap-3">
-              <span className="w-4 text-sm font-bold text-muted">{i + 1}</span>
-              <Photo
-                src={p.imageUrl ?? p.options[0]?.imageUrl}
-                alt=""
-                emoji={p.emoji}
-                gradient={getCategory(p.category)?.gradient}
-                className="h-11 w-11 shrink-0 rounded-lg [&>span]:text-xl"
-              />
-              <span className="min-w-0 flex-1">
-                <span className="line-clamp-2 text-sm font-semibold leading-tight group-hover:text-brand">{p.title}</span>
-                <span className="text-xs text-muted">{formatCount(p.voteCount)} votos</span>
-              </span>
+          <li key={p.id} className="border-b border-line last:border-0">
+            <Link href={`/p/${p.slug}`} className="grid grid-cols-[28px_1fr_auto] items-baseline gap-2 py-2.5 hover:underline">
+              <span className="text-[15px] font-black text-pink">{pad(i + 1)}</span>
+              <span className="text-sm font-semibold leading-snug">{p.title}</span>
+              <span className="text-xs tabular-nums text-muted">{formatCount(p.voteCount)}</span>
             </Link>
           </li>
         ))}
@@ -39,27 +29,25 @@ export async function TrendingBox({ limit = 5 }: { limit?: number }) {
   );
 }
 
-export async function CountriesBox({ limit = 5 }: { limit?: number }) {
+export async function CountriesBox({ limit = 6 }: { limit?: number }) {
   const countries = await getCountryRanking(limit);
   return (
-    <section className="card p-4" aria-labelledby="side-countries">
-      <h2 id="side-countries" className="mb-3 flex items-center gap-2 font-display text-base font-bold">
-        <span aria-hidden>🌍</span> Ranking: países más votados
+    <section className="rounded-[22px] bg-wash p-5" aria-labelledby="side-countries">
+      <h2 id="side-countries" className="mb-2 text-[22px] font-extrabold tracking-[-0.04em]">
+        Países que más votan
       </h2>
-      <ol className="space-y-2.5">
+      <ol>
         {countries.map((c, i) => (
-          <li key={c.country} className="flex items-center gap-3 text-sm">
-            <span className="w-4 font-bold text-muted">{i + 1}</span>
-            <span className="text-xl" aria-hidden>
-              {countryFlag(c.country)}
-            </span>
-            <span className="flex-1 font-medium">{countryName(c.country)}</span>
-            <span className="tabular-nums text-muted">{c.n.toLocaleString("es-ES")}</span>
+          <li key={c.country} className="grid grid-cols-[28px_24px_1fr_auto] items-center gap-2 border-b border-line py-2 text-sm last:border-0">
+            <span className="font-black text-pink">{pad(i + 1)}</span>
+            <span aria-hidden>{countryFlag(c.country)}</span>
+            <span className="font-medium">{countryName(c.country)}</span>
+            <span className="font-bold tabular-nums">{c.n.toLocaleString("es-ES")}</span>
           </li>
         ))}
       </ol>
-      <Link href="/rankings" className="mt-3 block text-center text-sm font-semibold text-brand hover:underline">
-        Ver ranking completo →
+      <Link href="/rankings" className="mt-3 inline-block text-sm font-extrabold underline">
+        Ranking completo
       </Link>
     </section>
   );
@@ -68,55 +56,35 @@ export async function CountriesBox({ limit = 5 }: { limit?: number }) {
 export async function CommunityBox() {
   const user = await getCurrentUser();
   if (user?.profileCompleted) {
-    const s = await getUserStats(user.id);
+    const [s, streak] = await Promise.all([getUserStats(user.id), getStreak(user.id)]);
     return (
-      <section className="card p-4" aria-labelledby="side-me">
-        <h2 id="side-me" className="mb-3 font-display text-base font-bold">
-          {s.level.emoji} Nivel {s.level.name}
+      <section className="rounded-[22px] bg-lime p-5" aria-labelledby="side-me">
+        <h2 id="side-me" className="text-[22px] font-extrabold tracking-[-0.04em]">
+          Tu actividad
         </h2>
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="rounded-xl bg-slate-50 p-3">
-            <p className="font-display text-2xl font-extrabold">{s.voteCount}</p>
-            <p className="text-xs text-muted">encuestas votadas</p>
-          </div>
-          <div className="rounded-xl bg-amber-50 p-3">
-            <p className="font-display text-2xl font-extrabold text-amber-700">{s.balance}</p>
-            <p className="text-xs text-muted">puntos</p>
-          </div>
-        </div>
+        <p className="mt-2 text-sm font-semibold tabular-nums">
+          {s.voteCount} votos · {s.balance} pts · racha {streak} d
+        </p>
+        <p className="text-sm text-ink-2">
+          Nivel {s.level.name}
+          {s.level.next ? ` · ${s.level.next.min - s.voteCount} votos para ${s.level.next.name}` : ""}
+        </p>
         {s.level.next && (
-          <div className="mt-3">
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-brand-gradient" style={{ width: `${s.level.progress}%` }} />
-            </div>
-            <p className="mt-1 text-xs text-muted">
-              {s.level.next.min - s.voteCount} votos para nivel {s.level.next.name} {s.level.next.emoji}
-            </p>
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/70">
+            <div className="h-full rounded-full bg-pink" style={{ width: `${s.level.progress}%` }} />
           </div>
         )}
-        <Link href={rewardsEnabled() ? "/recompensas" : "/perfil"} className="mt-3 block rounded-xl bg-ink py-2.5 text-center text-sm font-bold text-white">
-          {rewardsEnabled() ? "🎁 Canjear puntos" : "Ver mi perfil"}
-        </Link>
       </section>
     );
   }
   return (
-    <section className="card p-4" aria-labelledby="side-join">
-      <h2 id="side-join" className="mb-3 flex items-center gap-2 font-display text-base font-bold">
-        <span aria-hidden>👥</span> Únete a la comunidad
+    <section className="rounded-[22px] bg-lime p-5" aria-labelledby="side-join">
+      <h2 id="side-join" className="text-[22px] font-extrabold tracking-[-0.04em]">
+        Únete
       </h2>
-      <ul className="space-y-2 text-sm">
-        {["Vota en miles de encuestas", "Guarda tus resultados", `Gana ${POINTS.vote} puntos por voto`, "Sube de nivel y compite en los rankings"].map((t) => (
-          <li key={t} className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[11px] text-white" aria-hidden>
-              ✓
-            </span>
-            {t}
-          </li>
-        ))}
-      </ul>
-      <Link href="/entrar" className="mt-4 block rounded-xl bg-brand py-2.5 text-center text-sm font-bold text-white hover:bg-brand-dark">
-        Registrarse gratis · +{POINTS.welcome} puntos
+      <p className="mb-4 mt-1 text-sm text-ink-2">Guarda tus votos, gana {POINTS.vote} puntos por voto y mira qué opina tu país.</p>
+      <Link href="/entrar" className="inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-extrabold text-lime">
+        Crear cuenta gratis
       </Link>
     </section>
   );

@@ -29,15 +29,15 @@ export function LoginForm({ next }: { next: string }) {
             inputMode="email"
             defaultValue={email}
             placeholder="tu@email.com"
-            className="w-full rounded-2xl border border-line bg-white px-4 py-3.5 text-base outline-none focus:border-rose-300"
+            className="w-full rounded-[16px] border-2 border-line bg-white px-4 py-3.5 text-base outline-none focus:border-ink"
           />
         </label>
         {reqState.error && (
-          <p role="alert" className="text-sm text-rose-600">
+          <p role="alert" className="text-sm text-pink">
             {reqState.error}
           </p>
         )}
-        <button disabled={requesting} className="bg-brand-gradient w-full rounded-2xl py-3.5 font-extrabold text-white disabled:opacity-60">
+        <button disabled={requesting} className="w-full rounded-full bg-ink py-3.5 font-extrabold text-lime disabled:opacity-60">
           {requesting ? "Enviando…" : "Recibir código"}
         </button>
         <p className="text-center text-xs text-muted">
@@ -63,7 +63,7 @@ export function LoginForm({ next }: { next: string }) {
         Hemos enviado un código a <strong className="text-ink">{email}</strong>.
       </p>
       {reqState.devCode && (
-        <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm" data-testid="dev-code">
+        <p className="rounded-[16px] bg-lime p-3 text-sm" data-testid="dev-code">
           Modo desarrollo (sin email configurado). Tu código: <strong className="tracking-widest">{reqState.devCode}</strong>
         </p>
       )}
@@ -78,15 +78,15 @@ export function LoginForm({ next }: { next: string }) {
           maxLength={6}
           autoFocus
           placeholder="••••••"
-          className="w-full rounded-2xl border border-line bg-white px-4 py-3.5 text-center font-display text-3xl tracking-[0.5em] outline-none focus:border-rose-300"
+          className="w-full rounded-[16px] border-2 border-line bg-white px-4 py-3.5 text-center font-display text-3xl tracking-[0.5em] outline-none focus:border-ink"
         />
       </label>
       {verState.error && (
-        <p role="alert" className="text-sm text-rose-600">
+        <p role="alert" className="text-sm text-pink">
           {verState.error}
         </p>
       )}
-      <button disabled={verifying} className="bg-brand-gradient w-full rounded-2xl py-3.5 font-extrabold text-white disabled:opacity-60">
+      <button disabled={verifying} className="w-full rounded-full bg-ink py-3.5 font-extrabold text-lime disabled:opacity-60">
         {verifying ? "Comprobando…" : "Entrar"}
       </button>
       <button type="button" onClick={() => window.location.reload()} className="w-full text-sm text-muted underline">

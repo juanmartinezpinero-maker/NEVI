@@ -5,7 +5,7 @@ import { useState } from "react";
 type Seg = { key: string; label: string; flag?: string; total: number; rows: { id: string; pct: number }[] };
 type Tab = { id: string; label: string; segments: Seg[]; hidden: number };
 
-const COLORS = ["#8b5cf6", "#ec4899", "#f59e0b", "#22d3ee", "#a3e635", "#fb7185", "#38bdf8", "#34d399", "#fb923c", "#e879f9", "#cbd5e1"];
+const COLORS = ["#eb5f7d", "#222128", "#c9e35c", "#8a8893", "#f4a3b5", "#5c5b63", "#e6ff7f", "#b0476a", "#2a5f9e", "#a8741a", "#d5d4cf"];
 
 export function SegmentTabs({ tabs, options, minVotes }: { tabs: Tab[]; options: { id: string; label: string }[]; minVotes: number }) {
   const [active, setActive] = useState(tabs[0].id);
@@ -22,7 +22,7 @@ export function SegmentTabs({ tabs, options, minVotes }: { tabs: Tab[]; options:
             role="tab"
             aria-selected={t.id === active}
             onClick={() => setActive(t.id)}
-            className={`rounded-full px-4 py-2 text-sm font-bold ${t.id === active ? "bg-ink text-white" : "bg-slate-100 text-muted"}`}
+            className={`rounded-full px-4 py-2 text-sm font-bold ${t.id === active ? "bg-ink text-lime" : "bg-wash text-muted hover:text-ink"}`}
           >
             {t.label}
           </button>
@@ -47,7 +47,7 @@ export function SegmentTabs({ tabs, options, minVotes }: { tabs: Tab[]; options:
                   </span>
                 </div>
                 <div
-                  className="flex h-3 overflow-hidden rounded-full bg-slate-100"
+                  className="flex h-3 overflow-hidden rounded-full bg-wash"
                   role="img"
                   aria-label={s.rows.map((r) => `${labelOf(r.id)} ${r.pct}%`).join(", ")}
                 >

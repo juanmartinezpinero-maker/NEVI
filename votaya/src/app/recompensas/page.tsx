@@ -25,19 +25,19 @@ export default async function RewardsPage() {
       <section className="bg-hero overflow-hidden rounded-3xl p-6 text-white sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="max-w-lg space-y-2">
-            <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Vota, suma puntos y gana premios 🎁</h1>
+            <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Vota, suma puntos y gana premios</h1>
             <p className="text-white/85">Las marcas patrocinan encuestas y regalan premios a la comunidad. Tú solo tienes que opinar.</p>
           </div>
           {stats ? (
             <div className="rounded-2xl bg-white/15 px-6 py-4 text-center backdrop-blur">
               <p className="text-sm text-white/80">Tus puntos</p>
-              <p className="font-display text-4xl font-extrabold">⭐ {balance.toLocaleString("es-ES")}</p>
+              <p data-testid="points-balance" className="text-4xl font-black text-lime">{balance.toLocaleString("es-ES")}</p>
               <p className="text-sm text-white/80">
-                {stats.level.emoji} {stats.level.name} · {stats.voteCount} encuestas votadas
+                {stats.level.name} · {stats.voteCount} encuestas votadas
               </p>
             </div>
           ) : (
-            <Link href="/entrar?next=/recompensas" className="rounded-full bg-white px-6 py-3 font-bold text-brand">
+            <Link href="/entrar?next=/recompensas" className="rounded-full bg-white px-6 py-3 font-bold text-pink">
               Regístrate y llévate {POINTS.welcome} puntos
             </Link>
           )}
@@ -46,17 +46,17 @@ export default async function RewardsPage() {
 
       <section className="grid gap-3 sm:grid-cols-4" aria-label="Cómo ganar puntos">
         {[
-          ["🗳️", `+${POINTS.vote}`, "por cada encuesta que votas"],
-          ["👋", `+${POINTS.welcome}`, "al registrarte y completar tu perfil"],
-          ["✍️", `+${POINTS.pollApproved}`, "si publicamos una pregunta tuya"],
-          ["⏱️", `${DAILY_VOTE_CAP}`, "puntos máximos por votar al día"],
+          ["01", `+${POINTS.vote}`, "por cada encuesta que votas"],
+          ["02", `+${POINTS.welcome}`, "al registrarte y completar tu perfil"],
+          ["03", `+${POINTS.pollApproved}`, "si publicamos una pregunta tuya"],
+          ["04", `${DAILY_VOTE_CAP}`, "puntos máximos por votar al día"],
         ].map(([icon, n, text]) => (
           <div key={text} className="card flex items-center gap-3 p-4">
-            <span className="text-3xl" aria-hidden>
+            <span className="text-lg font-black text-pink" aria-hidden>
               {icon}
             </span>
             <span>
-              <span className="block font-display text-xl font-extrabold text-amber-700">{n}</span>
+              <span className="block font-display text-xl font-extrabold text-ink">{n}</span>
               <span className="text-sm text-muted">{text}</span>
             </span>
           </div>
@@ -64,7 +64,7 @@ export default async function RewardsPage() {
       </section>
 
       {rewardsMode() === "demo" && (
-        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="rounded-[18px] bg-lime p-4 text-sm">
           <strong>Modo demostración:</strong> los premios y marcas de esta página son ficticios y los cupones no tienen valor. Los premios
           reales se activarán cuando haya marcas patrocinadoras y las bases legales de la promoción estén aprobadas.
         </p>
@@ -81,19 +81,19 @@ export default async function RewardsPage() {
             return (
               <article key={r.id} className="card flex flex-col overflow-hidden">
                 <div className="relative">
-                  <Photo src={r.imageUrl} alt={r.title} emoji="🎁" gradient="from-amber-300 to-rose-400" className="aspect-[16/9] w-full" />
-                  <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-ink">{r.sponsor ?? "VotaYa"}</span>
-                  {r.isDemo && <span className="absolute right-3 top-3 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-ink">DEMO</span>}
+                  <Photo src={r.imageUrl} alt={r.title} label={r.title} tone="#eb5f7d" className="aspect-[16/9] w-full" />
+                  <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-ink">{r.sponsor ?? "voppi!"}</span>
+                  {r.isDemo && <span className="absolute right-3 top-3 rounded-full bg-lime px-2 py-0.5 text-[11px] font-bold text-ink">DEMO</span>}
                 </div>
                 <div className="flex flex-1 flex-col gap-2 p-4">
                   <h3 className="font-display text-lg font-bold">{r.title}</h3>
                   {r.description && <p className="text-sm text-muted">{r.description}</p>}
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-display text-xl font-extrabold text-amber-700">⭐ {r.costPoints}</span>
+                    <span className="font-display text-xl font-extrabold text-pink">{r.costPoints} pts</span>
                     <span className="text-muted">{r.stock > 0 ? `${r.stock} disponibles` : "Agotado"}</span>
                   </div>
                   {r.pollSlug && (
-                    <Link href={`/p/${r.pollSlug}`} className="text-sm font-semibold text-brand hover:underline">
+                    <Link href={`/p/${r.pollSlug}`} className="text-sm font-semibold text-pink hover:underline">
                       Ver la encuesta patrocinada →
                     </Link>
                   )}
@@ -102,8 +102,8 @@ export default async function RewardsPage() {
                       <>
                         {missing > 0 && (
                           <div>
-                            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                              <div className="h-full rounded-full bg-brand-gradient" style={{ width: `${pct}%` }} />
+                            <div className="h-2 overflow-hidden rounded-full bg-wash">
+                              <div className="h-full rounded-full bg-pink" style={{ width: `${pct}%` }} />
                             </div>
                             <p className="mt-1 text-xs text-muted">
                               Te faltan {missing} puntos (≈ {Math.ceil(missing / POINTS.vote)} votos)
@@ -135,7 +135,7 @@ export default async function RewardsPage() {
             {mine.map((m) => (
               <li key={m.id} className="flex flex-wrap items-center gap-3 py-3 text-sm">
                 <span className="flex-1 font-semibold">{m.title}</span>
-                <code className="select-all rounded bg-slate-100 px-2 py-1 font-mono">{m.code}</code>
+                <code className="select-all rounded bg-wash px-2 py-1 font-mono">{m.code}</code>
                 <span className="text-muted">{{ pending: "Pendiente de entrega", delivered: "Entregado", cancelled: "Cancelado" }[m.status]}</span>
               </li>
             ))}
@@ -150,7 +150,7 @@ export default async function RewardsPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li>Solo las cuentas verificadas por email suman puntos. Una cuenta por persona.</li>
           <li>Cada encuesta da puntos una sola vez y hay un máximo diario para evitar abusos.</li>
-          <li>Los puntos no son dinero, no se pueden vender ni transferir y no tienen valor fuera de VotaYa.</li>
+          <li>Los puntos no son dinero, no se pueden vender ni transferir y no tienen valor fuera de voppi!</li>
           <li>Podemos anular puntos o canjes obtenidos con votos automatizados o cuentas duplicadas.</li>
           <li>Cada premio tiene sus propias condiciones, fijadas por la marca que lo patrocina.</li>
         </ul>
