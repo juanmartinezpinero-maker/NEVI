@@ -54,3 +54,11 @@ body { background: var(--color-page); color: var(--color-ink); min-height: 100dv
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Informes de marca: al imprimir (o guardar como PDF) solo se ve el informe. */
+@media print {
+  #site-header, footer, nav[aria-label="Navegación inferior"], [aria-label="Aviso de cookies"], .no-print { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-break { break-inside: avoid; }
+}

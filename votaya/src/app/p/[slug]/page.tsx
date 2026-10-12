@@ -26,6 +26,8 @@ export async function generateMetadata(props: PageProps<"/p/[slug]">): Promise<M
     title: poll.title,
     description: desc,
     alternates: { canonical: `/p/${poll.slug}` },
+    // Las encuestas privadas de marcas no se indexan: solo se llega con el enlace.
+    ...(poll.visibility === "private" ? { robots: { index: false, follow: false } } : {}),
     openGraph: { title: `${poll.title} · voppi!`, description: desc, url: `/p/${poll.slug}`, type: "article" },
     twitter: { card: "summary_large_image", title: poll.title, description: desc },
   };
@@ -69,6 +71,7 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
             <Link href={`/encuestas?cat=${poll.category}`} className="hover:underline" style={{ color: cat?.tone }}>
               {cat?.name}
             </Link>
+            {poll.visibility === "private" && <span className="text-ink">Privada · solo con enlace</span>}
             {poll.sponsored && <span className="text-pink">Patrocinada{poll.sponsorName ? ` por ${poll.sponsorName}` : ""}</span>}
             <span title="Cualquiera puede votar: no es una muestra representativa">{poll.kind === "study" ? "Estudio representativo" : "Votación popular"}</span>
             <span>{votesLabel(results?.total ?? poll.voteCount)}</span>

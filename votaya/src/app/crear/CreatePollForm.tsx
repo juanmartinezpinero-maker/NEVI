@@ -9,7 +9,8 @@ type Opt = { key: number; label: string; emoji: string; imageUrl: string };
 
 const input = "w-full rounded-[16px] border-2 border-line bg-white px-4 py-3 text-base font-medium outline-none focus:border-ink";
 
-export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
+export function CreatePollForm({ isAdmin, brand }: { isAdmin: boolean; brand?: { id: string; name: string } }) {
+  const [visibility, setVisibility] = useState<"public" | "private">("private");
   const [state, action, pending] = useActionState<CreatePollState, FormData>(createPollAction, {});
   const [title, setTitle] = useState("");
   const [similar, setSimilar] = useState<{ slug: string; title: string; status: string }[]>([]);
@@ -34,6 +35,26 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <form action={action} className="space-y-5">
+      {brand && (
+        <fieldset className="space-y-2">
+          <input type="hidden" name="sponsorId" value={brand.id} />
+          <legend className="mb-1 text-sm font-bold">¿Dónde se publica?</legend>
+          {(
+            [
+              ["private", "Privada", "Solo quien tenga el enlace. Ideal para tests de producto con tu equipo o tus clientes. Se activa al momento."],
+              ["public", "Pública y patrocinada", `Aparece en voppi! con la etiqueta «Patrocinada por ${brand.name}». Pasa por moderación antes de publicarse.`],
+            ] as const
+          ).map(([value, title, text]) => (
+            <label key={value} className={`flex cursor-pointer gap-3 rounded-[16px] border-2 p-3 ${visibility === value ? "border-ink bg-lime" : "border-line"}`}>
+              <input type="radio" name="visibility" value={value} checked={visibility === value} onChange={() => setVisibility(value)} className="mt-1 accent-[#eb5f7d]" />
+              <span>
+                <b className="block">{title}</b>
+                <span className="text-sm text-ink-2">{text}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
       <label className="block">
         <span className="mb-1 block text-sm font-bold">Pregunta</span>
         <input name="title" required minLength={8} maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="¿Tortilla con o sin cebolla?" className={input} />
@@ -127,7 +148,7 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
         </p>
       )}
       <button disabled={pending} className="w-full rounded-full bg-ink py-4 text-lg font-extrabold text-lime disabled:opacity-60">
-        {pending ? "Enviando…" : isAdmin ? "Publicar ahora" : "Enviar a moderación"}
+        {pending ? "Enviando…" : brand && visibility === "private" ? "Crear encuesta privada" : isAdmin ? "Publicar ahora" : "Enviar a moderación"}
       </button>
       <p className="text-center text-xs text-muted">
         Revisamos cada pregunta antes de publicarla. Nada de insultos, datos personales ni contenido ofensivo.

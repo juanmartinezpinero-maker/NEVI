@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { CATEGORIES } from "@/lib/categories";
 
@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const polls = await db
     .select({ slug: schema.polls.slug, publishedAt: schema.polls.publishedAt })
     .from(schema.polls)
-    .where(eq(schema.polls.status, "published"))
+    .where(and(eq(schema.polls.status, "published"), eq(schema.polls.visibility, "public")))
     .orderBy(desc(schema.polls.publishedAt))
     .limit(5000);
   return [

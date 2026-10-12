@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { mergeWriteInAction, promoteWriteInAction, toggleWriteInAction, updatePollAction } from "@/app/actions/admin";
+import { setPollBrandAction } from "@/app/actions/brands";
 import { getResults } from "@/lib/polls";
 
 export default async function AdminPollDetail(props: PageProps<"/admin/encuestas/[id]">) {
@@ -13,6 +14,7 @@ export default async function AdminPollDetail(props: PageProps<"/admin/encuestas
   if (!poll) notFound();
   const results = await getResults(poll.id);
   const allWriteIns = await db.select().from(schema.writeIns).where(eq(schema.writeIns.pollId, poll.id));
+  const brands = await db.select({ id: schema.sponsors.id, name: schema.sponsors.name }).from(schema.sponsors);
   const counts = new Map(results.writeIns.map((w) => [w.id, w.count]));
 
   return (
@@ -34,6 +36,28 @@ export default async function AdminPollDetail(props: PageProps<"/admin/encuestas
             <li key={r.id} className="flex justify-between border-b border-line py-1"><span>{r.emoji} {r.label}</span><span>{r.count} · {r.pct}%</span></li>
           ))}
         </ul>
+      </section>
+
+      <section className="card space-y-3 p-5">
+        <h2 className="font-display text-lg font-extrabold">Marca</h2>
+        <form action={setPollBrandAction} className="flex flex-wrap gap-2">
+          <input type="hidden" name="pollId" value={poll.id} />
+          <label className="sr-only" htmlFor="poll-brand">Marca de la encuesta</label>
+          <select id="poll-brand" name="sponsorId" defaultValue={poll.sponsorId ?? ""} className="rounded-[14px] border-2 border-line bg-white px-3 py-2 text-sm">
+            <option value="">Sin marca</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <label className="sr-only" htmlFor="poll-visibility">Visibilidad</label>
+          <select id="poll-visibility" name="visibility" defaultValue={poll.visibility} className="rounded-[14px] border-2 border-line bg-white px-3 py-2 text-sm">
+            <option value="public">Pública (patrocinada)</option>
+            <option value="private">Privada (solo con enlace)</option>
+          </select>
+          <button className="rounded-full bg-ink px-4 py-2 text-sm font-extrabold text-lime">Guardar</button>
+        </form>
       </section>
 
       <section className="card space-y-3 p-5">

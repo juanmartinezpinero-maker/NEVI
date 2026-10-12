@@ -79,6 +79,18 @@ Antes de abrir al público: revisión legal de privacidad, términos y aviso leg
 y prueba en un móvil real de compartir en Instagram y TikTok.
 Funciona igual en cualquier hosting Node (Railway, Render, Fly.io, VPS con `npm run build && npm start`).
 
+## Panel de marcas
+
+1. Un administrador entra en **/admin/marcas**, crea la marca y da acceso por email a sus responsables.
+2. Esas personas entran en voppi! con su email (código de 6 cifras) y ven **Panel de marca** (`/marca`).
+3. Desde el panel crean encuestas:
+   - **Privadas**: solo con enlace, se activan al momento y no aparecen en la web (tests de producto).
+   - **Públicas y patrocinadas**: pasan por moderación y se muestran con la etiqueta «Patrocinada».
+4. Para cada encuesta: resultados en directo, votos por día, desgloses por país/edad/género (solo cuentas verificadas y grupos con
+   `MIN_SEGMENT_VOTES` votos o más), origen de las visitas y canales donde se comparte; **informe** para imprimir o guardar en PDF
+   y **CSV** con datos agregados (nunca votos individuales).
+5. El administrador puede asignar una encuesta existente a una marca desde la ficha de la encuesta en `/admin/encuestas`.
+
 ## Estructura
 
 ```

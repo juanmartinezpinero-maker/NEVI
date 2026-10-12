@@ -277,3 +277,68 @@ test("tras votar con cuenta: racha, progreso de nivel y reto por WhatsApp", asyn
   await page.reload();
   await expect(page.getByRole("link", { name: /^1d · \d+ pts$/ })).toBeVisible();
 });
+
+test("panel de marca: alta por admin, encuesta privada, votos en directo, informe y CSV", async ({ page, browser }) => {
+  const ensureProfile = async (p: Page) => {
+    await p.waitForLoadState("networkidle");
+    if (/\/entrar\/perfil/.test(p.url())) await completeProfile(p);
+  };
+  // 1. El admin crea la marca y da acceso a un email.
+  await login(page, "admin@e2e.test", "/admin/marcas");
+  await ensureProfile(page);
+  await page.getByPlaceholder("Nombre de la marca").fill("Marca E2E");
+  await page.getByRole("button", { name: "Crear marca" }).click();
+  const brandBox = page.getByRole("region", { name: "Marca Marca E2E" });
+  await expect(brandBox).toBeVisible();
+  await brandBox.getByPlaceholder("email@marca.com").fill("marca@e2e.test");
+  await brandBox.getByRole("button", { name: "Dar acceso" }).click();
+  await expect(brandBox.getByText("marca@e2e.test")).toBeVisible();
+
+  // 2. La persona de la marca entra y crea una encuesta privada.
+  const brandCtx = await browser.newContext();
+  const brand = await brandCtx.newPage();
+  await login(brand, "marca@e2e.test", "/marca");
+  await ensureProfile(brand);
+  await expect(brand.getByRole("heading", { name: "Marca E2E" })).toBeVisible();
+  await brand.getByRole("link", { name: "Nueva encuesta" }).click();
+  await brand.getByLabel("Pregunta").fill("¿Qué color prefieres para la nueva zapatilla?");
+  await brand.getByLabel("Categoría").selectOption("productos");
+  await brand.getByLabel("Opción 1", { exact: true }).fill("Lima");
+  await brand.getByLabel("Opción 2", { exact: true }).fill("Rosa");
+  await brand.getByRole("button", { name: "Crear encuesta privada" }).click();
+  await expect(brand.getByText(/Encuesta creada/)).toBeVisible();
+  const pollHref = await brand.getByRole("link", { name: "Ver encuesta" }).getAttribute("href");
+
+  // 3. No aparece en la web pública, pero se puede votar con el enlace.
+  const voterCtx = await browser.newContext();
+  const voter = await voterCtx.newPage();
+  await voter.goto("/encuestas?q=zapatilla");
+  await expect(voter.getByRole("heading", { name: /nueva zapatilla/ })).toHaveCount(0);
+  await voter.goto(pollHref!);
+  await expect(voter.getByText(/Privada · solo con enlace/)).toBeVisible();
+  await voter.getByRole("button", { name: "Lima", exact: true }).click();
+  await expect(voter.getByText("✓ Tu voto:")).toBeVisible();
+  await voterCtx.close();
+
+  // 4. La marca ve el voto, el informe y el CSV.
+  await brand.reload();
+  await expect(brand.getByText("100% · 1 voto", { exact: true })).toBeVisible();
+  await brand.getByRole("link", { name: "Informe PDF" }).click();
+  await expect(brand.getByText(/gana «Lima» con el 100%/)).toBeVisible();
+  await expect(brand.getByRole("button", { name: "Imprimir o guardar en PDF" })).toBeVisible();
+  const csvUrl = brand.url().replace(/\/marca\/([^/]+)\/encuestas\/([^/]+)\/informe$/, "/api/marca/$1/$2/csv");
+  const csv = await brand.request.get(csvUrl);
+  expect(csv.status()).toBe(200);
+  expect(await csv.text()).toContain("total;todos;Lima;1;100");
+  await brandCtx.close();
+
+  // 5. Otra cuenta no puede ver el panel de esa marca ni descargar sus datos.
+  const brandPath = new URL(csvUrl).pathname;
+  const otherCtx = await browser.newContext();
+  const other = await otherCtx.newPage();
+  await login(other, "curioso@e2e.test", "/marca");
+  await ensureProfile(other);
+  await expect(other.getByText(/no está asociada a ninguna marca/)).toBeVisible();
+  expect((await other.request.get(brandPath)).status()).toBe(403);
+  await otherCtx.close();
+});

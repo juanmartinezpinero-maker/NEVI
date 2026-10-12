@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { deleteAccountAction, logoutAction } from "@/app/actions/auth";
 import { requireUser } from "@/lib/auth";
+import { getUserBrands } from "@/lib/brands";
 import { getCategory } from "@/lib/categories";
 import { Photo } from "@/components/Photo";
 import { countryFlag, countryName, genderLabel } from "@/lib/demographics";
@@ -19,7 +20,7 @@ export default async function ProfilePage(props: PageProps<"/perfil">) {
   const user = await requireUser("/perfil");
   const sp = await props.searchParams;
   const db = await getDb();
-  const [history, stats, mine] = await Promise.all([
+  const [history, stats, mine, brands] = await Promise.all([
     getUserHistory(user.id),
     getUserStats(user.id),
     db
@@ -27,6 +28,7 @@ export default async function ProfilePage(props: PageProps<"/perfil">) {
       .from(schema.polls)
       .where(eq(schema.polls.authorId, user.id))
       .orderBy(desc(schema.polls.createdAt)),
+    getUserBrands(user),
   ]);
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -54,6 +56,16 @@ export default async function ProfilePage(props: PageProps<"/perfil">) {
           </form>
         </div>
       </section>
+
+      {brands.length > 0 && (
+        <Link href="/marca" className="flex items-center justify-between rounded-[22px] bg-ink p-5 text-white">
+          <span>
+            <span className="block text-xs font-semibold text-white/70">Panel de marca</span>
+            <span className="text-xl font-black tracking-[-0.04em] text-lime">{brands.map((b) => b.name).join(" · ")}</span>
+          </span>
+          <span className="rounded-full bg-lime px-4 py-2 text-sm font-extrabold text-ink">Abrir</span>
+        </Link>
+      )}
 
       <section className="space-y-3" aria-labelledby="stats">
         <h2 id="stats" className="sr-only">

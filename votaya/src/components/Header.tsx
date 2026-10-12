@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { getUserBrands } from "@/lib/brands";
 import { getBalance, getStreak } from "@/lib/points";
 import { rewardsEnabled } from "@/lib/site";
 import { IconSearch } from "./Icons";
@@ -9,6 +10,7 @@ import { NavLinks } from "./NavLinks";
 export async function Header() {
   const user = await getCurrentUser();
   const [points, streak] = user?.profileCompleted ? await Promise.all([getBalance(user.id), getStreak(user.id)]) : [null, 0];
+  const hasBrand = user && user.role !== "admin" ? (await getUserBrands(user)).length > 0 : false;
   return (
     <header id="site-header" className="sticky top-0 z-30 bg-lime">
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-5 px-4" aria-label="Principal">
@@ -36,6 +38,11 @@ export async function Header() {
           <Link href="/encuestas" className="grid h-10 w-10 place-items-center rounded-full md:hidden" aria-label="Buscar encuestas">
             <IconSearch />
           </Link>
+          {hasBrand && (
+            <Link href="/marca" className="hidden rounded-full px-3 py-2 text-sm font-bold sm:inline">
+              Panel de marca
+            </Link>
+          )}
           {user?.role === "admin" && (
             <Link href="/admin" className="hidden rounded-full px-3 py-2 text-sm font-bold sm:inline">
               Admin

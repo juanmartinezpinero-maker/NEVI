@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     { href: "/admin/moderacion", label: `Moderación${pending ? ` (${pending})` : ""}` },
     { href: "/admin/encuestas", label: "Encuestas" },
     { href: "/admin/enlaces", label: "Creadores" },
+    { href: "/admin/marcas", label: "Marcas" },
     { href: "/admin/premios", label: "Premios" },
     { href: "/admin/usuarios", label: "Usuarios" },
   ];

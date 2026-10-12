@@ -15,6 +15,13 @@
       "when": 1791789357549,
       "tag": "0001_points_rewards",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791826338376,
+      "tag": "0002_brands",
+      "breakpoints": true
     }
   ]
 }

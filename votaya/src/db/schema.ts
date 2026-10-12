@@ -65,6 +65,22 @@ export const sponsors = pgTable("sponsors", {
   createdAt: createdAt(),
 });
 
+// Personas con acceso al panel de una marca (/marca). Las da de alta un administrador.
+export const sponsorMembers = pgTable(
+  "sponsor_members",
+  {
+    sponsorId: uuid("sponsor_id")
+      .notNull()
+      .references(() => sponsors.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["owner", "member"] }).notNull().default("member"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("sponsor_members_uq").on(t.sponsorId, t.userId), index("sponsor_members_user_idx").on(t.userId)],
+);
+
 // Preparado para la fase de monetización: no hay pagos reales en el MVP.
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -98,6 +114,8 @@ export const polls = pgTable(
       .default("pending"),
     // popular = votación abierta (no representativa); study = estudio con muestra ponderada.
     kind: text("kind", { enum: ["popular", "study"] }).notNull().default("popular"),
+    // public = aparece en la web; private = solo accesible por enlace (tests de producto de marcas).
+    visibility: text("visibility", { enum: ["public", "private"] }).notNull().default("public"),
     isDemo: boolean("is_demo").notNull().default(false),
     featuredOn: date("featured_on"),
     authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),

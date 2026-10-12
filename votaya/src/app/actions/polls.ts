@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { track } from "@/lib/analytics";
 import { getCurrentUser } from "@/lib/auth";
+import { isBrandMember } from "@/lib/brands";
 import { CATEGORY_SLUGS } from "@/lib/categories";
 import { findSimilarPolls } from "@/lib/polls";
 import { rateLimit } from "@/lib/rate-limit";
@@ -42,6 +43,13 @@ export async function createPollAction(_prev: CreatePollState, form: FormData): 
   const user = await getCurrentUser();
   if (!user?.profileCompleted) redirect("/entrar?next=/crear");
 
+  // Encuesta de marca: solo miembros de esa marca (o admin). Privada = solo con enlace, sin moderación previa.
+  const sponsorId = String(form.get("sponsorId") ?? "") || null;
+  if (sponsorId && !(/^[0-9a-f-]{36}$/i.test(sponsorId) && (await isBrandMember(user, sponsorId)))) {
+    return { error: "No tienes acceso a esta marca." };
+  }
+  const visibility = sponsorId && form.get("visibility") === "private" ? "private" : "public";
+
   const labels = form.getAll("optionLabel").map(String);
   const emojis = form.getAll("optionEmoji").map(String);
   const images = form.getAll("optionImage").map(String);
@@ -66,7 +74,7 @@ export async function createPollAction(_prev: CreatePollState, form: FormData): 
   const allText = [data.title, data.description ?? "", ...data.options.map((o) => o.label)].join(" ");
   if (containsBlockedWords(allText)) return { error: "El texto contiene palabras no permitidas" };
 
-  const similar = await findSimilarPolls(data.title);
+  const similar = visibility === "private" ? [] : await findSimilarPolls(data.title);
   const forced = form.get("confirmDuplicate") === "on";
   if (similar.length && !forced) {
     return {
@@ -76,9 +84,11 @@ export async function createPollAction(_prev: CreatePollState, form: FormData): 
   }
 
   const isAdmin = user.role === "admin";
-  if (!isAdmin && !(await rateLimit(`create:${user.id}`, 5, 86400))) {
-    return { error: "Has alcanzado el máximo de 5 propuestas al día." };
+  const dailyLimit = sponsorId ? 30 : 5;
+  if (!isAdmin && !(await rateLimit(`create:${user.id}`, dailyLimit, 86400))) {
+    return { error: `Has alcanzado el máximo de ${dailyLimit} encuestas al día.` };
   }
+  const publishNow = isAdmin || visibility === "private";
 
   const db = await getDb();
   const slug = await uniqueSlug(data.title);
@@ -95,8 +105,10 @@ export async function createPollAction(_prev: CreatePollState, form: FormData): 
         imageUrl: data.imageUrl || null,
         allowOther: data.allowOther,
         authorId: user.id,
-        status: isAdmin ? "published" : "pending",
-        publishedAt: isAdmin ? new Date() : null,
+        sponsorId,
+        visibility,
+        status: publishNow ? "published" : "pending",
+        publishedAt: publishNow ? new Date() : null,
       })
       .returning({ id: schema.polls.id });
     await tx.insert(schema.pollOptions).values(
@@ -112,6 +124,7 @@ export async function createPollAction(_prev: CreatePollState, form: FormData): 
     return poll.id;
   });
   await track("poll_created", { pollId, userId: user.id });
+  if (sponsorId) redirect(`/marca/${sponsorId}/encuestas/${pollId}?creada=1`);
   redirect(isAdmin ? `/p/${slug}` : `/perfil?propuesta=ok`);
 }
 

@@ -32,6 +32,9 @@ export type PollDetail = PollCard & {
   status: string;
   authorId: string | null;
   createdAt: Date;
+  visibility: "public" | "private";
+  /** Marca propietaria (patrocinio o test privado). */
+  ownerSponsorId: string | null;
 };
 
 export type ResultRow = { id: string; label: string; emoji: string | null; count: number; pct: number; isOther?: boolean };
@@ -102,7 +105,8 @@ async function attachOptions<T extends { id: string; sponsorId: string | null }>
   });
 }
 
-const published = eq(polls.status, "published");
+// Visible en la web: publicada y pública (las privadas solo se abren con su enlace).
+const published = and(eq(polls.status, "published"), eq(polls.visibility, "public"))!;
 
 export async function listPolls(opts: {
   category?: string;
@@ -181,7 +185,15 @@ export async function getFeaturedPoll(): Promise<PollCard | null> {
 export async function getPollBySlug(slug: string): Promise<PollDetail | null> {
   const db = await getDb();
   const rows = await db
-    .select({ ...cardColumns, description: polls.description, status: polls.status, authorId: polls.authorId, createdAt: polls.createdAt })
+    .select({
+      ...cardColumns,
+      description: polls.description,
+      status: polls.status,
+      authorId: polls.authorId,
+      createdAt: polls.createdAt,
+      visibility: polls.visibility,
+      ownerSponsorId: polls.sponsorId,
+    })
     .from(polls)
     .where(eq(polls.slug, slug))
     .limit(1);
@@ -353,7 +365,7 @@ export async function getSiteTotals() {
   const [row] = await db
     .select({
       votes: sql<number>`(select count(*)::int from ${votes})`,
-      polls: sql<number>`(select count(*)::int from ${polls} where ${polls.status} = 'published')`,
+      polls: sql<number>`(select count(*)::int from ${polls} where ${polls.status} = 'published' and ${polls.visibility} = 'public')`,
       countries: sql<number>`(select count(distinct ${votes.country})::int from ${votes})`,
     })
     .from(sql`(select 1) as one`);
@@ -370,7 +382,7 @@ export async function findSimilarPolls(title: string, limit = 3) {
   const candidates = await db
     .select({ id: polls.id, slug: polls.slug, title: polls.title, status: polls.status, normalizedTitle: polls.normalizedTitle })
     .from(polls)
-    .where(and(inArray(polls.status, ["published", "pending"]), or(...words.map((w) => ilike(polls.normalizedTitle, `%${w}%`)))!))
+    .where(and(inArray(polls.status, ["published", "pending"]), eq(polls.visibility, "public"), or(...words.map((w) => ilike(polls.normalizedTitle, `%${w}%`)))!))
     .limit(50);
   return candidates
     .map((c) => {
