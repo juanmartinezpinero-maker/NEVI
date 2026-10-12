@@ -1,0 +1,616 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VotaYa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap">
+</head><body>
+<style>
+/* Layout: app de votaciones de estilo claro; columna principal + barra lateral en escritorio, barra inferior en móvil. Un solo aspecto claro por diseño. */
+:root {
+  --page: #f6f6fa; --card: #ffffff; --ink: #14121f; --muted: #6b6b80; --line: #e8e8ef; --soft: #f1f1f6;
+  --brand: #e5254f; --brand-dark: #c81d43; --violet: #6d28d9; --gold: #b45309; --gold-bg: #fffbeb; --ok: #047857; --ok-bg: #ecfdf5;
+  --display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--page); color: var(--ink); }
+body { font-family: var(--body); font-size: 15px; line-height: 1.45; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid #fb7193; outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.muted { color: var(--muted); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px rgb(20 18 31 / .04), 0 4px 16px rgb(20 18 31 / .04); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; padding: 10px 16px; font-weight: 700; font-size: 14px; }
+.btn-brand { background: var(--brand); color: #fff; }
+.btn-brand:hover { background: var(--brand-dark); }
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-line { border: 1px solid var(--line); background: #fff; }
+.btn[disabled] { background: var(--soft); color: var(--muted); cursor: not-allowed; }
+.pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; background: var(--soft); }
+
+.band { font-size: 12px; text-align: center; padding: 6px 16px; background: var(--gold-bg); color: var(--gold); border-bottom: 1px solid #fde68a; }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgb(255 255 255 / .96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+header.top .in { max-width: 1240px; margin: 0 auto; padding: 0 16px; height: 62px; display: flex; align-items: center; gap: 18px; }
+.logo { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 22px; }
+.tabs-main { display: none; gap: 4px; }
+.tabs-main button { position: relative; padding: 20px 10px; font-weight: 600; font-size: 14px; color: var(--muted); }
+.tabs-main button[aria-current="page"] { color: var(--ink); }
+.tabs-main button[aria-current="page"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px; background: var(--brand); }
+.hsearch { display: none; flex: 1; max-width: 300px; margin-left: auto; position: relative; }
+.hsearch input { width: 100%; border-radius: 999px; border: 1px solid var(--line); background: var(--page); padding: 9px 14px 9px 34px; font-size: 14px; outline: none; }
+.hsearch span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+.hright { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.pts { border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; background: var(--gold-bg); color: var(--gold); box-shadow: inset 0 0 0 1px #fde68a; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, #f43f6b, #e5254f); }
+.only-desktop { display: none !important; }
+@media (min-width: 900px) { .only-desktop { display: inline-flex !important; } .tabs-main { display: flex; } .hsearch { display: block; } .hright { margin-left: 0; } .only-mobile { display: none !important; } }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 20px 16px 110px; }
+.layout { display: grid; gap: 22px; }
+.layout > * { min-width: 0; }
+@media (min-width: 1024px) { .layout { grid-template-columns: minmax(0, 1fr) 300px; } .wrap { padding-bottom: 40px; } }
+.stack { display: grid; gap: 22px; align-content: start; }
+.grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 620px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1180px) { .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.hero { position: relative; overflow: hidden; border-radius: 24px; color: #fff; padding: 30px 24px; background: radial-gradient(50rem 26rem at 85% 30%, #c026d3 0%, transparent 60%), linear-gradient(120deg, #3b1585 0%, #6d28d9 55%, #a21caf 100%); }
+.hero h1 { font-size: clamp(34px, 6vw, 50px); line-height: 1.02; font-weight: 800; }
+.hero .yt { background: linear-gradient(90deg, #ff4d8d, #ff8a5c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { max-width: 430px; color: rgb(255 255 255 / .86); margin: 12px 0 18px; }
+.hero .copy { position: relative; z-index: 2; max-width: 460px; }
+.globe { display: none; position: absolute; right: 30px; top: 50%; transform: translateY(-50%); width: 270px; height: 270px; }
+.globe .ph { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 20px 60px rgb(80 0 120 / .5); }
+.bubble { position: absolute; width: 46px; height: 46px; border-radius: 14px; background: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 8px 20px rgb(0 0 0 / .18); animation: float 4s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-8px); } }
+.weekly { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 10px; margin-top: 18px; border-radius: 16px; padding: 8px 14px; background: rgb(0 0 0 / .28); }
+.weekly b { font-family: var(--display); font-size: 20px; display: block; line-height: 1; }
+@media (min-width: 760px) { .hero { padding: 40px; } .globe { display: block; } .weekly { position: absolute; right: 24px; bottom: 22px; margin: 0; } }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
+.chip { flex: none; display: inline-flex; gap: 6px; align-items: center; border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: #fff; }
+.chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+.ph { position: relative; overflow: hidden; background: linear-gradient(135deg, var(--g1, #fda4af), var(--g2, #a78bfa)); display: grid; place-items: center; }
+.ph .em { font-size: 34px; }
+.ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.pc { padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: transform .15s, box-shadow .15s; }
+.pc:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgb(20 18 31 / .08); }
+.pc .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; }
+.pc h3 { font-size: 18px; line-height: 1.25; text-align: left; }
+.pc h3 button:hover { color: var(--brand); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pair .ph { aspect-ratio: 4 / 3; max-width: 100%; border-radius: 12px; }
+.more { position: absolute; right: 6px; top: 6px; z-index: 2; background: rgb(0 0 0 / .62); color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
+.mini { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px; }
+.mini b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mbar { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.mbar .t { flex: 1; height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.mbar .t i { display: block; height: 100%; border-radius: 99px; background: #9ca3af; }
+.mbar .t i.lead { background: var(--brand); }
+.mbar span { width: 34px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pc .actions { margin-top: auto; display: flex; gap: 8px; }
+.pc .actions .btn-brand, .pc .actions .btn-line.wide { flex: 1; }
+.iconbtn { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted); }
+.sp { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp span { font-size: 11px; font-weight: 700; border-radius: 99px; padding: 3px 8px; }
+.sp .a { background: #fef3c7; color: #92400e; }
+.sp .b { background: #d1fae5; color: #065f46; }
+
+.side h2 { font-size: 16px; margin-bottom: 12px; }
+.side { padding: 16px; }
+.tlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.tlist button { display: grid; grid-template-columns: 14px 44px 1fr; gap: 10px; align-items: center; text-align: left; width: 100%; }
+.tlist .ph { width: 44px; height: 44px; border-radius: 10px; }
+.tlist .ph .em { font-size: 20px; }
+.tlist b { font-size: 14px; line-height: 1.2; display: block; }
+.clist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 14px; }
+.clist li { display: grid; grid-template-columns: 16px 26px 1fr auto; gap: 8px; align-items: center; font-variant-numeric: tabular-nums; }
+.checks { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.checks li::before { content: "✓"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #10b981; color: #fff; font-size: 11px; margin-right: 8px; }
+
+.duel { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.duel > button { position: relative; aspect-ratio: 4 / 5; max-width: 100%; border-radius: 18px; overflow: hidden; color: #fff; font-family: var(--display); font-weight: 800; font-size: 20px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 14px; transition: transform .12s; }
+.duel > button:active { transform: scale(.96); }
+.duel > button .ph { position: absolute; inset: 0; }
+.duel > button .shade { position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgb(0 0 0 / .78)); }
+.duel > button .lb, .duel > button .go { position: relative; }
+.duel > button .go { margin-top: 8px; background: #fff; color: var(--brand); font-family: var(--body); font-size: 13px; border-radius: 99px; padding: 6px 16px; }
+.vs { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; border: 4px solid #fff; font-family: var(--display); font-weight: 800; pointer-events: none; box-shadow: 0 8px 20px rgb(0 0 0 / .2); }
+@media (min-width: 620px) { .duel > button { aspect-ratio: 4 / 3; font-size: 24px; } }
+.opts { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.opt { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #fff; font-weight: 700; text-align: left; }
+.opt:hover { border-color: #fda4af; background: #fff1f2; }
+.opt .ph { width: 58px; height: 46px; border-radius: 10px; flex: none; }
+.opt .ph .em { font-size: 22px; }
+.opt.other { border-style: dashed; color: var(--muted); }
+.otherbox { display: flex; gap: 8px; align-items: center; padding: 6px 6px 6px 14px; border-radius: 14px; border: 2px solid var(--brand); }
+.otherbox input { flex: 1; min-width: 0; border: 0; outline: none; font-weight: 700; padding: 8px 0; background: transparent; }
+
+.earned { text-align: center; font-weight: 700; color: #92400e; background: var(--gold-bg); border-radius: 14px; padding: 10px; box-shadow: inset 0 0 0 1px #fde68a; animation: pop .35s ease-out; }
+@keyframes pop { 0% { transform: scale(.94); } 60% { transform: scale(1.03); } }
+.res { display: grid; gap: 8px; }
+.bar { position: relative; overflow: hidden; border-radius: 14px; border: 1px solid var(--line); background: #fff; }
+.bar.mine { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+.bar .fill { position: absolute; inset: 0 auto 0 0; width: 0; opacity: .22; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.bar .in { position: relative; display: flex; align-items: center; gap: 10px; padding: 11px 14px; font-weight: 700; }
+.bar .in .lb { flex: 1; min-width: 0; }
+.bar .pct { font-family: var(--display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.you { margin-left: 6px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 800; text-transform: uppercase; }
+.split .nums { display: flex; justify-content: space-between; font-family: var(--display); font-weight: 800; font-size: 36px; }
+.split .track { display: flex; height: 22px; border-radius: 999px; overflow: hidden; background: var(--soft); }
+.split .l { background: linear-gradient(90deg, #6d28d9, #a78bfa); width: 50%; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+.split .r { flex: 1; background: linear-gradient(90deg, #fb7185, #e5254f); }
+.split .labels { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 14px; margin-top: 6px; }
+.share { display: grid; gap: 8px; }
+.share .nets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.share .nets button { border-radius: 10px; padding: 9px 0; font-size: 12px; font-weight: 800; color: #fff; }
+.lockbox { position: relative; }
+.lockbox .blur { filter: blur(5px); pointer-events: none; }
+.lockbox .over { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; background: rgb(255 255 255 / .55); border-radius: 12px; }
+.seg { display: grid; gap: 4px; }
+.seg .h { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-size: 14px; }
+.seg .t { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--soft); }
+.segtabs, .sorts { display: flex; gap: 6px; flex-wrap: wrap; }
+.segtabs button, .sorts button { border-radius: 999px; padding: 7px 14px; font-weight: 700; font-size: 13px; background: var(--soft); color: var(--muted); }
+.segtabs button[aria-selected="true"], .sorts button[aria-selected="true"] { background: var(--ink); color: #fff; }
+
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rank button { width: 100%; display: grid; grid-template-columns: 34px 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left; padding: 8px; border-radius: 14px; }
+.rank button:hover { background: var(--page); }
+.rank .n { font-family: var(--display); font-size: 20px; text-align: center; color: var(--muted); }
+.rank .ph { width: 64px; height: 48px; border-radius: 10px; }
+.rank .ph .em { font-size: 22px; }
+.rank .rb { height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; margin-top: 5px; }
+.rank .rb i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f43f6b, #e5254f); }
+.rank .v { text-align: right; font-family: var(--display); font-size: 17px; font-variant-numeric: tabular-nums; }
+
+.how { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.how .card { display: flex; gap: 12px; align-items: center; padding: 14px; }
+.how b { display: block; font-family: var(--display); font-size: 22px; color: var(--gold); }
+.rw .ph { aspect-ratio: 16 / 9; max-width: 100%; }
+.rw .ph .em { font-size: 44px; }
+.rw .tag { position: absolute; z-index: 2; left: 10px; top: 10px; background: rgb(255 255 255 / .92); border-radius: 99px; padding: 3px 9px; font-size: 12px; font-weight: 700; }
+.rw .demo { position: absolute; z-index: 2; right: 10px; top: 10px; background: #fbbf24; border-radius: 99px; padding: 2px 8px; font-size: 11px; font-weight: 800; }
+.progress { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.progress i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f43f6b, #e5254f); }
+.coupon { border-radius: 12px; padding: 10px; background: var(--ok-bg); color: var(--ok); box-shadow: inset 0 0 0 1px #a7f3d0; font-size: 14px; }
+.coupon code { display: block; font-size: 18px; font-weight: 800; letter-spacing: .08em; color: var(--ink); user-select: all; }
+.stats3 { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
+.stats3 > div { padding: 16px 8px; border-right: 1px solid var(--line); }
+.stats3 > div:last-child { border-right: 0; }
+.stats3 b { display: block; font-family: var(--display); font-size: 28px; }
+
+.form { display: grid; gap: 14px; }
+.field { display: grid; gap: 6px; font-weight: 700; font-size: 14px; }
+.field input, .field select { border-radius: 12px; border: 1px solid var(--line); background: #fff; padding: 12px 14px; font-weight: 500; outline: none; width: 100%; }
+.field input:focus, .field select:focus { border-color: #fda4af; }
+.radios { display: grid; gap: 8px; }
+.radios.g4 { grid-template-columns: repeat(4, 1fr); }
+.radios.g2 { grid-template-columns: repeat(2, 1fr); }
+.radios label { position: relative; }
+.radios input { position: absolute; opacity: 0; }
+.radios span { display: block; text-align: center; border-radius: 10px; border: 1px solid var(--line); padding: 9px 4px; font-size: 13px; font-weight: 700; }
+.radios input:checked + span { border-color: var(--brand); background: #fff1f2; color: var(--brand-dark); }
+.radios input:focus-visible + span { outline: 3px solid #fb7193; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; font-weight: 500; }
+.check input { margin-top: 3px; accent-color: var(--brand); }
+.note { font-size: 13px; border-radius: 12px; padding: 10px 12px; background: var(--gold-bg); color: #92400e; box-shadow: inset 0 0 0 1px #fde68a; }
+
+nav.bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgb(255 255 255 / .96); backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+nav.bottom ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); }
+nav.bottom button { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; font-size: 11px; font-weight: 600; color: var(--muted); }
+nav.bottom button .ic { font-size: 20px; filter: grayscale(1); opacity: .6; }
+nav.bottom button[aria-current="page"] { color: var(--brand); }
+nav.bottom button[aria-current="page"] .ic { filter: none; opacity: 1; }
+nav.bottom .plus { margin-top: -20px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 26px; background: linear-gradient(135deg, #f43f6b, #e5254f); box-shadow: 0 8px 18px rgb(229 37 79 / .35); }
+@media (min-width: 900px) { nav.bottom { display: none; } }
+.toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 30; background: var(--ink); color: #fff; font-weight: 600; padding: 10px 16px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 32px); text-align: center; }
+footer { border-top: 1px solid var(--line); background: #fff; }
+footer .in { max-width: 1240px; margin: 0 auto; padding: 18px 16px 90px; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 18px; }
+@media (min-width: 900px) { footer .in { padding-bottom: 18px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="band">Vista previa interactiva de VotaYa v2 · Encuestas, marcas y premios de demostración ficticios · Lo que hagas se guarda solo en este navegador</div>
+<header class="top"><div class="in">
+  <button class="logo" data-go="home" aria-label="VotaYa, inicio">
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="34" width="12" height="24" rx="4" fill="#f43f6b"/><rect x="22" y="20" width="12" height="38" rx="4" fill="#e5254f"/><rect x="38" y="8" width="12" height="50" rx="4" fill="#c81d43"/><path d="M44 22l6 6 12-16" stroke="#7c3aed" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    VotaYa
+  </button>
+  <nav class="tabs-main" aria-label="Principal">
+    <button data-go="home">Inicio</button><button data-go="polls">Encuestas</button><button data-go="rankings">Rankings</button><button data-go="trends">Tendencias</button><button data-go="rewards">Premios</button>
+  </nav>
+  <div class="hsearch"><span aria-hidden="true">🔍</span><input id="hsearch" placeholder="Buscar encuestas…" aria-label="Buscar encuestas"></div>
+  <div class="hright" id="hright"></div>
+</div></header>
+
+<main class="wrap" id="app"></main>
+<footer><div class="in"><b style="color:var(--ink);font-family:var(--display);font-size:15px">VotaYa</b><span>El mundo opina. ¿Y tú?</span><span>Cómo funcionan los puntos</span><span>Empresas y marcas</span><span>Privacidad</span><span>Las votaciones populares no son estudios representativos.</span></div></footer>
+
+<nav class="bottom" aria-label="Navegación inferior"><ul>
+  <li><button data-go="home"><span class="ic">🏠</span>Inicio</button></li>
+  <li><button data-go="polls"><span class="ic">🗳️</span>Encuestas</button></li>
+  <li><button data-go="create"><span class="plus">＋</span>Crear</button></li>
+  <li><button data-go="rewards"><span class="ic">🎁</span>Premios</button></li>
+  <li><button data-go="profile"><span class="ic">👤</span>Perfil</button></li>
+</ul></nav>
+
+<script>
+const IMG = {
+  pizza: "hf_20261012_071402_65af9b6b-c390-4ceb-a6fe-20653b52b4ca", burger: "hf_20261012_071502_2419bb79-4bab-4c82-a04e-debc7032d12c",
+  colaRed: "hf_20261012_071502_53c5230d-e415-410c-b4e5-7099b096afe3", colaBlue: "hf_20261012_071502_8521a2c5-2cea-4ab7-8686-a21ffe00452a",
+  player10: "hf_20261012_071502_4b095b5e-f802-44f5-b0aa-0324b487253c", player7: "hf_20261012_071541_b8e4f15b-b533-436e-903e-7dc9e58edbd5",
+  mountain: "hf_20261012_071502_df11dc8d-b0ef-40f7-b179-bf03c28a7bef", beach: "hf_20261012_071639_c9b8b0ec-77cb-469a-b05a-32ccc5a0bd1e",
+  tea: "hf_20261012_071502_f0106353-f94c-4e06-a287-16a8ef59b89e", coffee: "hf_20261012_071541_3dda5847-4051-414d-a4d2-c119318e1e45",
+  dog: "hf_20261012_071541_d755718a-9423-4a85-9f04-332bb0115652", cat: "hf_20261012_071639_caf04deb-ac25-4c6c-a47b-7d0c678e5a1f",
+  tortillaOnion: "hf_20261012_071747_6c09001b-8a7f-4c81-89e6-9e254b83fd41", tortillaPlain: "hf_20261012_071856_ba40c4eb-8244-4f16-a746-677b5aeed873",
+  phoneA: "hf_20261012_071747_7f5326c5-ecf4-4bfd-a9f5-6971f1a079eb", phoneB: "hf_20261012_071856_56c3bd5e-67a5-4c02-931c-f8c09998d07f",
+  pizzaPineapple: "hf_20261012_072041_a0032c5b-d933-48e7-88d0-093b3ee3f830", pizzaMargherita: "hf_20261012_072041_c58c8e24-9b1e-4102-9089-2ac134bce97e",
+  globe: "hf_20261012_072041_e073daa3-0e03-4f32-91e7-47bfec168589", series: "hf_20261012_072249_9ce4b491-28b9-401e-8b82-8f42034c4411",
+  cinema: "hf_20261012_072356_683465c0-ef4e-45ed-9003-e3e77fa939b6", city: "hf_20261012_072356_c934c980-0553-4534-af83-06fc867c73d1",
+  worldFood: "hf_20261012_072508_ccb8166e-6fa1-4dbc-bf32-e62be80760f5", stadium: "hf_20261012_072508_bbe40d80-7505-4aa5-967d-4682b83a8d01",
+  ai: "hf_20261012_072554_cc2e30ea-3881-4114-b466-21b1c1905231", social: "hf_20261012_072554_a6d0aa66-2161-47fa-9e49-ba1c5ec6518c",
+  ballot: "hf_20261012_072715_301fbffb-eed5-465f-89a9-52ef1e0baea4", workweek: "hf_20261012_072920_809b9ac5-de1b-4101-9be8-b8fdc5029db9",
+};
+const imgUrl = (k) => k && IMG[k] ? `https://d8j0ntlcm91z4.cloudfront.net/user_3EldQnHbdxUy20jWu0yieUP1xkQ/${IMG[k]}_min.webp` : null;
+
+const CATS = {
+  paises: ["Países", "🌍", "#7dd3fc", "#6366f1"], comida: ["Comida", "🍕", "#fdba74", "#f43f5e"], tecnologia: ["Tecnología", "📱", "#67e8f9", "#2563eb"],
+  deportes: ["Deportes", "⚽", "#bef264", "#059669"], entretenimiento: ["Entretenimiento", "🎬", "#e879f9", "#9333ea"], "estilo-de-vida": ["Estilo de vida", "❤️", "#f9a8d4", "#e11d48"],
+  marcas: ["Marcas", "🏷️", "#fcd34d", "#ea580c"], productos: ["Productos", "🛍️", "#5eead4", "#0891b2"], politica: ["Política y sociedad", "🏛️", "#94a3b8", "#4338ca"],
+};
+const COLORS = ["#e5254f", "#6d28d9", "#f59e0b", "#06b6d4", "#84cc16", "#ec4899", "#0ea5e9", "#10b981"];
+let pid = 0;
+const P = (title, cat, emoji, votes, ago, options, extra = {}) => ({ id: "p" + (++pid), title, cat, emoji, votes, ago, options: options.map(([l, e, w, img]) => ({ l, e, w, img })), ...extra });
+const POLLS = [
+  P("¿Pizza o hamburguesa?", "comida", "🍕", 1800, "Hace 2 horas", [["Pizza", "🍕", 62, "pizza"], ["Hamburguesa", "🍔", 38, "burger"]], { featured: true, sponsor: "Pizzería Napoli (demo)", reward: "r2" }),
+  P("¿Coca-Cola o Pepsi?", "marcas", "🥤", 3200, "Hace 5 horas", [["Coca-Cola", "🔴", 62, "colaRed"], ["Pepsi", "🔵", 38, "colaBlue"]]),
+  P("¿Messi o Cristiano?", "deportes", "🐐", 4101, "Hace 1 día", [["Messi", "🇦🇷", 60, "player10"], ["Cristiano", "🇵🇹", 40, "player7"]]),
+  P("¿Playa o montaña?", "estilo-de-vida", "🏖️", 2900, "Hace 2 días", [["Playa", "🏖️", 58, "beach"], ["Montaña", "🏔️", 42, "mountain"]]),
+  P("¿iPhone o Android?", "tecnologia", "📱", 3100, "Hace 1 día", [["iPhone", "🍎", 48, "phoneA"], ["Android", "🤖", 52, "phoneB"]]),
+  P("¿Deberíamos tener una semana laboral de 4 días?", "politica", "📅", 1500, "Hace 1 día", [["Sí, con el mismo sueldo", "✅", 71, "workweek"], ["No, no es viable", "❌", 18], ["Solo en algunos sectores", "⚖️", 11]], { cover: "workweek" }),
+  P("¿Café o té?", "estilo-de-vida", "☕", 2100, "Hace 3 días", [["Café", "☕", 71, "coffee"], ["Té", "🍵", 29, "tea"]], { sponsor: "Cafetería Aroma (demo)", reward: "r1" }),
+  P("¿Perros o gatos?", "estilo-de-vida", "🐶", 3300, "Hace 3 días", [["Perros", "🐶", 60, "dog"], ["Gatos", "🐱", 40, "cat"]]),
+  P("¿Tortilla de patatas con o sin cebolla?", "comida", "🥔", 3900, "Hace 4 días", [["Con cebolla", "🧅", 66, "tortillaOnion"], ["Sin cebolla", "🚫", 34, "tortillaPlain"]]),
+  P("¿Piña en la pizza?", "comida", "🍍", 2800, "Hace 6 días", [["Sí, por supuesto", "✅", 41, "pizzaPineapple"], ["Jamás", "❌", 59, "pizzaMargherita"]]),
+  P("¿Cuál es la mejor serie de la historia?", "entretenimiento", "📺", 2601, "Hace 5 días", [["Breaking Bad", "🧪", 31], ["Juego de Tronos", "🐉", 24], ["Friends", "☕", 15], ["Los Soprano", "🍝", 10], ["La Casa de Papel", "🎭", 9]], { cover: "series", other: 11, writeIns: [["Stranger Things", 82], ["The Office", 85], ["Dark", 55], ["Peaky Blinders", 45]] }),
+  P("¿Cuál es la mejor película de todos los tiempos?", "entretenimiento", "🎬", 2201, "Hace 7 días", [["El Padrino", "🌹", 22], ["El Señor de los Anillos", "💍", 19], ["Interstellar", "🪐", 17], ["Pulp Fiction", "🍔", 13], ["Titanic", "🚢", 11]], { cover: "cinema", other: 9, writeIns: [["Matrix", 50], ["Gladiator", 45]], sponsor: "Cines Estrella (demo)", reward: "r3" }),
+  P("¿En qué país se come mejor?", "paises", "🍽️", 3501, "Hace 15 días", [["España", "🇪🇸", 24], ["Italia", "🇮🇹", 24], ["México", "🇲🇽", 24], ["Japón", "🇯🇵", 12], ["Perú", "🇵🇪", 7]], { cover: "worldFood", other: 4, writeIns: [["Turquía", 40], ["Tailandia", 35]] }),
+  P("¿Cuál es la ciudad más bonita del mundo?", "paises", "🏙️", 1300, "Hace 9 días", [["París", "🗼", 22], ["Roma", "🏛️", 20], ["Nueva York", "🗽", 15], ["Kioto", "⛩️", 12], ["Buenos Aires", "💃", 15]], { cover: "city", other: 16, writeIns: [["Praga", 40], ["Ámsterdam", 30]] }),
+  P("¿Real Madrid o Barcelona?", "deportes", "⚽", 4400, "Hace 13 días", [["Real Madrid", "⚪", 51, "stadium"], ["Barcelona", "🔵", 49]], { cover: "stadium" }),
+  P("¿Qué inteligencia artificial usas más?", "tecnologia", "🤖", 1400, "Hace 2 días", [["ChatGPT", "💬", 42], ["Claude", "✳️", 19], ["Gemini", "♊", 17], ["Copilot", "🧭", 8], ["Ninguna", "🙅", 8]], { cover: "ai", other: 6, writeIns: [["DeepSeek", 30], ["Perplexity", 25]] }),
+  P("¿Cuál es la mejor red social?", "tecnologia", "💬", 1600, "Hace 8 días", [["TikTok", "🎵", 32], ["Instagram", "📸", 30], ["YouTube", "▶️", 22], ["X (Twitter)", "✖️", 8]], { cover: "social", other: 8, writeIns: [["Reddit", 35], ["Twitch", 18]] }),
+  P("¿Debería ser obligatorio votar en las elecciones?", "politica", "🗳️", 1200, "Hace 3 días", [["Sí", "👍", 34, "ballot"], ["No", "👎", 58], ["No lo tengo claro", "🤷", 8]], { cover: "ballot" }),
+  P("¿Qué compras más por internet?", "productos", "🛍️", 900, "Hace 4 días", [["Ropa y calzado", "👟", 34], ["Tecnología", "💻", 24], ["Comida y súper", "🛒", 18], ["Libros", "📚", 12]], { other: 12, writeIns: [["Videojuegos", 25], ["Juguetes", 20]] }),
+];
+const REWARDS = [
+  { id: "r1", title: "Café de especialidad gratis", sponsor: "Cafetería Aroma (demo)", cost: 150, stock: 100, img: "coffee", poll: "p7" },
+  { id: "r2", title: "Pizza mediana gratis", sponsor: "Pizzería Napoli (demo)", cost: 300, stock: 50, img: "pizza", poll: "p1" },
+  { id: "r3", title: "Entrada de cine 2x1", sponsor: "Cines Estrella (demo)", cost: 600, stock: 30, img: "cinema", poll: "p12" },
+];
+const COUNTRIES = [["🇪🇸", "España", 21132], ["🇲🇽", "México", 9277], ["🇦🇷", "Argentina", 6318], ["🇨🇴", "Colombia", 5107], ["🇺🇸", "Estados Unidos", 3720], ["🇨🇱", "Chile", 3011], ["🇵🇪", "Perú", 2410], ["🇧🇷", "Brasil", 1802]];
+const LEVELS = [[0, "Novato", "🌱"], [10, "Opinador", "💬"], [50, "Experto", "🎯"], [150, "Influencer", "🔥"], [500, "Leyenda", "👑"]];
+const PTS = { vote: 10, welcome: 50, cap: 200 };
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("vy2_" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("vy2_" + k, JSON.stringify(v)); } catch {} },
+};
+let votes = store.get("votes", {});
+let user = store.get("user", null);
+let ledger = store.get("ledger", []);
+let coupons = store.get("coupons", []);
+let proposals = store.get("proposals", []);
+let view = { name: "home" };
+let lastEarned = 0;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (n) => n >= 10000 ? (n / 1000).toLocaleString("es-ES", { maximumFractionDigits: 1 }) + " mil" : n.toLocaleString("es-ES");
+const byId = (id) => POLLS.find((p) => p.id === id);
+const balance = () => ledger.reduce((a, l) => a + l.n, 0);
+const voteCount = () => Object.keys(votes).length;
+const norm = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "").replace(/(es|s)$/, "");
+function lev(a, b) { const d = Array.from({ length: b.length + 1 }, (_, i) => i); for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } } return d[b.length]; }
+const same = (a, b) => { const x = norm(a), y = norm(b); return x === y || (Math.min(x.length, y.length) >= 5 && 1 - lev(x, y) / Math.max(x.length, y.length) >= .84); };
+function pcts(arr) { const t = arr.reduce((a, b) => a + b, 0) || 1; const raw = arr.map((c) => c / t * 100); const f = raw.map(Math.floor); let r = 100 - f.reduce((a, b) => a + b, 0); raw.map((v, i) => [v - Math.floor(v), i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (r-- > 0) f[i]++; }); return f; }
+function level() { const n = voteCount(); let i = 0; LEVELS.forEach((l, k) => { if (n >= l[0]) i = k; }); const cur = LEVELS[i], next = LEVELS[i + 1]; return { name: cur[1], emoji: cur[2], next, progress: next ? Math.round((n - cur[0]) / (next[0] - cur[0]) * 100) : 100 }; }
+
+function photo(key, emoji, cat, cls = "") {
+  const c = CATS[cat] || CATS.comida, url = imgUrl(key);
+  return `<span class="ph ${cls}" style="--g1:${c[2]};--g2:${c[3]}"><span class="em" aria-hidden="true">${emoji || c[1]}</span>${url ? `<img src="${url}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span>`;
+}
+
+function results(p) {
+  const totalW = p.options.reduce((a, o) => a + o.w, 0) + (p.other || 0);
+  const rows = p.options.map((o, i) => ({ label: o.l, e: o.e, count: Math.round(p.votes * o.w / totalW), i }));
+  const wis = (p.writeIns || []).map(([l, n]) => ({ l, n }));
+  let other = p.other ? Math.round(p.votes * p.other / totalW) : 0;
+  const v = votes[p.id];
+  if (v) {
+    if (v.i !== null) rows[v.i].count++;
+    else { other++; const w = wis.find((x) => same(x.l, v.other)); if (w) w.n++; else wis.push({ l: v.other, n: 1 }); }
+  }
+  if (other) rows.push({ label: "Otra respuesta", e: "✍️", count: other, i: "other" });
+  const ps = pcts(rows.map((r) => r.count));
+  rows.forEach((r, k) => (r.pct = ps[k]));
+  return { rows, total: rows.reduce((a, r) => a + r.count, 0), wis: wis.sort((a, b) => b.n - a.n) };
+}
+
+function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = msg; document.body.append(t); setTimeout(() => t.remove(), 2800); }
+function go(name, data = {}) { view = { name, ...data }; lastEarned = 0; render(); window.scrollTo(0, 0); }
+
+function pollCard(p, note) {
+  const c = CATS[p.cat], r = results(p), voted = votes[p.id];
+  const [a, b] = p.options;
+  const ra = r.rows[0], rb = r.rows[1];
+  const extra = p.options.length - 2;
+  const rw = p.reward && REWARDS.find((x) => x.id === p.reward);
+  return `<article class="card pc">
+    <div class="top"><button class="pill" data-cat="${p.cat}">${c[1]} ${c[0]}</button><span class="muted">${note || p.ago}</span></div>
+    <h3><button data-poll="${p.id}" style="text-align:left">${esc(p.title)}</button></h3>
+    ${p.sponsor ? `<div class="sp"><span class="a">Patrocinada por ${esc(p.sponsor)}</span>${rw ? `<span class="b">🎁 ${esc(rw.title)}</span>` : ""}</div>` : ""}
+    <button class="pair" data-poll="${p.id}" tabindex="-1" aria-hidden="true">
+      <span style="position:relative">${photo(a.img || p.cover, a.e, p.cat)}</span>
+      <span style="position:relative">${photo(b.img, b.e, p.cat)}${extra > 0 ? `<span class="more">+${extra} opciones</span>` : ""}</span>
+    </button>
+    <div class="mini">${[ra, rb].map((x, k) => `<div><b>${esc(x.label)}</b><div class="mbar"><span class="t"><i class="${x.count >= (k ? ra : rb).count ? "lead" : ""}" style="width:${x.pct}%"></i></span><span>${x.pct}%</span></div></div>`).join("")}</div>
+    <p class="muted" style="margin:0;font-size:12px">${fmt(r.total)} votos</p>
+    <div class="actions">${voted ? `<button class="btn btn-line wide" data-poll="${p.id}">✓ Ver resultados</button>` : `<button class="btn btn-brand" data-poll="${p.id}">Votar</button>`}<button class="iconbtn" data-share="${p.id}" aria-label="Compartir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button></div>
+  </article>`;
+}
+
+function chips(active) {
+  return `<div class="chips" role="group" aria-label="Filtrar por categoría">${[["", "Todas", "✨"], ...Object.entries(CATS).map(([k, c]) => [k, c[0], c[1]])].map(([k, n, e]) => `<button class="chip" aria-pressed="${(active || "") === k}" data-cat="${k}">${e} ${n}</button>`).join("")}</div>`;
+}
+
+function sidebar(parts = ["trend", "countries", "me"]) {
+  const trend = [...POLLS].sort((a, b) => b.votes - a.votes).slice(0, 5);
+  const out = [];
+  if (parts.includes("trend")) out.push(`<section class="card side"><h2>🔥 Encuestas en tendencia</h2><ol class="tlist">${trend.map((p, i) => `<li><button data-poll="${p.id}"><b class="muted">${i + 1}</b>${photo(p.cover || p.options[0].img, p.emoji, p.cat)}<span><b>${esc(p.title)}</b><span class="muted" style="font-size:12px">${fmt(p.votes)} votos</span></span></button></li>`).join("")}</ol></section>`);
+  if (parts.includes("countries")) out.push(`<section class="card side"><h2>🌍 Ranking: países más votados</h2><ol class="clist">${COUNTRIES.slice(0, 5).map(([f, n, v], i) => `<li><b class="muted">${i + 1}</b><span style="font-size:20px">${f}</span><span>${n}</span><span class="muted">${v.toLocaleString("es-ES")}</span></li>`).join("")}</ol><button class="btn" style="width:100%;color:var(--brand)" data-go="rankings">Ver ranking completo →</button></section>`);
+  if (parts.includes("me")) {
+    if (user) { const lv = level(); out.push(`<section class="card side"><h2>${lv.emoji} Nivel ${lv.name}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center"><div style="background:var(--page);border-radius:12px;padding:10px"><b style="font-family:var(--display);font-size:24px;display:block">${voteCount()}</b><span class="muted" style="font-size:12px">encuestas votadas</span></div><div style="background:var(--gold-bg);border-radius:12px;padding:10px"><b style="font-family:var(--display);font-size:24px;display:block;color:var(--gold)">${balance()}</b><span class="muted" style="font-size:12px">puntos</span></div></div>${lv.next ? `<div class="progress" style="margin-top:12px"><i style="width:${lv.progress}%"></i></div><p class="muted" style="font-size:12px;margin:4px 0 0">${lv.next[0] - voteCount()} votos para nivel ${lv.next[1]} ${lv.next[2]}</p>` : ""}<button class="btn btn-dark" style="width:100%;margin-top:12px" data-go="rewards">🎁 Canjear puntos</button></section>`); }
+    else out.push(`<section class="card side"><h2>👥 Únete a la comunidad</h2><ul class="checks"><li>Vota en miles de encuestas</li><li>Guarda tus resultados</li><li>Gana ${PTS.vote} puntos por voto</li><li>Canjea puntos por premios</li></ul><button class="btn btn-brand" style="width:100%" data-go="login">Registrarse gratis · +${PTS.welcome} puntos</button></section>`);
+  }
+  return `<aside class="stack">${out.join("")}</aside>`;
+}
+
+function voter(p) {
+  if (votes[p.id]) return resultsView(p);
+  const duel = p.options.length === 2 && !p.other;
+  if (duel) return `<div class="duel">${p.options.map((o, i) => `<button data-vote="${p.id}" data-i="${i}" aria-label="Votar ${esc(o.l)}">${photo(o.img, o.e, p.cat)}<span class="shade"></span><span class="lb">${esc(o.l)}</span><span class="go">Votar</span></button>`).join("")}<span class="vs">VS</span></div><p class="muted" style="text-align:center;font-size:12px">Vota para ver qué opina el mundo · +${PTS.vote} puntos si tienes cuenta</p>`;
+  return `<ul class="opts">${p.options.map((o, i) => `<li><button class="opt" data-vote="${p.id}" data-i="${i}">${photo(o.img, o.e, p.cat)}<span style="flex:1">${esc(o.l)}</span><span class="muted">›</span></button></li>`).join("")}
+    ${p.other ? `<li id="otherSlot"><button class="opt other" data-open-other="${p.id}"><span style="font-size:22px;width:58px;text-align:center">✍️</span>Otra… escribe la tuya</button></li>` : ""}</ul>
+    <p class="muted" style="text-align:center;font-size:12px">Vota para ver qué opina el mundo · +${PTS.vote} puntos si tienes cuenta</p>`;
+}
+
+function resultsView(p) {
+  const r = results(p), v = votes[p.id];
+  const mine = v.i !== null ? r.rows.find((x) => x.i === v.i) : null;
+  const myWi = v.i === null ? r.wis.find((w) => same(w.l, v.other)) : null;
+  const label = mine ? mine.label : myWi ? myWi.l : v.other;
+  const agree = mine ? mine.pct : Math.max(1, Math.round((myWi?.n || 1) / r.total * 100));
+  const max = Math.max(...r.rows.map((x) => x.count));
+  let h = `<div class="res">${lastEarned ? `<p class="earned" role="status">⭐ +${lastEarned} puntos · ¡sigue votando para conseguir premios!</p>` : ""}<p style="text-align:center;font-weight:600;color:var(--brand-dark);margin:0">✓ Tu voto: <b>${esc(label)}</b> · coincides con el ${agree}%</p>`;
+  if (r.rows.length === 2) {
+    const [a, b] = r.rows;
+    h += `<div class="split"><div class="nums"><span style="color:var(--violet)">${a.pct}%</span><span style="color:var(--brand)">${b.pct}%</span></div><div class="track" role="img" aria-label="${esc(a.label)} ${a.pct}%, ${esc(b.label)} ${b.pct}%"><div class="l" data-w="${a.pct}"></div><div class="r"></div></div><div class="labels"><span>${a.e} ${esc(a.label)}${v.i === 0 ? " · tu voto" : ""}</span><span>${v.i === 1 ? "tu voto · " : ""}${esc(b.label)} ${b.e}</span></div></div>`;
+  } else {
+    h += r.rows.map((x, k) => { const isMine = v.i === null ? x.i === "other" : x.i === v.i; return `<div class="bar ${isMine ? "mine" : ""}"><div class="fill" style="background:${COLORS[k % COLORS.length]}" data-w="${x.pct}"></div><div class="in"><span aria-hidden="true">${x.e}</span><span class="lb">${esc(x.label)}${x.count === max ? " 👑" : ""}${isMine ? '<span class="you">Tu voto</span>' : ""}</span><span class="pct">${x.pct}%</span></div></div>`; }).join("");
+  }
+  if (r.wis.length) h += `<div style="border:1px solid var(--line);border-radius:14px;padding:12px"><p style="margin:0 0 8px;font-weight:700;font-size:14px">✍️ Respuestas escritas por la comunidad</p><div style="display:flex;flex-wrap:wrap;gap:6px">${r.wis.slice(0, 8).map((w) => `<span class="pill" style="${myWi === w ? "background:var(--brand);color:#fff" : ""}">${esc(w.l)} · ${w.n}</span>`).join("")}</div></div>`;
+  h += `<p class="muted" style="text-align:center;font-size:12px;margin:0">${fmt(r.total)} votos · 72% de cuentas verificadas · Votación popular, no representativa</p>`;
+  if (!user) h += `<button class="card" style="padding:14px;text-align:center;border-color:#fda4af;background:#fff1f2" data-go="login" data-next="${p.id}"><b style="font-family:var(--display);font-size:18px;display:block">🔒 Guarda tu voto</b><span class="muted" style="font-size:13px">Regístrate en 30 segundos, gana ${PTS.welcome + PTS.vote} puntos y mira qué opina tu país.</span></button>`;
+  h += `<div class="share"><button class="btn btn-brand" data-share="${p.id}">📤 Compartir resultado</button><div class="nets"><button style="background:#25D366" data-net="WhatsApp">WhatsApp</button><button style="background:#111" data-net="X">X</button><button style="background:#229ED9" data-net="Telegram">Telegram</button><button style="background:#1877F2" data-net="Facebook">Facebook</button></div><button class="btn btn-line" data-net="story">📲 Imagen 9:16 para Stories y TikTok</button></div>`;
+  const next = POLLS.find((x) => !votes[x.id] && x.id !== p.id);
+  if (next) h += `<button class="btn btn-dark" style="padding:14px" data-poll="${next.id}">Siguiente pregunta →</button>`;
+  return h + "</div>";
+}
+
+function segments(p) {
+  const r = results(p), cur = view.seg || "pais";
+  const groups = { pais: [["🇪🇸 España", .25], ["🇲🇽 México", .11], ["🇦🇷 Argentina", .08], ["🇨🇴 Colombia", .06], ["🇺🇸 Estados Unidos", .045]], edad: [["18-24 años", .3], ["25-34 años", .28], ["35-44 años", .18], ["45-54 años", .1]], genero: [["Mujer", .47], ["Hombre", .47], ["Prefiero no decirlo", .04]] }[cur];
+  let seed = p.id.length * 7 + cur.length;
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  const rows = groups.map(([g, share]) => { const ps = pcts(r.rows.map((o) => Math.max(1, o.count * (0.75 + rnd() * 0.5)))); const win = ps.indexOf(Math.max(...ps)); return `<div class="seg"><div class="h"><b>${g}</b><span class="muted">gana <b style="color:var(--ink)">${esc(r.rows[win].label)}</b> · ${fmt(Math.round(r.total * share * .72))} votos</span></div><div class="t">${ps.map((v, k) => `<span style="width:${v}%;background:${COLORS[k % COLORS.length]}"></span>`).join("")}</div></div>`; }).join("");
+  return `<section class="card" style="padding:18px;display:grid;gap:12px"><h2 style="font-size:22px">¿Qué opina cada grupo?</h2><div class="segtabs" role="tablist">${[["pais", "Países"], ["edad", "Edad"], ["genero", "Género"]].map(([k, l]) => `<button role="tab" aria-selected="${k === cur}" data-seg="${k}">${l}</button>`).join("")}</div>
+    ${user ? rows + `<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:12px" class="muted">${r.rows.map((o, k) => `<span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS[k % COLORS.length]};margin-right:4px"></i>${esc(o.label)}</span>`).join("")}</div>` : `<div class="lockbox"><div class="blur" aria-hidden="true">${rows}</div><div class="over"><div><p style="font-weight:700;margin:0 0 8px">Resultados por país, edad y género</p><button class="btn btn-brand" data-go="login" data-next="${p.id}">Regístrate gratis para verlos</button></div></div></div>`}
+    <p class="muted" style="font-size:12px;margin:0">Solo votos de cuentas verificadas y grupos con un mínimo de votos. No representa a toda la población.</p></section>`;
+}
+
+function rankRows(list, valueOf, note) {
+  const max = Math.max(...list.map(valueOf));
+  return `<ol class="rank">${list.map((p, i) => `<li><button data-poll="${p.id}"><span class="n">${["🥇", "🥈", "🥉"][i] || i + 1}</span>${photo(p.cover || p.options[0].img, p.emoji, p.cat)}<span style="min-width:0"><span class="muted" style="font-size:12px">${CATS[p.cat][1]} ${CATS[p.cat][0]}</span><b style="display:block">${esc(p.title)}</b><span class="rb" style="display:block"><i style="width:${Math.max(4, valueOf(p) / max * 100)}%"></i></span></span><span class="v">${fmt(valueOf(p))}<span class="muted" style="display:block;font-family:var(--body);font-size:11px">${note}</span></span></button></li>`).join("")}</ol>`;
+}
+
+const pages = {
+  home() {
+    const featured = POLLS.find((p) => p.featured);
+    const list = [featured, ...[...POLLS].filter((p) => p !== featured).sort((a, b) => b.votes - a.votes)].slice(0, 9);
+    return `<div class="layout"><div class="stack">
+      <section class="hero"><div class="copy"><h1>El mundo opina<br><span class="yt">¿Y tú?</span></h1><p>Vota en las mejores encuestas, descubre lo que piensa la gente de todo el mundo, gana puntos y comparte tus resultados.</p><button class="btn btn-brand" style="border-radius:99px;padding:12px 20px" data-poll="${featured.id}">Empieza a votar →</button></div>
+        <div class="globe" aria-hidden="true">${photo("globe", "🌍", "paises")}<span class="bubble" style="left:6px;top:20px">❤️</span><span class="bubble" style="right:12px;top:0;animation-delay:1s">🤔</span><span class="bubble" style="left:-18px;bottom:60px;animation-delay:2s">😊</span><span class="bubble" style="right:-4px;bottom:76px;animation-delay:1.5s">🔥</span></div>
+        <div class="weekly"><span style="font-size:22px">👥</span><span><b>51,8 mil</b><span style="font-size:12px;opacity:.85">votos esta semana</span></span></div></section>
+      ${chips()}
+      <div class="grid three">${list.map((p) => pollCard(p, p === featured ? "⭐ Pregunta del día" : "")).join("")}</div>
+      <button class="btn btn-line" style="justify-self:center;border-radius:99px" data-go="polls">Ver todas las encuestas →</button>
+      <section class="card" style="overflow:hidden"><div style="padding:16px 18px;background:linear-gradient(90deg,#fffbeb,#fff1f2);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:flex-end"><div><h2 style="font-size:20px">🎁 Vota, suma puntos y gana premios</h2><p class="muted" style="margin:2px 0 0;font-size:14px">Las marcas patrocinan encuestas y regalan premios a la comunidad.</p></div><button class="btn" style="color:var(--brand);padding:0" data-go="rewards">Ver todos los premios →</button></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${REWARDS.map((r) => `<button style="display:flex;gap:12px;align-items:center;padding:14px;text-align:left;border-top:1px solid var(--line)" data-go="rewards">${photo(r.img, "🎁", "comida", "")}<span><b style="display:block">${esc(r.title)}</b><span class="muted" style="font-size:12px">${esc(r.sponsor)}</span><b style="display:block;color:var(--gold);font-size:14px">⭐ ${r.cost} puntos</b></span></button>`).join("").replaceAll('class="ph "', 'class="ph" style="width:56px;height:56px;border-radius:12px;flex:none"')}</div></section>
+    </div>${sidebar()}</div>`;
+  },
+  polls() {
+    const cat = view.cat || "", q = view.q || "", sort = view.sort || "top";
+    let list = POLLS.filter((p) => (!cat || p.cat === cat) && (!q || norm(p.title + p.options.map((o) => o.l).join(" ")).includes(norm(q))));
+    list = sort === "new" ? list : [...list].sort((a, b) => (sort === "trend" ? (b.votes % 997) - (a.votes % 997) : b.votes - a.votes));
+    return `<div class="layout"><div class="stack" style="gap:16px">
+      <div><h1 style="font-size:30px">${cat ? CATS[cat][1] + " " + CATS[cat][0] : "Todas las encuestas"}</h1><p class="muted" style="margin:4px 0 0">Filtra por tema, busca y vota. Cada voto suma puntos.</p></div>
+      <div class="field"><input id="pq" value="${esc(q)}" placeholder="Busca: Messi, pizza, series, países…" aria-label="Buscar encuestas"></div>
+      ${chips(cat)}
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="sorts" role="tablist">${[["top", "Más votadas"], ["new", "Nuevas"], ["trend", "En tendencia"]].map(([k, l]) => `<button role="tab" aria-selected="${k === sort}" data-sort="${k}">${l}</button>`).join("")}</div><span class="muted" style="font-size:14px">${list.length} encuestas</span></div>
+      <div class="grid three" id="pgrid">${list.map((p) => pollCard(p)).join("") || '<p class="card muted" style="padding:20px;text-align:center">No hay encuestas con ese filtro.</p>'}</div>
+    </div>${sidebar(["trend", "me"])}</div>`;
+  },
+  poll() {
+    const p = byId(view.id), c = CATS[p.cat], rw = p.reward && REWARDS.find((x) => x.id === p.reward);
+    return `<div class="layout"><div class="stack">
+      <article class="card" style="padding:18px;display:grid;gap:14px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px"><button class="pill" data-cat="${p.cat}">${c[1]} ${c[0]}</button><span class="pill">🗳️ Votación popular</span>${p.sponsor ? `<span class="pill" style="background:#fef3c7;color:#92400e">Patrocinada por ${esc(p.sponsor)}</span>` : ""}<span class="pill">${fmt(results(p).total)} votos</span></div>
+        <h1 style="font-size:clamp(26px,5vw,34px);line-height:1.1">${p.emoji} ${esc(p.title)}</h1>
+        ${rw ? `<button style="display:flex;gap:12px;align-items:center;text-align:left;border-radius:14px;padding:12px;background:linear-gradient(90deg,#ecfdf5,#fffbeb);box-shadow:inset 0 0 0 1px #a7f3d0" data-go="rewards"><span style="font-size:24px">🎁</span><span><b style="display:block;color:#065f46">${esc(rw.title)}</b><span style="color:#047857;font-size:14px">Vota, suma puntos y canjéalo por ⭐ ${rw.cost} puntos</span></span></button>` : ""}
+        <p class="note" style="margin:0">⚠️ Encuesta de demostración: los votos iniciales son ficticios.</p>
+        ${voter(p)}
+      </article>${votes[p.id] ? segments(p) : ""}
+    </div><aside class="stack"><h2 style="font-size:20px">Más preguntas para ti</h2>${POLLS.filter((x) => x.id !== p.id && !votes[x.id]).slice(0, 3).map((x) => pollCard(x)).join("")}</aside></div>`;
+  },
+  rankings() {
+    const t = view.t || "siempre", cat = view.cat || "";
+    let list = POLLS.filter((p) => !cat || p.cat === cat);
+    const val = t === "siempre" ? (p) => p.votes : t === "semana" ? (p) => Math.round(p.votes * 0.31 + (p.votes % 97)) : (p) => Math.round(p.votes * 0.06 + (p.votes % 41));
+    list = [...list].sort((a, b) => val(b) - val(a)).slice(0, 15);
+    const cmax = COUNTRIES[0][2];
+    return `<div class="layout"><section class="card" style="padding:18px;display:grid;gap:12px;align-content:start"><div><h1 style="font-size:30px">Ranking de encuestas</h1><p class="muted" style="margin:4px 0 0">Las preguntas que más votos reciben.</p></div>
+      <div class="sorts" role="tablist">${[["siempre", "🏆 Histórico"], ["semana", "📈 Esta semana"], ["hoy", "🔥 Hoy"]].map(([k, l]) => `<button role="tab" aria-selected="${k === t}" data-rank="${k}">${l}</button>`).join("")}</div>
+      ${chips(cat).replaceAll("data-cat=", "data-rankcat=")}
+      ${rankRows(list, val, t === "siempre" ? "votos" : "votos recientes")}</section>
+      <aside class="stack"><section class="card side"><h2>🌍 Países que más opinan</h2><ol class="clist">${COUNTRIES.map(([f, n, v], i) => `<li><b class="muted">${i + 1}</b><span style="font-size:20px">${f}</span><span>${n}<span class="progress" style="display:block;height:5px;margin-top:4px"><i style="width:${v / cmax * 100}%;background:var(--violet)"></i></span></span><span class="muted">${v.toLocaleString("es-ES")}</span></li>`).join("")}</ol></section></aside></div>`;
+  },
+  trends() {
+    const today = [...POLLS].sort((a, b) => (b.votes % 211) - (a.votes % 211)).slice(0, 6);
+    const week = [...POLLS].sort((a, b) => (b.votes % 613) - (a.votes % 613)).slice(0, 8);
+    return `<div class="layout"><div class="stack"><div><h1 style="font-size:30px">🔥 Subiendo hoy</h1><p class="muted" style="margin:4px 0 0">Las preguntas con más votos en las últimas 24 horas.</p></div>
+      <div class="grid three">${today.map((p) => pollCard(p, `+${(p.votes % 211) + 40} votos hoy`)).join("")}</div>
+      <section class="card" style="padding:18px"><h2 style="font-size:22px;margin-bottom:10px">📈 Tendencias de la semana</h2>${rankRows(week, (p) => (p.votes % 613) + 120, "votos en 7 días")}</section></div>${sidebar(["me"])}</div>`;
+  },
+  rewards() {
+    const bal = balance();
+    return `<div class="stack">
+      <section class="hero" style="padding:28px"><div style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center;position:relative;z-index:2"><div style="max-width:520px"><h1 style="font-size:clamp(28px,5vw,40px)">Vota, suma puntos y gana premios 🎁</h1><p style="margin:8px 0 0">Las marcas patrocinan encuestas y regalan premios a la comunidad. Tú solo tienes que opinar.</p></div>
+        ${user ? `<div style="background:rgb(255 255 255 / .16);border-radius:18px;padding:14px 22px;text-align:center"><span style="font-size:13px;opacity:.85">Tus puntos</span><b style="display:block;font-family:var(--display);font-size:38px">⭐ ${bal}</b><span style="font-size:13px;opacity:.85">${level().emoji} ${level().name} · ${voteCount()} encuestas votadas</span></div>` : `<button class="btn" style="background:#fff;color:var(--brand);border-radius:99px;padding:13px 22px" data-go="login">Regístrate y llévate ${PTS.welcome} puntos</button>`}</div></section>
+      <section class="how">${[["🗳️", "+10", "por cada encuesta que votas"], ["👋", "+50", "al registrarte"], ["✍️", "+100", "si publicamos tu pregunta"], ["⏱️", "200", "puntos máximos por votar al día"]].map(([i, n, t]) => `<div class="card"><span style="font-size:30px">${i}</span><span><b>${n}</b><span class="muted" style="font-size:14px">${t}</span></span></div>`).join("")}</section>
+      <p class="note" style="margin:0"><b>Modo demostración:</b> marcas y premios ficticios, los cupones no tienen valor. Los premios reales se activarán con marcas patrocinadoras y las bases legales aprobadas.</p>
+      <h2 style="font-size:24px">Premios disponibles</h2>
+      <div class="grid three">${REWARDS.map((r) => { const miss = Math.max(0, r.cost - bal), got = coupons.find((c) => c.r === r.id && c.fresh); return `<article class="card rw" style="overflow:hidden;display:flex;flex-direction:column"><div style="position:relative">${photo(r.img, "🎁", "comida")}<span class="tag">${esc(r.sponsor)}</span><span class="demo">DEMO</span></div>
+        <div style="padding:16px;display:grid;gap:8px;flex:1;align-content:start"><h3 style="font-size:18px">${esc(r.title)}</h3><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-family:var(--display);font-size:22px;color:var(--gold)">⭐ ${r.cost}</b><span class="muted" style="font-size:13px">${r.stock} disponibles</span></div>
+        <button style="text-align:left;color:var(--brand);font-weight:600;font-size:14px" data-poll="${r.poll}">Ver la encuesta patrocinada →</button>
+        ${got ? `<div class="coupon" role="status">¡Canjeado! Tu código:<code>${got.code}</code>Cupón de demostración, sin valor real.</div>` : user ? `${miss ? `<div class="progress"><i style="width:${Math.min(100, bal / r.cost * 100)}%"></i></div><span class="muted" style="font-size:12px">Te faltan ${miss} puntos (≈ ${Math.ceil(miss / PTS.vote)} votos)</span>` : ""}<button class="btn btn-brand" ${miss ? "disabled" : ""} data-redeem="${r.id}">Canjear</button>` : `<button class="btn btn-dark" data-go="login">Entra para canjear</button>`}</div></article>`; }).join("")}</div>
+      ${coupons.length ? `<section class="card" style="padding:16px"><h2 style="font-size:20px;margin-bottom:8px">Mis canjes</h2>${coupons.map((c) => `<p style="display:flex;justify-content:space-between;gap:8px;margin:6px 0;font-size:14px"><span>${esc(REWARDS.find((r) => r.id === c.r).title)}</span><code>${c.code}</code></p>`).join("")}</section>` : ""}
+      <section class="card" style="padding:16px"><h2 style="font-size:18px;margin-bottom:6px">Reglas del programa</h2><ul class="muted" style="margin:0;padding-left:18px;font-size:14px;display:grid;gap:4px"><li>Solo suman puntos las cuentas verificadas por email. Una cuenta por persona.</li><li>Cada encuesta da puntos una sola vez y hay un máximo diario.</li><li>Los puntos no son dinero: no se venden ni se transfieren.</li><li>Cada premio tiene las condiciones que fija su marca.</li></ul></section></div>`;
+  },
+  profile() {
+    if (!user) return pages.login();
+    const lv = level(), hist = Object.entries(votes).sort((a, b) => b[1].at - a[1].at);
+    return `<div class="stack" style="max-width:760px;margin:0 auto">
+      <section class="card" style="padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="avatar" style="width:52px;height:52px;font-size:22px">${esc(user.email[0].toUpperCase())}</span><div style="flex:1;min-width:0"><h1 style="font-size:18px;overflow-wrap:anywhere">${esc(user.email)}</h1><p class="muted" style="margin:0;font-size:14px">${esc(user.country)} · ${esc(user.age)} años · ${esc(user.gender)}</p></div><button class="btn btn-line" id="logout">Salir</button></section>
+      <section class="card" style="overflow:hidden"><div class="stats3"><div><b>${voteCount()}</b><span class="muted" style="font-size:12px">encuestas votadas</span></div><div style="background:var(--gold-bg)"><b style="color:var(--gold)">⭐ ${balance()}</b><span class="muted" style="font-size:12px">puntos</span></div><div><b>${proposals.length}</b><span class="muted" style="font-size:12px">preguntas propuestas</span></div></div>
+        <div style="padding:16px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-weight:600;font-size:14px"><span>${lv.emoji} Nivel ${lv.name}</span>${lv.next ? `<span class="muted">${lv.next[2]} ${lv.next[1]} en ${lv.next[0] - voteCount()} votos</span>` : ""}</div><div class="progress" style="margin-top:8px;height:10px"><i style="width:${lv.progress}%"></i></div><button class="btn" style="color:var(--brand);padding:10px 0 0" data-go="rewards">🎁 Canjear mis puntos →</button></div>
+        ${ledger.length ? `<details style="border-top:1px solid var(--line);padding:14px 16px;font-size:14px"><summary style="cursor:pointer;font-weight:600">Movimientos de puntos</summary>${[...ledger].reverse().slice(0, 20).map((l) => `<p style="display:flex;justify-content:space-between;margin:6px 0"><span class="muted">${esc(l.why)}</span><b style="color:${l.n < 0 ? "var(--brand)" : "var(--ok)"}">${l.n > 0 ? "+" : ""}${l.n}</b></p>`).join("")}</details>` : ""}</section>
+      ${proposals.length ? `<section class="card" style="padding:16px"><h2 style="font-size:20px;margin-bottom:8px">Mis preguntas</h2>${proposals.map((t) => `<p style="display:flex;justify-content:space-between;gap:8px;margin:6px 0"><span>${esc(t)}</span><span class="muted" style="font-size:12px">⏳ En moderación</span></p>`).join("")}</section>` : ""}
+      <section class="card" style="padding:16px"><h2 style="font-size:20px;margin-bottom:8px">Mi historial de votos</h2>${hist.length ? hist.map(([id, v]) => { const p = byId(id); return `<button style="display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--line)" data-poll="${id}"><span style="font-size:22px">${p.emoji}</span><span style="flex:1;min-width:0"><b style="display:block">${esc(p.title)}</b><span style="color:var(--brand);font-size:13px">Votaste: ${esc(v.i !== null ? p.options[v.i].l : v.other)}</span></span></button>`; }).join("") : '<p class="muted">Aún no has votado.</p>'}</section></div>`;
+  },
+  login() {
+    const st = view.step || "email";
+    const box = (inner) => `<section class="card" style="padding:22px;max-width:440px;margin:10px auto;display:grid;gap:14px">${inner}</section>`;
+    if (st === "email") return box(`<h1 style="font-size:28px;text-align:center">Entra en VotaYa</h1><p class="muted" style="text-align:center;margin:0">Guarda tus votos, gana ${PTS.welcome} puntos de bienvenida y mira qué opina tu país.</p><form class="form" id="emailForm"><label class="field">Tu email<input id="email" type="email" required placeholder="tu@email.com" autocomplete="email"></label><button class="btn btn-brand" style="padding:13px">Recibir código</button><p class="muted" style="font-size:12px;text-align:center;margin:0">Sin contraseñas: te enviamos un código de 6 cifras.</p></form>`);
+    if (st === "code") return box(`<h1 style="font-size:26px">Revisa tu email</h1><p class="muted" style="margin:0">Código enviado a <b style="color:var(--ink)">${esc(view.email)}</b>.</p><p class="note" style="margin:0">En esta vista previa no se envían emails. Tu código: <b style="letter-spacing:.2em">${view.code}</b></p><form class="form" id="codeForm"><label class="field">Código de 6 cifras<input id="code" inputmode="numeric" maxlength="6" placeholder="••••••" style="text-align:center;font-size:26px;letter-spacing:.4em" autocomplete="one-time-code"></label><p id="codeErr" style="color:var(--brand);margin:0;font-size:13px" hidden>Código incorrecto. Revisa las 6 cifras.</p><button class="btn btn-brand" style="padding:13px">Entrar</button></form>`);
+    return box(`<p style="margin:0;color:var(--brand);font-weight:700;font-size:14px">Último paso · +${PTS.welcome} puntos</p><h1 style="font-size:26px">Cuéntanos un poco de ti</h1><p class="muted" style="margin:0;font-size:14px">Sirve para mostrar qué opina cada país, edad y género. Nunca mostramos datos individuales.</p>
+      <form class="form" id="profileForm"><fieldset style="border:0;padding:0;margin:0"><legend class="field" style="margin-bottom:6px">Edad</legend><div class="radios g4">${["16-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"].map((a) => `<label><input type="radio" name="age" value="${a}" required><span>${a}</span></label>`).join("")}</div></fieldset>
+      <fieldset style="border:0;padding:0;margin:0"><legend class="field" style="margin-bottom:6px">Género</legend><div class="radios g2">${["Mujer", "Hombre", "No binario", "Prefiero no decirlo"].map((g) => `<label><input type="radio" name="gender" value="${g}" required><span>${g}</span></label>`).join("")}</div></fieldset>
+      <label class="field">País de residencia<select id="country" required><option value="">Elige tu país</option>${["Argentina", "Chile", "Colombia", "España", "Estados Unidos", "México", "Perú", "Venezuela"].map((c) => `<option>${c}</option>`).join("")}</select></label>
+      <label class="check"><input type="checkbox" required>Tengo 16 años o más y acepto las condiciones y la política de privacidad.</label><button class="btn btn-brand" style="padding:13px">¡Listo, a votar!</button></form>`);
+  },
+  create() {
+    if (!user) return `<section class="card" style="padding:24px;max-width:440px;margin:10px auto;text-align:center;display:grid;gap:10px"><div style="font-size:40px">✍️</div><h1 style="font-size:24px">Propón una pregunta</h1><p class="muted" style="margin:0">Si la publicamos ganas 100 puntos. Necesitas una cuenta (30 segundos).</p><button class="btn btn-brand" data-go="login" data-next="__create">Registrarme</button></section>`;
+    return `<section class="card" style="padding:20px;max-width:560px;margin:0 auto;display:grid;gap:14px"><h1 style="font-size:26px">Propón una pregunta</h1><p class="muted" style="margin:0">Dos opciones para un duelo o hasta diez para un ranking. +100 puntos si se publica.</p>
+      <form class="form" id="createForm"><label class="field">Pregunta<input id="ctitle" required minlength="8" placeholder="¿Tortilla con o sin cebolla?"></label><div id="dupBox"></div>
+      <label class="field">Categoría<select required><option value="">Elige una</option>${Object.entries(CATS).map(([k, c]) => `<option value="${k}">${c[1]} ${c[0]}</option>`).join("")}</select></label>
+      <label class="field">Opción 1<input required placeholder="Opción 1"></label><label class="field">Opción 2<input required placeholder="Opción 2"></label>
+      <label class="check"><input type="checkbox" checked>Permitir «Otra» (los votantes escriben su respuesta)</label><button class="btn btn-brand" style="padding:13px">Enviar a moderación</button></form></section>`;
+  },
+};
+
+function renderHeader() {
+  $("#hright").innerHTML = user
+    ? `<button class="pts" data-go="rewards" title="Tus puntos">⭐ ${balance()}</button><button class="avatar" data-go="profile" aria-label="Mi perfil">${esc(user.email[0].toUpperCase())}</button>`
+    : `<button class="btn btn-line only-desktop" style="border-radius:99px" data-go="login">Iniciar sesión</button><button class="btn btn-brand" style="border-radius:99px" data-go="login">Registrarse</button>`;
+  const map = { home: "home", polls: "polls", poll: "polls", rankings: "rankings", trends: "trends", rewards: "rewards", profile: "profile", login: "profile", create: "create" };
+  document.querySelectorAll("[data-go]").forEach((b) => b.closest("nav") && (b.dataset.go === map[view.name] ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current")));
+}
+
+function render() {
+  $("#app").innerHTML = pages[view.name]();
+  renderHeader();
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll("[data-w]").forEach((el) => (el.style.width = el.dataset.w + "%"))));
+}
+
+function earn(n, why) { ledger.push({ n, why, at: Date.now() }); store.set("ledger", ledger); }
+function pointsToday() { const d = new Date().toDateString(); return ledger.filter((l) => l.why.startsWith("Voto") && new Date(l.at).toDateString() === d).reduce((a, l) => a + l.n, 0); }
+
+function castVote(id, i, other) {
+  votes[id] = { i, other: other || null, at: Date.now() };
+  store.set("votes", votes);
+  lastEarned = 0;
+  if (user && pointsToday() + PTS.vote <= PTS.cap) { earn(PTS.vote, "Voto: " + byId(id).title); lastEarned = PTS.vote; }
+  try { navigator.vibrate && navigator.vibrate(25); } catch {}
+  render();
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.vote) return castVote(d.vote, Number(d.i));
+  if (d.openOther) { $("#otherSlot").innerHTML = `<form class="otherbox" id="otherForm" data-id="${d.openOther}"><span>✍️</span><input id="otherText" maxlength="60" placeholder="Escribe tu respuesta…" aria-label="Escribe tu respuesta"><button class="btn btn-brand">Votar</button></form>`; return $("#otherText").focus(); }
+  if (d.poll) return go("poll", { id: d.poll });
+  if (d.cat !== undefined) return go("polls", { cat: d.cat });
+  if (d.rankcat !== undefined) return go("rankings", { t: view.t, cat: d.rankcat });
+  if (d.sort) return go("polls", { cat: view.cat, q: view.q, sort: d.sort });
+  if (d.rank) return go("rankings", { t: d.rank, cat: view.cat });
+  if (d.seg) { view.seg = d.seg; return render(); }
+  if (d.share) return toast("En el móvil se abre el menú de compartir con la imagen del resultado");
+  if (d.net) return toast(d.net === "story" ? "En la web real se descarga la imagen vertical para Stories" : `En la web real se abre ${d.net} con el mensaje listo`);
+  if (d.redeem) {
+    const r = REWARDS.find((x) => x.id === d.redeem);
+    if (balance() < r.cost) return toast("Aún no tienes puntos suficientes");
+    const code = "DEMO-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+    earn(-r.cost, "Canje: " + r.title); coupons.forEach((c) => (c.fresh = false)); coupons.push({ r: r.id, code, fresh: true }); store.set("coupons", coupons);
+    return render();
+  }
+  if (t.id === "logout") { user = null; store.set("user", null); return go("home"); }
+  if (d.go) return go(d.go, d.next ? { next: d.next } : {});
+});
+
+document.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.id === "otherForm") { const txt = $("#otherText").value.trim(); if (!txt) return; const p = byId(f.dataset.id); const k = p.options.findIndex((o) => same(o.l, txt)); return castVote(p.id, k >= 0 ? k : null, k >= 0 ? null : txt); }
+  if (f.id === "emailForm") return go("login", { step: "code", email: $("#email").value.trim(), code: String(Math.floor(100000 + Math.random() * 900000)), next: view.next });
+  if (f.id === "codeForm") { if ($("#code").value.replace(/\D/g, "") !== view.code) { $("#codeErr").hidden = false; return; } view.step = "profile"; return render(); }
+  if (f.id === "profileForm") {
+    user = { email: view.email, age: f.age.value, gender: f.gender.value, country: $("#country").value };
+    store.set("user", user);
+    earn(PTS.welcome, "Bienvenida");
+    Object.keys(votes).forEach((id) => { if (pointsToday() + PTS.vote <= PTS.cap) earn(PTS.vote, "Voto: " + byId(id).title); });
+    toast(`¡Cuenta creada! Tienes ${balance()} puntos`);
+    return view.next === "__create" ? go("create") : view.next ? go("poll", { id: view.next }) : go("home");
+  }
+  if (f.id === "createForm") { proposals.unshift($("#ctitle").value.trim()); store.set("proposals", proposals); toast("¡Gracias! Tu pregunta está en moderación"); return go("profile"); }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.id === "hsearch") { go("polls", { q: e.target.value }); const i = $("#pq"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); return; }
+  if (e.target.id === "pq") { view.q = e.target.value; const tmp = document.createElement("div"); tmp.innerHTML = pages.polls(); $("#pgrid").replaceWith(tmp.querySelector("#pgrid")); return; }
+  if (e.target.id === "ctitle") {
+    const words = e.target.value.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+    const sim = words.length ? POLLS.filter((p) => { const t = p.title.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, ""); return words.some((w) => t.includes(w)); }).slice(0, 3) : [];
+    $("#dupBox").innerHTML = sim.length ? `<p class="note" style="margin:0"><b>Ya hay preguntas parecidas:</b> ${sim.map((p) => esc(p.title)).join(" · ")}</p>` : "";
+  }
+});
+
+render();
+</script>
+</body></html>
