@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCategory } from "@/lib/categories";
 import type { PollCard as PollCardData } from "@/lib/polls";
-import { formatCount } from "@/lib/text";
+import { votesLabel } from "@/lib/text";
 import { timeAgo } from "@/lib/time";
 import { Photo } from "./Photo";
 import { ShareButton } from "./ShareSheet";
@@ -51,7 +51,7 @@ export function PollCard({ poll, voted, highlight, className = "" }: { poll: Pol
         )}
         <span className="flex items-center justify-between text-[13px]">
           <span className="font-semibold tabular-nums text-muted">
-            {formatCount(poll.voteCount)} votos
+            {votesLabel(poll.voteCount)}
             {two ? "" : ` · ${poll.options.length} opciones`}
           </span>
           {voted ? (

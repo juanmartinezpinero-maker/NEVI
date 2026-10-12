@@ -215,7 +215,7 @@ export function StoryFeed({
       <div className="flex items-baseline justify-between px-4 pt-3">
         <span className="kicker !text-white/70">{categoryNames[poll.category]}</span>
         <span className="flex items-center gap-3">
-          <span className="kicker !text-white/70 tabular-nums">{total.toLocaleString("es-ES")} votos</span>
+          <span className="kicker !text-white/70 tabular-nums">{total.toLocaleString("es-ES")} {total === 1 ? "voto" : "votos"}</span>
           <button onClick={() => setSharing(true)} aria-label="Compartir esta encuesta" className="flex items-center gap-1.5 rounded-full bg-pink px-3 py-1.5 text-[13px] font-extrabold">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />

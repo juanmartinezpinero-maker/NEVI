@@ -50,7 +50,9 @@ export default async function Home(props: PageProps<"/">) {
             <br />
             ¿Y tú<span className="text-pink">?</span>
           </h1>
-          <p className="mt-3 max-w-xl text-lg text-ink-2">Vota en segundos, mira qué piensa la gente de tu país y reta a tus amigos. Gratis y sin contraseña.</p>
+          <p className="mt-3 max-w-xl text-lg text-ink-2">
+            Vota en segundos, mira qué piensa la gente de tu país y reta a tus amigos. Gratis y sin contraseña.
+          </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/descubrir" className="rounded-full bg-ink px-6 py-3.5 font-extrabold text-lime">
               Empezar a votar
@@ -60,19 +62,26 @@ export default async function Home(props: PageProps<"/">) {
             </Link>
           </div>
         </div>
-        <dl className="grid grid-cols-3 gap-2 sm:gap-3 lg:w-[420px]">
-          {[
-            [formatCount(totals.votes), "votos"],
-            [String(totals.polls), "encuestas"],
-            [String(totals.countries), "países"],
-          ].map(([n, l], i) => (
-            <div key={l} className={`rounded-[22px] p-4 ${i === 0 ? "bg-lime" : i === 1 ? "bg-ink text-white" : "bg-wash"}`}>
-              <dt className="sr-only">{l}</dt>
-              <dd className={`whitespace-nowrap text-[24px] font-black leading-none sm:text-[30px] tracking-[-0.05em] tabular-nums ${i === 1 ? "text-lime" : ""}`}>{n}</dd>
-              <dd className={`mt-1 text-xs font-semibold ${i === 1 ? "text-white/70" : "text-muted"}`}>{l}</dd>
-            </div>
-          ))}
-        </dl>
+        {/* Las cifras solo se muestran cuando ya hay movimiento: «0 votos» en el lanzamiento no ayuda. */}
+        {totals.votes >= 500 && (
+          <dl className="grid grid-cols-3 gap-2 sm:gap-3 lg:w-[420px]">
+            {[
+              [formatCount(totals.votes), "votos"],
+              [String(totals.polls), "encuestas"],
+              [String(totals.countries), "países"],
+            ].map(([n, l], i) => (
+              <div key={l} className={`rounded-[22px] p-4 ${i === 0 ? "bg-lime" : i === 1 ? "bg-ink text-white" : "bg-wash"}`}>
+                <dt className="sr-only">{l}</dt>
+                <dd
+                  className={`whitespace-nowrap text-[24px] font-black leading-none sm:text-[30px] tracking-[-0.05em] tabular-nums ${i === 1 ? "text-lime" : ""}`}
+                >
+                  {n}
+                </dd>
+                <dd className={`mt-1 text-xs font-semibold ${i === 1 ? "text-white/70" : "text-muted"}`}>{l}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </section>
 
       {/* Pregunta del día + columna lateral */}
@@ -83,7 +92,14 @@ export default async function Home(props: PageProps<"/">) {
             <h2 id="daily" className="mb-5 mt-2 text-[34px] font-black leading-[1] tracking-[-0.055em] sm:text-[56px]">
               {featured.title}
             </h2>
-            <PollVoter poll={featured} initial={initial} verified={Boolean(user?.profileCompleted)} shareUrl={`${base}/p/${featured.slug}`} compact tone={fcat?.tone} />
+            <PollVoter
+              poll={featured}
+              initial={initial}
+              verified={Boolean(user?.profileCompleted)}
+              shareUrl={`${base}/p/${featured.slug}`}
+              compact
+              tone={fcat?.tone}
+            />
           </section>
         )}
         <aside className="hidden gap-4 lg:grid">
@@ -122,7 +138,13 @@ export default async function Home(props: PageProps<"/">) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {CATEGORIES.map((c) => (
             <Link key={c.slug} href={`/encuestas?cat=${c.slug}`} className="group relative aspect-[4/3] overflow-hidden rounded-[22px] text-white">
-              <Photo src={covers.get(c.slug)} alt="" label={c.name} tone={c.tone} className="absolute inset-0 h-full w-full transition group-hover:scale-[1.03]" />
+              <Photo
+                src={covers.get(c.slug)}
+                alt=""
+                label={c.name}
+                tone={c.tone}
+                className="absolute inset-0 h-full w-full transition group-hover:scale-[1.03]"
+              />
               <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" aria-hidden />
               <span className="absolute bottom-3 left-3.5 text-lg font-black tracking-[-0.04em] sm:text-xl">{c.name}</span>
             </Link>

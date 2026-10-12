@@ -1,4 +1,4 @@
-# VotaYa — El mundo opina. ¿Y tú?
+# voppi! — El mundo opina. ¿Y tú?
 
 Plataforma web para votar preguntas divertidas y polémicas, ver al instante qué opina el mundo y compartir el resultado.
 MVP funcional: portada, votación (duelos, multiopción y «Otra» con agrupación), registro sin contraseña, resultados por país/edad/género,
@@ -47,27 +47,36 @@ npm run build && npm run test:e2e                               # E2E (necesita 
 Las E2E usan `E2E_DATABASE_URL` (por defecto `postgres://votaya:votaya@localhost:5432/votaya_e2e`), **borran esa base**,
 aplican migraciones y cargan los datos demo. Si Playwright no encuentra navegador, indica uno con `PW_CHROMIUM_PATH`.
 
-## Desplegar (recomendado: Vercel + Neon + Resend)
+## Publicar (Vercel + Neon + Resend)
 
-1. **Base de datos**: crea un proyecto en [Neon](https://neon.tech) (región Europa) y copia la cadena de conexión.
-2. **Vercel**: *Add New → Project*, importa el repositorio y en *Root Directory* elige `votaya`.
-   Tras crearlo, en *Settings → Git → Production Branch* pon la rama donde está VotaYa (`votaya-mvp` mientras no se fusione).
-3. **Variables de entorno** (*Settings → Environment Variables*):
+1. **Dominio**: compra el dominio (p. ej. `voppi.app`).
+2. **Base de datos**: crea un proyecto en [Neon](https://neon.tech) (región Europa) y copia la cadena de conexión.
+3. **Email**: crea una cuenta en [Resend](https://resend.com), verifica el dominio y copia la API key.
+4. **Vercel**: *Add New → Project*, importa el repositorio y en *Root Directory* elige `votaya`.
+   La rama de producción es `main` (si aún no se ha fusionado, usa `votaya-mvp` en *Settings → Git → Production Branch*).
+5. **Variables de entorno** (*Settings → Environment Variables*):
 
 | Variable | Valor |
 | --- | --- |
 | `DATABASE_URL` | cadena de conexión de Neon |
 | `AUTH_SECRET` | texto aleatorio largo (`openssl rand -base64 32`) |
-| `NEXT_PUBLIC_SITE_URL` | URL pública, p. ej. `https://votaya.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | URL pública, p. ej. `https://voppi.app` |
 | `ADMIN_EMAILS` | tu email (tendrás acceso a `/admin`) |
-| `SEED_DEMO` | `1` para cargar las encuestas demo la primera vez |
-| `DEV_SHOW_CODES` | `1` solo para demos sin email: muestra el código en pantalla (nunca a cuentas admin) |
-| `REWARDS_ENABLED` | `1` para mostrar la sección de Premios (oculta por defecto) |
-| `RESEND_API_KEY`, `MAIL_FROM` | envío real de códigos ([Resend](https://resend.com)); necesario para entrar como admin |
+| `RESEND_API_KEY`, `MAIL_FROM` | envío real de códigos, p. ej. `MAIL_FROM=voppi <hola@voppi.app>` |
+| `SEED_MODE` | `launch` → carga las preguntas iniciales **a cero votos** la primera vez |
+| `SEED_DEMO` | `1` → en su lugar, carga la demo con votos ficticios (solo para enseñar la plataforma) |
+| `LEGAL_NAME`, `LEGAL_NIF`, `LEGAL_ADDRESS`, `LEGAL_EMAIL`, `LEGAL_REGISTRY` | datos del titular para `/aviso-legal` |
+| `REWARDS_ENABLED` | `1` para mostrar Premios (oculto: pendiente de bases legales y de un fallo intermitente en el canje) |
+| `DEV_SHOW_CODES` | **no** en producción: muestra el código de acceso en pantalla |
 
-4. **Deploy**. El script `vercel-build` aplica las migraciones (y la demo si `SEED_DEMO=1`) antes de compilar.
+6. **Deploy**. El script `vercel-build`:
+   - copia las fotos de las encuestas dentro de la web (`public/photos`), para no depender del servidor donde se generaron;
+   - aplica las migraciones;
+   - carga las preguntas iniciales según `SEED_MODE` / `SEED_DEMO` (solo si la base está vacía).
+7. **Dominio**: en Vercel, *Settings → Domains*, añade `voppi.app` y sigue las instrucciones DNS.
 
-Para el lanzamiento público: verifica un dominio en Resend, configura `MAIL_FROM` con él y quita `DEV_SHOW_CODES`.
+Antes de abrir al público: revisión legal de privacidad, términos y aviso legal (se guardan edad, país y género),
+y prueba en un móvil real de compartir en Instagram y TikTok.
 Funciona igual en cualquier hosting Node (Railway, Render, Fly.io, VPS con `npm run build && npm start`).
 
 ## Estructura

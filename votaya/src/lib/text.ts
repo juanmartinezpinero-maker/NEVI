@@ -102,6 +102,11 @@ export function formatCount(n: number): string {
   return n.toLocaleString("es-ES");
 }
 
+/** «1 voto», «25 votos», «12,3 mil votos». */
+export function votesLabel(n: number): string {
+  return `${formatCount(n)} ${n === 1 ? "voto" : "votos"}`;
+}
+
 /** Porcentajes enteros que suman 100 (método del resto mayor). */
 export function percentages(counts: number[]): number[] {
   const total = counts.reduce((a, b) => a + b, 0);

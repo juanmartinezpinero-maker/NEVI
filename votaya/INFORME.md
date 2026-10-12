@@ -1,4 +1,4 @@
-# Informe del MVP de VotaYa
+# Informe del MVP de voppi!
 
 Fecha: 11/10/2026 · Rama: `votaya-mvp` · Carpeta: `votaya/`
 

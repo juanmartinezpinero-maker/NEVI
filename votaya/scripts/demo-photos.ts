@@ -1,4 +1,4 @@
-// Fotos de demostración generadas con IA para VotaYa (sin marcas ni personas reales).
+// Fotos de demostración generadas con IA para voppi! (sin marcas ni personas reales).
 export const PHOTOS: Record<string, string> = {
   pizza: "https://d8j0ntlcm91z4.cloudfront.net/user_3EldQnHbdxUy20jWu0yieUP1xkQ/hf_20261012_071402_65af9b6b-c390-4ceb-a6fe-20653b52b4ca.png",
   burger: "https://d8j0ntlcm91z4.cloudfront.net/user_3EldQnHbdxUy20jWu0yieUP1xkQ/hf_20261012_071502_2419bb79-4bab-4c82-a04e-debc7032d12c.png",

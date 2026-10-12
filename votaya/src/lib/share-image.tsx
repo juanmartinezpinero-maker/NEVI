@@ -4,7 +4,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getCategory } from "./categories";
 import { getPollBySlug, getResults } from "./polls";
-import { formatCount } from "./text";
+import { votesLabel } from "./text";
 
 export const INK = "#222128";
 export const LIME = "#e6ff7f";
@@ -79,7 +79,7 @@ export async function renderShareImage(slug: string, format: Format) {
           </div>
           {!story && (
             <div style={{ display: "flex", fontSize: 26, color: INK }}>
-              {formatCount(results.total)} votos · ¿Y tú? Vota en {host}
+              {votesLabel(results.total)} · ¿Y tú? Vota en {host}
             </div>
           )}
         </div>
@@ -101,7 +101,7 @@ export async function renderShareImage(slug: string, format: Format) {
 
         {story && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
-            <div style={{ display: "flex", fontSize: 38, color: INK }}>{formatCount(results.total)} votos</div>
+            <div style={{ display: "flex", fontSize: 38, color: INK }}>{votesLabel(results.total)}</div>
             <div
               style={{
                 display: "flex",

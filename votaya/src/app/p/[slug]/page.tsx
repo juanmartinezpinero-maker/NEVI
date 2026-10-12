@@ -12,7 +12,7 @@ import { getCategory } from "@/lib/categories";
 import { countryFlag, countryName, genderLabel } from "@/lib/demographics";
 import { findExistingVote, getPollBySlug, getRecommended, getResults, getSegments, MIN_SEGMENT } from "@/lib/polls";
 import { getAnonId, getBaseUrl } from "@/lib/request";
-import { formatCount } from "@/lib/text";
+import { votesLabel } from "@/lib/text";
 import { rewardsEnabled } from "@/lib/site";
 
 const loadPoll = cache(getPollBySlug);
@@ -71,7 +71,7 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
             </Link>
             {poll.sponsored && <span className="text-pink">Patrocinada{poll.sponsorName ? ` por ${poll.sponsorName}` : ""}</span>}
             <span title="Cualquiera puede votar: no es una muestra representativa">{poll.kind === "study" ? "Estudio representativo" : "Votación popular"}</span>
-            <span>{formatCount(results?.total ?? poll.voteCount)} votos</span>
+            <span>{votesLabel(results?.total ?? poll.voteCount)}</span>
           </nav>
           <div className="flex items-start justify-between gap-3">
             <h1 className="text-[34px] font-black leading-[1.02] tracking-[-0.05em] sm:text-[48px]">{poll.title}</h1>

@@ -48,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link href="/empresas">Empresas y marcas</Link>
               <Link href="/privacidad">Privacidad</Link>
               <Link href="/terminos">Términos</Link>
+              <Link href="/aviso-legal">Aviso legal</Link>
             </nav>
             <span className="lg:ml-auto">Las votaciones populares no son estudios representativos.</span>
           </div>

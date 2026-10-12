@@ -8,6 +8,7 @@ import { getDb } from "../src/db/connect";
 import * as schema from "../src/db/schema";
 import { compactKey, normalize, slugify } from "../src/lib/text";
 import { PHOTOS } from "./demo-photos";
+import { localPhoto } from "./fetch-photos";
 
 type Opt = [label: string, emoji: string, weight: number];
 type DemoPoll = {
@@ -191,6 +192,15 @@ function pick<T>(items: [T, number][]): T {
 async function main() {
   const db = await getDb();
   const reset = process.argv.includes("--reset");
+  // Modo lanzamiento: las mismas preguntas, pero a cero votos, sin marcas ni premios ficticios.
+  const launch = process.argv.includes("--launch") || process.env.SEED_MODE === "launch";
+  if (launch) {
+    const any = await db.select({ id: schema.polls.id }).from(schema.polls).limit(1);
+    if (any.length) {
+      console.log("Ya hay encuestas publicadas: no se carga nada.");
+      process.exit(0);
+    }
+  }
   const existing = await db.select({ id: schema.polls.id }).from(schema.polls).where(eq(schema.polls.isDemo, true));
   if (existing.length && !reset) {
     console.log(`Ya hay ${existing.length} encuestas demo. Usa --reset para regenerarlas.`);
@@ -213,12 +223,13 @@ async function main() {
     }
     return sponsorIds.get(name)!;
   }
-  const photo = (key?: string | null) => (key ? (PHOTOS[key] ?? null) : null);
+  // Foto guardada dentro de la web si existe; si no, la URL original.
+  const photo = (key?: string | null) => (key ? (localPhoto(key) ?? PHOTOS[key] ?? null) : null);
   const today = new Date().toISOString().slice(0, 10);
   let totalVotes = 0;
 
   for (const [index, p] of POLLS.entries()) {
-    const ageDays = Math.floor(rand() * 20) + 1;
+    const ageDays = launch ? 0 : Math.floor(rand() * 20) + 1;
     const publishedAt = new Date(Date.now() - ageDays * 864e5);
     const [poll] = await db
       .insert(schema.polls)
@@ -231,9 +242,9 @@ async function main() {
         emoji: p.emoji,
         allowOther: Boolean(p.allowOther),
         status: "published",
-        isDemo: true,
+        isDemo: !launch,
         featuredOn: index === 0 ? today : null,
-        sponsorId: p.sponsored ? await sponsorId(p.sponsorName ?? "Marca Demo (ficticia)") : null,
+        sponsorId: p.sponsored && !launch ? await sponsorId(p.sponsorName ?? "Marca Demo (ficticia)") : null,
         imageUrl: photo(p.cover),
         publishedAt,
       })
@@ -242,6 +253,11 @@ async function main() {
       .insert(schema.pollOptions)
       .values(p.options.map(([label, emoji], i) => ({ pollId: poll.id, label, emoji, normalizedLabel: normalize(label), position: i, imageUrl: photo(p.images?.[i]) })))
       .returning();
+
+    if (launch) {
+      console.log(`✓ ${p.title}`);
+      continue;
+    }
 
     if (p.reward) {
       await db.insert(schema.rewards).values({
@@ -297,7 +313,7 @@ async function main() {
     totalVotes += rows.length;
     console.log(`✓ ${p.title} (${rows.length} votos ficticios)`);
   }
-  console.log(`\nListo: ${POLLS.length} encuestas demo y ${totalVotes} votos ficticios.`);
+  console.log(launch ? `\nListo: ${POLLS.length} encuestas publicadas a cero votos.` : `\nListo: ${POLLS.length} encuestas demo y ${totalVotes} votos ficticios.`);
   process.exit(0);
 }
 
