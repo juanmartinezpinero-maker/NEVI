@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getBalance } from "@/lib/points";
 import { Logo } from "./Logo";
 import { NavLinks } from "./NavLinks";
+import { rewardsEnabled } from "@/lib/site";
 
 export async function Header() {
   const user = await getCurrentUser();
@@ -13,7 +14,7 @@ export async function Header() {
         <Link href="/" aria-label="VotaYa, inicio" className="shrink-0">
           <Logo />
         </Link>
-        <NavLinks />
+        <NavLinks rewards={rewardsEnabled()} />
         <form action="/encuestas" role="search" className="ml-auto hidden max-w-xs flex-1 md:block">
           <label htmlFor="header-search" className="sr-only">
             Buscar encuestas
@@ -42,7 +43,7 @@ export async function Header() {
           {user ? (
             <>
               {points !== null && (
-                <Link href="/recompensas" className="rounded-full bg-amber-50 px-3 py-1.5 text-sm font-bold text-amber-700 ring-1 ring-amber-200" title="Tus puntos">
+                <Link href={rewardsEnabled() ? "/recompensas" : "/perfil"} className="rounded-full bg-amber-50 px-3 py-1.5 text-sm font-bold text-amber-700 ring-1 ring-amber-200" title="Tus puntos">
                   ⭐ {points.toLocaleString("es-ES")}
                 </Link>
               )}

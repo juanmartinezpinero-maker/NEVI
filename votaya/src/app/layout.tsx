@@ -4,6 +4,7 @@ import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { BottomNav } from "@/components/BottomNav";
 import { CookieNotice } from "@/components/CookieNotice";
 import { Header } from "@/components/Header";
+import { rewardsEnabled } from "@/lib/site";
 import "./globals.css";
 
 const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display-face", weight: ["600", "700", "800"] });
@@ -43,7 +44,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span className="font-display text-base font-extrabold text-ink">VotaYa</span>
             <span>El mundo opina. ¿Y tú?</span>
             <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Pie de página">
-              <Link href="/recompensas">Cómo funcionan los puntos</Link>
               <Link href="/empresas">Empresas y marcas</Link>
               <Link href="/privacidad">Privacidad</Link>
               <Link href="/terminos">Términos</Link>
@@ -51,7 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span className="lg:ml-auto">Las votaciones populares no son estudios representativos.</span>
           </div>
         </footer>
-        <BottomNav />
+        <BottomNav rewards={rewardsEnabled()} />
         <CookieNotice />
       </body>
     </html>

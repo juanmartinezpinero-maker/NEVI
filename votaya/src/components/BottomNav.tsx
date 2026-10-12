@@ -11,13 +11,14 @@ const ITEMS = [
   { href: "/perfil", label: "Perfil", icon: "👤" },
 ];
 
-export function BottomNav() {
+export function BottomNav({ rewards = false }: { rewards?: boolean }) {
   const path = usePathname();
   if (path.startsWith("/admin")) return null;
+  const items = rewards ? ITEMS : ITEMS.map((it) => (it.href === "/recompensas" ? { href: "/rankings", label: "Rankings", icon: "🏆" } : it));
   return (
     <nav aria-label="Navegación inferior" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       <ul className="grid grid-cols-5">
-        {ITEMS.map((it) => {
+        {items.map((it) => {
           const active = it.href === "/" ? path === "/" : path.startsWith(it.href);
           return (
             <li key={it.href}>

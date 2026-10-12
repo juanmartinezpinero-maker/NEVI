@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { rewardsEnabled } from "@/lib/site";
 import { Photo } from "@/components/Photo";
 import { getCurrentUser } from "@/lib/auth";
 import { DAILY_VOTE_CAP, getUserRedemptions, getUserStats, listRewards, POINTS, rewardsMode } from "@/lib/points";
@@ -8,6 +10,7 @@ import { RedeemButton } from "./RedeemButton";
 export const metadata: Metadata = { title: "Premios y puntos", description: "Gana puntos votando y canjéalos por premios de las marcas que patrocinan encuestas." };
 
 export default async function RewardsPage() {
+  if (!rewardsEnabled()) notFound();
   const user = await getCurrentUser();
   const verified = Boolean(user?.profileCompleted);
   const [rewards, stats, mine] = await Promise.all([

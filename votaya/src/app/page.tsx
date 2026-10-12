@@ -7,7 +7,7 @@ import { PollCard } from "@/components/PollCard";
 import { CommunityBox, CountriesBox, TrendingBox } from "@/components/Sidebar";
 import { TrackView } from "@/components/TrackView";
 import { getCurrentUser } from "@/lib/auth";
-import { HERO_IMAGE } from "@/lib/site";
+import { HERO_IMAGE, rewardsEnabled } from "@/lib/site";
 import { listRewards } from "@/lib/points";
 import { getFeaturedPoll, getVotedPollIds, listPolls, listTrending } from "@/lib/polls";
 import { getAnonId } from "@/lib/request";
@@ -30,7 +30,7 @@ export default async function Home() {
     listPolls({ order: "new", limit: 6, sponsored: false }),
     weeklyVotes(),
     getVotedPollIds(user?.id ?? null, anonId),
-    listRewards(),
+    rewardsEnabled() ? listRewards() : Promise.resolve([]),
   ]);
   const seen = new Set<string>();
   const grid = [featured, ...trending].filter((p): p is NonNullable<typeof p> => {

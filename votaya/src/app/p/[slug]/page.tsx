@@ -12,6 +12,7 @@ import { countryFlag, countryName, genderLabel } from "@/lib/demographics";
 import { findExistingVote, getPollBySlug, getRecommended, getResults, getSegments, MIN_SEGMENT } from "@/lib/polls";
 import { getAnonId, getBaseUrl } from "@/lib/request";
 import { formatCount } from "@/lib/text";
+import { rewardsEnabled } from "@/lib/site";
 
 const loadPoll = cache(getPollBySlug);
 
@@ -78,7 +79,7 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
             {poll.title}
           </h1>
           {poll.description && <p className="mt-2 text-muted">{poll.description}</p>}
-          {poll.reward && (
+          {poll.reward && rewardsEnabled() && (
             <Link href="/recompensas" className="mt-3 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-amber-50 p-3 ring-1 ring-emerald-200">
               <span className="text-2xl" aria-hidden>
                 🎁

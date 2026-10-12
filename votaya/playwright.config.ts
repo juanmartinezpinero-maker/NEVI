@@ -7,6 +7,8 @@ const env = {
   DEV_SHOW_CODES: "1",
   // Solo en pruebas: permite ver el código de la cuenta admin en pantalla.
   E2E_ADMIN_DEMO_CODES: "1",
+  // Los premios están ocultos por defecto; las pruebas los activan para cubrir el canje.
+  REWARDS_ENABLED: "1",
   ADMIN_EMAILS: "admin@e2e.test",
   AUTH_SECRET: "e2e-secret",
   NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,

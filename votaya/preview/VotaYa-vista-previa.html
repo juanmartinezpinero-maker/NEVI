@@ -13,6 +13,11 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
+#viewport { overflow: hidden; width: 100%; }
+#shell { container-type: inline-size; container-name: app; width: 100%; background: var(--page); }
+#shell.desk { width: 1280px; transform-origin: 0 0; }
+.modebtn { position: fixed; z-index: 40; right: 12px; bottom: 80px; border-radius: 999px; padding: 10px 14px; font-weight: 700; font-size: 13px; color: #fff; background: var(--ink); box-shadow: 0 8px 22px rgb(20 18 31 / .3); }
+@media (min-width: 900px) { .modebtn { bottom: 20px; } }
 html, body { background: var(--page); color: var(--ink); }
 body { font-family: var(--body); font-size: 15px; line-height: 1.45; }
 button, input, select { font: inherit; color: inherit; }
@@ -45,16 +50,16 @@ header.top .in { max-width: 1240px; margin: 0 auto; padding: 0 16px; height: 62p
 .pts { border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; background: var(--gold-bg); color: var(--gold); box-shadow: inset 0 0 0 1px #fde68a; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, #f43f6b, #e5254f); }
 .only-desktop { display: none !important; }
-@media (min-width: 900px) { .only-desktop { display: inline-flex !important; } .tabs-main { display: flex; } .hsearch { display: block; } .hright { margin-left: 0; } .only-mobile { display: none !important; } }
+@container app (min-width: 900px) { .only-desktop { display: inline-flex !important; } .tabs-main { display: flex; } .hsearch { display: block; } .hright { margin-left: 0; } .only-mobile { display: none !important; } }
 
 .wrap { max-width: 1240px; margin: 0 auto; padding: 20px 16px 110px; }
 .layout { display: grid; gap: 22px; }
 .layout > * { min-width: 0; }
-@media (min-width: 1024px) { .layout { grid-template-columns: minmax(0, 1fr) 300px; } .wrap { padding-bottom: 40px; } }
+@container app (min-width: 1024px) { .layout { grid-template-columns: minmax(0, 1fr) 300px; } .wrap { padding-bottom: 40px; } }
 .stack { display: grid; gap: 22px; align-content: start; }
 .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
-@media (min-width: 620px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1180px) { .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container app (min-width: 620px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container app (min-width: 1180px) { .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .hero { position: relative; overflow: hidden; border-radius: 24px; color: #fff; padding: 30px 24px; background: radial-gradient(50rem 26rem at 85% 30%, #c026d3 0%, transparent 60%), linear-gradient(120deg, #3b1585 0%, #6d28d9 55%, #a21caf 100%); }
 .hero h1 { font-size: clamp(34px, 6vw, 50px); line-height: 1.02; font-weight: 800; }
@@ -67,7 +72,7 @@ header.top .in { max-width: 1240px; margin: 0 auto; padding: 0 16px; height: 62p
 @keyframes float { 50% { transform: translateY(-8px); } }
 .weekly { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 10px; margin-top: 18px; border-radius: 16px; padding: 8px 14px; background: rgb(0 0 0 / .28); }
 .weekly b { font-family: var(--display); font-size: 20px; display: block; line-height: 1; }
-@media (min-width: 760px) { .hero { padding: 40px; } .globe { display: block; } .weekly { position: absolute; right: 24px; bottom: 22px; margin: 0; } }
+@container app (min-width: 760px) { .hero { padding: 40px; } .globe { display: block; } .weekly { position: absolute; right: 24px; bottom: 22px; margin: 0; } }
 
 .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
 .chip { flex: none; display: inline-flex; gap: 6px; align-items: center; border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: #fff; }
@@ -120,7 +125,7 @@ header.top .in { max-width: 1240px; margin: 0 auto; padding: 0 16px; height: 62p
 .duel > button .lb, .duel > button .go { position: relative; }
 .duel > button .go { margin-top: 8px; background: #fff; color: var(--brand); font-family: var(--body); font-size: 13px; border-radius: 99px; padding: 6px 16px; }
 .vs { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; border: 4px solid #fff; font-family: var(--display); font-weight: 800; pointer-events: none; box-shadow: 0 8px 20px rgb(0 0 0 / .2); }
-@media (min-width: 620px) { .duel > button { aspect-ratio: 4 / 3; font-size: 24px; } }
+@container app (min-width: 620px) { .duel > button { aspect-ratio: 4 / 3; font-size: 24px; } }
 .opts { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .opt { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #fff; font-weight: 700; text-align: left; }
 .opt:hover { border-color: #fda4af; background: #fff1f2; }
@@ -207,37 +212,40 @@ nav.bottom button .ic { font-size: 20px; filter: grayscale(1); opacity: .6; }
 nav.bottom button[aria-current="page"] { color: var(--brand); }
 nav.bottom button[aria-current="page"] .ic { filter: none; opacity: 1; }
 nav.bottom .plus { margin-top: -20px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 26px; background: linear-gradient(135deg, #f43f6b, #e5254f); box-shadow: 0 8px 18px rgb(229 37 79 / .35); }
-@media (min-width: 900px) { nav.bottom { display: none; } }
+@container app (min-width: 900px) { nav.bottom { display: none; } }
 .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 30; background: var(--ink); color: #fff; font-weight: 600; padding: 10px 16px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 32px); text-align: center; }
 footer { border-top: 1px solid var(--line); background: #fff; }
 footer .in { max-width: 1240px; margin: 0 auto; padding: 18px 16px 90px; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 18px; }
-@media (min-width: 900px) { footer .in { padding-bottom: 18px; } }
+@container app (min-width: 900px) { footer .in { padding-bottom: 18px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 
-<div class="band">Vista previa interactiva de VotaYa v2 · Encuestas, marcas y premios de demostración ficticios · Lo que hagas se guarda solo en este navegador</div>
+<div id="viewport"><div id="shell">
+<div class="band">Vista previa interactiva de VotaYa · Encuestas y votos de demostración ficticios · Lo que hagas se guarda solo en este navegador</div>
 <header class="top"><div class="in">
   <button class="logo" data-go="home" aria-label="VotaYa, inicio">
     <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="34" width="12" height="24" rx="4" fill="#f43f6b"/><rect x="22" y="20" width="12" height="38" rx="4" fill="#e5254f"/><rect x="38" y="8" width="12" height="50" rx="4" fill="#c81d43"/><path d="M44 22l6 6 12-16" stroke="#7c3aed" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     VotaYa
   </button>
   <nav class="tabs-main" aria-label="Principal">
-    <button data-go="home">Inicio</button><button data-go="polls">Encuestas</button><button data-go="rankings">Rankings</button><button data-go="trends">Tendencias</button><button data-go="rewards">Premios</button>
+    <button data-go="home">Inicio</button><button data-go="polls">Encuestas</button><button data-go="rankings">Rankings</button><button data-go="trends">Tendencias</button>
   </nav>
   <div class="hsearch"><span aria-hidden="true">🔍</span><input id="hsearch" placeholder="Buscar encuestas…" aria-label="Buscar encuestas"></div>
   <div class="hright" id="hright"></div>
 </div></header>
 
 <main class="wrap" id="app"></main>
-<footer><div class="in"><b style="color:var(--ink);font-family:var(--display);font-size:15px">VotaYa</b><span>El mundo opina. ¿Y tú?</span><span>Cómo funcionan los puntos</span><span>Empresas y marcas</span><span>Privacidad</span><span>Las votaciones populares no son estudios representativos.</span></div></footer>
+<footer><div class="in"><b style="color:var(--ink);font-family:var(--display);font-size:15px">VotaYa</b><span>El mundo opina. ¿Y tú?</span><span>Empresas y marcas</span><span>Privacidad</span><span>Las votaciones populares no son estudios representativos.</span></div></footer>
 
 <nav class="bottom" aria-label="Navegación inferior"><ul>
   <li><button data-go="home"><span class="ic">🏠</span>Inicio</button></li>
   <li><button data-go="polls"><span class="ic">🗳️</span>Encuestas</button></li>
   <li><button data-go="create"><span class="plus">＋</span>Crear</button></li>
-  <li><button data-go="rewards"><span class="ic">🎁</span>Premios</button></li>
+  <li><button data-go="rankings"><span class="ic">🏆</span>Rankings</button></li>
   <li><button data-go="profile"><span class="ic">👤</span>Perfil</button></li>
 </ul></nav>
+</div></div>
+<button class="modebtn" id="modebtn" aria-pressed="false">🖥️ Ver versión escritorio</button>
 
 <script>
 const IMG = {
@@ -353,7 +361,7 @@ function pollCard(p, note) {
   return `<article class="card pc">
     <div class="top"><button class="pill" data-cat="${p.cat}">${c[1]} ${c[0]}</button><span class="muted">${note || p.ago}</span></div>
     <h3><button data-poll="${p.id}" style="text-align:left">${esc(p.title)}</button></h3>
-    ${p.sponsor ? `<div class="sp"><span class="a">Patrocinada por ${esc(p.sponsor)}</span>${rw ? `<span class="b">🎁 ${esc(rw.title)}</span>` : ""}</div>` : ""}
+    ${p.sponsor ? `<div class="sp"><span class="a">Patrocinada por ${esc(p.sponsor)}</span></div>` : ""}
     <button class="pair" data-poll="${p.id}" tabindex="-1" aria-hidden="true">
       <span style="position:relative">${photo(a.img || p.cover, a.e, p.cat)}</span>
       <span style="position:relative">${photo(b.img, b.e, p.cat)}${extra > 0 ? `<span class="more">+${extra} opciones</span>` : ""}</span>
@@ -374,8 +382,8 @@ function sidebar(parts = ["trend", "countries", "me"]) {
   if (parts.includes("trend")) out.push(`<section class="card side"><h2>🔥 Encuestas en tendencia</h2><ol class="tlist">${trend.map((p, i) => `<li><button data-poll="${p.id}"><b class="muted">${i + 1}</b>${photo(p.cover || p.options[0].img, p.emoji, p.cat)}<span><b>${esc(p.title)}</b><span class="muted" style="font-size:12px">${fmt(p.votes)} votos</span></span></button></li>`).join("")}</ol></section>`);
   if (parts.includes("countries")) out.push(`<section class="card side"><h2>🌍 Ranking: países más votados</h2><ol class="clist">${COUNTRIES.slice(0, 5).map(([f, n, v], i) => `<li><b class="muted">${i + 1}</b><span style="font-size:20px">${f}</span><span>${n}</span><span class="muted">${v.toLocaleString("es-ES")}</span></li>`).join("")}</ol><button class="btn" style="width:100%;color:var(--brand)" data-go="rankings">Ver ranking completo →</button></section>`);
   if (parts.includes("me")) {
-    if (user) { const lv = level(); out.push(`<section class="card side"><h2>${lv.emoji} Nivel ${lv.name}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center"><div style="background:var(--page);border-radius:12px;padding:10px"><b style="font-family:var(--display);font-size:24px;display:block">${voteCount()}</b><span class="muted" style="font-size:12px">encuestas votadas</span></div><div style="background:var(--gold-bg);border-radius:12px;padding:10px"><b style="font-family:var(--display);font-size:24px;display:block;color:var(--gold)">${balance()}</b><span class="muted" style="font-size:12px">puntos</span></div></div>${lv.next ? `<div class="progress" style="margin-top:12px"><i style="width:${lv.progress}%"></i></div><p class="muted" style="font-size:12px;margin:4px 0 0">${lv.next[0] - voteCount()} votos para nivel ${lv.next[1]} ${lv.next[2]}</p>` : ""}<button class="btn btn-dark" style="width:100%;margin-top:12px" data-go="rewards">🎁 Canjear puntos</button></section>`); }
-    else out.push(`<section class="card side"><h2>👥 Únete a la comunidad</h2><ul class="checks"><li>Vota en miles de encuestas</li><li>Guarda tus resultados</li><li>Gana ${PTS.vote} puntos por voto</li><li>Canjea puntos por premios</li></ul><button class="btn btn-brand" style="width:100%" data-go="login">Registrarse gratis · +${PTS.welcome} puntos</button></section>`);
+    if (user) { const lv = level(); out.push(`<section class="card side"><h2>${lv.emoji} Nivel ${lv.name}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center"><div style="background:var(--page);border-radius:12px;padding:10px"><b style="font-family:var(--display);font-size:24px;display:block">${voteCount()}</b><span class="muted" style="font-size:12px">encuestas votadas</span></div><div style="background:var(--gold-bg);border-radius:12px;padding:10px"><b style="font-family:var(--display);font-size:24px;display:block;color:var(--gold)">${balance()}</b><span class="muted" style="font-size:12px">puntos</span></div></div>${lv.next ? `<div class="progress" style="margin-top:12px"><i style="width:${lv.progress}%"></i></div><p class="muted" style="font-size:12px;margin:4px 0 0">${lv.next[0] - voteCount()} votos para nivel ${lv.next[1]} ${lv.next[2]}</p>` : ""}<button class="btn btn-dark" style="width:100%;margin-top:12px" data-go="profile">Ver mi perfil</button></section>`); }
+    else out.push(`<section class="card side"><h2>👥 Únete a la comunidad</h2><ul class="checks"><li>Vota en miles de encuestas</li><li>Guarda tus resultados</li><li>Gana ${PTS.vote} puntos por voto</li><li>Sube de nivel y compite en los rankings</li></ul><button class="btn btn-brand" style="width:100%" data-go="login">Registrarse gratis · +${PTS.welcome} puntos</button></section>`);
   }
   return `<aside class="stack">${out.join("")}</aside>`;
 }
@@ -439,8 +447,7 @@ const pages = {
       ${chips()}
       <div class="grid three">${list.map((p) => pollCard(p, p === featured ? "⭐ Pregunta del día" : "")).join("")}</div>
       <button class="btn btn-line" style="justify-self:center;border-radius:99px" data-go="polls">Ver todas las encuestas →</button>
-      <section class="card" style="overflow:hidden"><div style="padding:16px 18px;background:linear-gradient(90deg,#fffbeb,#fff1f2);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:flex-end"><div><h2 style="font-size:20px">🎁 Vota, suma puntos y gana premios</h2><p class="muted" style="margin:2px 0 0;font-size:14px">Las marcas patrocinan encuestas y regalan premios a la comunidad.</p></div><button class="btn" style="color:var(--brand);padding:0" data-go="rewards">Ver todos los premios →</button></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${REWARDS.map((r) => `<button style="display:flex;gap:12px;align-items:center;padding:14px;text-align:left;border-top:1px solid var(--line)" data-go="rewards">${photo(r.img, "🎁", "comida", "")}<span><b style="display:block">${esc(r.title)}</b><span class="muted" style="font-size:12px">${esc(r.sponsor)}</span><b style="display:block;color:var(--gold);font-size:14px">⭐ ${r.cost} puntos</b></span></button>`).join("").replaceAll('class="ph "', 'class="ph" style="width:56px;height:56px;border-radius:12px;flex:none"')}</div></section>
+
     </div>${sidebar()}</div>`;
   },
   polls() {
@@ -461,7 +468,6 @@ const pages = {
       <article class="card" style="padding:18px;display:grid;gap:14px">
         <div style="display:flex;flex-wrap:wrap;gap:6px"><button class="pill" data-cat="${p.cat}">${c[1]} ${c[0]}</button><span class="pill">🗳️ Votación popular</span>${p.sponsor ? `<span class="pill" style="background:#fef3c7;color:#92400e">Patrocinada por ${esc(p.sponsor)}</span>` : ""}<span class="pill">${fmt(results(p).total)} votos</span></div>
         <h1 style="font-size:clamp(26px,5vw,34px);line-height:1.1">${p.emoji} ${esc(p.title)}</h1>
-        ${rw ? `<button style="display:flex;gap:12px;align-items:center;text-align:left;border-radius:14px;padding:12px;background:linear-gradient(90deg,#ecfdf5,#fffbeb);box-shadow:inset 0 0 0 1px #a7f3d0" data-go="rewards"><span style="font-size:24px">🎁</span><span><b style="display:block;color:#065f46">${esc(rw.title)}</b><span style="color:#047857;font-size:14px">Vota, suma puntos y canjéalo por ⭐ ${rw.cost} puntos</span></span></button>` : ""}
         <p class="note" style="margin:0">⚠️ Encuesta de demostración: los votos iniciales son ficticios.</p>
         ${voter(p)}
       </article>${votes[p.id] ? segments(p) : ""}
@@ -507,7 +513,7 @@ const pages = {
     return `<div class="stack" style="max-width:760px;margin:0 auto">
       <section class="card" style="padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="avatar" style="width:52px;height:52px;font-size:22px">${esc(user.email[0].toUpperCase())}</span><div style="flex:1;min-width:0"><h1 style="font-size:18px;overflow-wrap:anywhere">${esc(user.email)}</h1><p class="muted" style="margin:0;font-size:14px">${esc(user.country)} · ${esc(user.age)} años · ${esc(user.gender)}</p></div><button class="btn btn-line" id="logout">Salir</button></section>
       <section class="card" style="overflow:hidden"><div class="stats3"><div><b>${voteCount()}</b><span class="muted" style="font-size:12px">encuestas votadas</span></div><div style="background:var(--gold-bg)"><b style="color:var(--gold)">⭐ ${balance()}</b><span class="muted" style="font-size:12px">puntos</span></div><div><b>${proposals.length}</b><span class="muted" style="font-size:12px">preguntas propuestas</span></div></div>
-        <div style="padding:16px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-weight:600;font-size:14px"><span>${lv.emoji} Nivel ${lv.name}</span>${lv.next ? `<span class="muted">${lv.next[2]} ${lv.next[1]} en ${lv.next[0] - voteCount()} votos</span>` : ""}</div><div class="progress" style="margin-top:8px;height:10px"><i style="width:${lv.progress}%"></i></div><button class="btn" style="color:var(--brand);padding:10px 0 0" data-go="rewards">🎁 Canjear mis puntos →</button></div>
+        <div style="padding:16px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-weight:600;font-size:14px"><span>${lv.emoji} Nivel ${lv.name}</span>${lv.next ? `<span class="muted">${lv.next[2]} ${lv.next[1]} en ${lv.next[0] - voteCount()} votos</span>` : ""}</div><div class="progress" style="margin-top:8px;height:10px"><i style="width:${lv.progress}%"></i></div></div>
         ${ledger.length ? `<details style="border-top:1px solid var(--line);padding:14px 16px;font-size:14px"><summary style="cursor:pointer;font-weight:600">Movimientos de puntos</summary>${[...ledger].reverse().slice(0, 20).map((l) => `<p style="display:flex;justify-content:space-between;margin:6px 0"><span class="muted">${esc(l.why)}</span><b style="color:${l.n < 0 ? "var(--brand)" : "var(--ok)"}">${l.n > 0 ? "+" : ""}${l.n}</b></p>`).join("")}</details>` : ""}</section>
       ${proposals.length ? `<section class="card" style="padding:16px"><h2 style="font-size:20px;margin-bottom:8px">Mis preguntas</h2>${proposals.map((t) => `<p style="display:flex;justify-content:space-between;gap:8px;margin:6px 0"><span>${esc(t)}</span><span class="muted" style="font-size:12px">⏳ En moderación</span></p>`).join("")}</section>` : ""}
       <section class="card" style="padding:16px"><h2 style="font-size:20px;margin-bottom:8px">Mi historial de votos</h2>${hist.length ? hist.map(([id, v]) => { const p = byId(id); return `<button style="display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--line)" data-poll="${id}"><span style="font-size:22px">${p.emoji}</span><span style="flex:1;min-width:0"><b style="display:block">${esc(p.title)}</b><span style="color:var(--brand);font-size:13px">Votaste: ${esc(v.i !== null ? p.options[v.i].l : v.other)}</span></span></button>`; }).join("") : '<p class="muted">Aún no has votado.</p>'}</section></div>`;
@@ -535,9 +541,9 @@ const pages = {
 
 function renderHeader() {
   $("#hright").innerHTML = user
-    ? `<button class="pts" data-go="rewards" title="Tus puntos">⭐ ${balance()}</button><button class="avatar" data-go="profile" aria-label="Mi perfil">${esc(user.email[0].toUpperCase())}</button>`
+    ? `<button class="pts" data-go="profile" title="Tus puntos">⭐ ${balance()}</button><button class="avatar" data-go="profile" aria-label="Mi perfil">${esc(user.email[0].toUpperCase())}</button>`
     : `<button class="btn btn-line only-desktop" style="border-radius:99px" data-go="login">Iniciar sesión</button><button class="btn btn-brand" style="border-radius:99px" data-go="login">Registrarse</button>`;
-  const map = { home: "home", polls: "polls", poll: "polls", rankings: "rankings", trends: "trends", rewards: "rewards", profile: "profile", login: "profile", create: "create" };
+  const map = { home: "home", polls: "polls", poll: "polls", rankings: "rankings", trends: "trends", profile: "profile", login: "profile", create: "create" };
   document.querySelectorAll("[data-go]").forEach((b) => b.closest("nav") && (b.dataset.go === map[view.name] ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current")));
 }
 
@@ -612,5 +618,25 @@ document.addEventListener("input", (e) => {
 });
 
 render();
+
+// Vista escritorio: la página se maqueta a 1280 px y se escala para caber en la pantalla.
+const shell = $("#shell"), vp = $("#viewport"), modeBtn = $("#modebtn");
+let desk = false;
+function fit() {
+  if (!desk) { shell.style.transform = ""; vp.style.height = ""; return; }
+  const k = Math.min(1, vp.clientWidth / 1280);
+  shell.style.transform = `scale(${k})`;
+  vp.style.height = shell.scrollHeight * k + "px";
+}
+new ResizeObserver(fit).observe(shell);
+window.addEventListener("resize", fit);
+modeBtn.addEventListener("click", () => {
+  desk = !desk;
+  shell.classList.toggle("desk", desk);
+  modeBtn.textContent = desk ? "📱 Ver versión móvil" : "🖥️ Ver versión escritorio";
+  modeBtn.setAttribute("aria-pressed", String(desk));
+  fit();
+  window.scrollTo(0, 0);
+});
 </script>
 </body></html>

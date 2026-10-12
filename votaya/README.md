@@ -62,6 +62,7 @@ aplican migraciones y cargan los datos demo. Si Playwright no encuentra navegado
 | `ADMIN_EMAILS` | tu email (tendrás acceso a `/admin`) |
 | `SEED_DEMO` | `1` para cargar las encuestas demo la primera vez |
 | `DEV_SHOW_CODES` | `1` solo para demos sin email: muestra el código en pantalla (nunca a cuentas admin) |
+| `REWARDS_ENABLED` | `1` para mostrar la sección de Premios (oculta por defecto) |
 | `RESEND_API_KEY`, `MAIL_FROM` | envío real de códigos ([Resend](https://resend.com)); necesario para entrar como admin |
 
 4. **Deploy**. El script `vercel-build` aplica las migraciones (y la demo si `SEED_DEMO=1`) antes de compilar.

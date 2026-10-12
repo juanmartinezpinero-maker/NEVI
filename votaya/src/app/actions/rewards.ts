@@ -6,6 +6,7 @@ import { getDb, schema } from "@/db";
 import { getCurrentUser, requireAdmin } from "@/lib/auth";
 import { redeem } from "@/lib/points";
 import { rateLimit } from "@/lib/rate-limit";
+import { rewardsEnabled } from "@/lib/site";
 
 export type RedeemState = { ok?: boolean; code?: string; error?: string };
 
@@ -17,6 +18,7 @@ const MESSAGES = {
 };
 
 export async function redeemAction(_prev: RedeemState, form: FormData): Promise<RedeemState> {
+  if (!rewardsEnabled()) return { error: "Los premios todavía no están disponibles." };
   const user = await getCurrentUser();
   if (!user?.profileCompleted) return { error: "Entra en tu cuenta para canjear puntos." };
   const rewardId = String(form.get("rewardId") ?? "");

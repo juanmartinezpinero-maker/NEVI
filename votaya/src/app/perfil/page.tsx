@@ -8,6 +8,7 @@ import { getCategory } from "@/lib/categories";
 import { countryFlag, countryName, genderLabel } from "@/lib/demographics";
 import { getUserHistory } from "@/lib/polls";
 import { getUserStats } from "@/lib/points";
+import { rewardsEnabled } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Mi perfil", robots: { index: false } };
 
@@ -85,9 +86,11 @@ export default async function ProfilePage(props: PageProps<"/perfil">) {
           <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-brand-gradient" style={{ width: `${stats.level.progress}%` }} />
           </div>
-          <Link href="/recompensas" className="mt-3 inline-block text-sm font-bold text-brand hover:underline">
-            🎁 Canjear mis puntos →
-          </Link>
+          {rewardsEnabled() && (
+            <Link href="/recompensas" className="mt-3 inline-block text-sm font-bold text-brand hover:underline">
+              🎁 Canjear mis puntos →
+            </Link>
+          )}
         </div>
         {stats.history.length > 0 && (
           <details className="border-t border-line p-4 text-sm">

@@ -4,6 +4,7 @@ import type { PollCard as PollCardData } from "@/lib/polls";
 import { formatCount } from "@/lib/text";
 import { timeAgo } from "@/lib/time";
 import { Photo } from "./Photo";
+import { rewardsEnabled } from "@/lib/site";
 import { ShareIconButton } from "./ShareIconButton";
 
 export function PollCard({ poll, voted, highlight }: { poll: PollCardData; voted?: boolean; highlight?: string }) {
@@ -27,7 +28,7 @@ export function PollCard({ poll, voted, highlight }: { poll: PollCardData; voted
       {poll.sponsorName && (
         <p className="-mt-1 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800">Patrocinada por {poll.sponsorName}</span>
-          {poll.reward && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">🎁 {poll.reward.title}</span>}
+          {poll.reward && rewardsEnabled() && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">🎁 {poll.reward.title}</span>}
         </p>
       )}
       {a && b && (

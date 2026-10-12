@@ -11,11 +11,11 @@ export const MAIN_NAV = [
   { href: "/recompensas", label: "Premios" },
 ];
 
-export function NavLinks() {
+export function NavLinks({ rewards = false }: { rewards?: boolean }) {
   const path = usePathname();
   return (
     <ul className="hidden items-center gap-1 lg:flex">
-      {MAIN_NAV.map((it) => {
+      {MAIN_NAV.filter((it) => rewards || it.href !== "/recompensas").map((it) => {
         const active = it.href === "/" ? path === "/" : path.startsWith(it.href);
         return (
           <li key={it.href}>

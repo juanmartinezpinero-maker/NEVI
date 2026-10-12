@@ -6,6 +6,7 @@ import { getUserStats, POINTS } from "@/lib/points";
 import { getCountryRanking, listTrending } from "@/lib/polls";
 import { formatCount } from "@/lib/text";
 import { Photo } from "./Photo";
+import { rewardsEnabled } from "@/lib/site";
 
 export async function TrendingBox({ limit = 5 }: { limit?: number }) {
   const trending = await listTrending(24, limit);
@@ -93,8 +94,8 @@ export async function CommunityBox() {
             </p>
           </div>
         )}
-        <Link href="/recompensas" className="mt-3 block rounded-xl bg-ink py-2.5 text-center text-sm font-bold text-white">
-          🎁 Canjear puntos
+        <Link href={rewardsEnabled() ? "/recompensas" : "/perfil"} className="mt-3 block rounded-xl bg-ink py-2.5 text-center text-sm font-bold text-white">
+          {rewardsEnabled() ? "🎁 Canjear puntos" : "Ver mi perfil"}
         </Link>
       </section>
     );
@@ -105,7 +106,7 @@ export async function CommunityBox() {
         <span aria-hidden>👥</span> Únete a la comunidad
       </h2>
       <ul className="space-y-2 text-sm">
-        {["Vota en miles de encuestas", "Guarda tus resultados", `Gana ${POINTS.vote} puntos por voto`, "Canjea puntos por premios de marcas"].map((t) => (
+        {["Vota en miles de encuestas", "Guarda tus resultados", `Gana ${POINTS.vote} puntos por voto`, "Sube de nivel y compite en los rankings"].map((t) => (
           <li key={t} className="flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[11px] text-white" aria-hidden>
               ✓
