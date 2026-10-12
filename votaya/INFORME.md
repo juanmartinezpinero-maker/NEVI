@@ -42,7 +42,7 @@ Resultado de la última ejecución: `tsc` sin errores, ESLint sin avisos, `next 
 | Puntos | +10 por encuesta votada (una vez por encuesta), +50 al registrarse, +100 si se publica tu pregunta, tope de 200 al día; solo cuentas verificadas | INT + E2E |
 | Perfil | Contador de encuestas votadas, saldo de puntos, nivel (Novato → Leyenda) con barra de progreso, movimientos | E2E |
 | Premios | Catálogo de premios de marcas patrocinadoras ligados a encuestas, canje atómico (saldo, stock, código), historial de canjes; panel admin para crear premios, pausar y marcar entregas o devolver puntos | INT + E2E |
-| Fotos | 29 fotos realistas generadas con IA (sin logos ni personas reales), alojadas en Higgsfield | MANUAL |
+| Fotos | 28 fotos realistas generadas con IA (sin logos ni personas reales), alojadas en Higgsfield | MANUAL |
 
 **Importante sobre premios reales**: en esta versión todo funciona en **modo demostración** (marcas ficticias, cupones sin valor).
 Antes de activar premios reales (`REWARDS_MODE=live`) hace falta: acuerdo con cada marca, bases legales de la promoción
