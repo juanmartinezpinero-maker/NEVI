@@ -2,14 +2,17 @@ import "server-only";
 
 export const mailConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
-/** En desarrollo (sin RESEND_API_KEY) el código se muestra en consola y en pantalla. */
-export const showDevCodes = () => !mailConfigured() && (process.env.NODE_ENV !== "production" || process.env.DEV_SHOW_CODES === "1");
+/**
+ * Modo demo: el código se muestra en pantalla cuando no se puede enviar por email.
+ * Siempre en desarrollo; en producción solo con DEV_SHOW_CODES=1.
+ */
+export const demoCodesAllowed = () => process.env.NODE_ENV !== "production" || process.env.DEV_SHOW_CODES === "1";
 
-export async function sendLoginCode(email: string, code: string) {
+/** Envía el código por email. Devuelve false si no hay email configurado o el envío falla. */
+export async function sendLoginCode(email: string, code: string): Promise<boolean> {
   if (!mailConfigured()) {
-    if (!showDevCodes()) throw new Error("El envío de email no está configurado (RESEND_API_KEY)");
-    console.info(`[VotaYa] Código de acceso para ${email}: ${code}`);
-    return;
+    if (process.env.NODE_ENV !== "production") console.info(`[VotaYa] Código de acceso para ${email}: ${code}`);
+    return false;
   }
   const { Resend } = await import("resend");
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -24,5 +27,9 @@ export async function sendLoginCode(email: string, code: string) {
       <p style="font-size:36px;font-weight:800;letter-spacing:8px;margin:16px 0">${code}</p>
       <p style="color:#555">Caduca en 10 minutos. Si no lo has pedido, ignora este mensaje.</p></div>`,
   });
-  if (error) throw new Error(`No se pudo enviar el email: ${error.message}`);
+  if (error) {
+    console.error(`No se pudo enviar el email: ${error.message}`);
+    return false;
+  }
+  return true;
 }

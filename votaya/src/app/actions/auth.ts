@@ -8,7 +8,7 @@ import { track } from "@/lib/analytics";
 import { createSession, destroySession, getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { hashWithSecret, randomCode, safeEqual } from "@/lib/crypto";
 import { AGE_RANGES, COUNTRY_CODES, GENDER_VALUES } from "@/lib/demographics";
-import { sendLoginCode, showDevCodes } from "@/lib/mail";
+import { demoCodesAllowed, sendLoginCode } from "@/lib/mail";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAnonId, getIpHash, getRefCode } from "@/lib/request";
 import { claimAnonVotes } from "@/lib/votes";
@@ -42,13 +42,11 @@ export async function requestCodeAction(_prev: AuthState, form: FormData): Promi
     codeHash: codeHash(email, code),
     expiresAt: new Date(Date.now() + 10 * 60_000),
   });
-  try {
-    await sendLoginCode(email, code);
-  } catch (err) {
-    console.error(err);
-    return { step: "email", email, error: "No hemos podido enviar el email. Inténtalo de nuevo.", next };
-  }
-  return { step: "code", email, next, devCode: showDevCodes() ? code : undefined };
+  if (await sendLoginCode(email, code)) return { step: "code", email, next };
+  // Sin email disponible: en modo demo se muestra el código, nunca para cuentas de administración.
+  const adminOk = process.env.NODE_ENV !== "production" || process.env.E2E_ADMIN_DEMO_CODES === "1";
+  if (demoCodesAllowed() && (adminOk || !isAdminEmail(email))) return { step: "code", email, next, devCode: code };
+  return { step: "email", email, error: "No hemos podido enviar el email. Inténtalo de nuevo en unos minutos.", next };
 }
 
 export async function verifyCodeAction(prev: AuthState, form: FormData): Promise<AuthState> {

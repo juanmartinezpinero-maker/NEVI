@@ -5,6 +5,8 @@ const DATABASE_URL = process.env.E2E_DATABASE_URL ?? "postgres://votaya:votaya@l
 const env = {
   DATABASE_URL,
   DEV_SHOW_CODES: "1",
+  // Solo en pruebas: permite ver el código de la cuenta admin en pantalla.
+  E2E_ADMIN_DEMO_CODES: "1",
   ADMIN_EMAILS: "admin@e2e.test",
   AUTH_SECRET: "e2e-secret",
   NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,

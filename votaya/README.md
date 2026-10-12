@@ -49,15 +49,25 @@ aplican migraciones y cargan los datos demo. Si Playwright no encuentra navegado
 
 ## Desplegar (recomendado: Vercel + Neon + Resend)
 
-1. **Base de datos**: crea un proyecto en [Neon](https://neon.tech) (o Supabase) y copia la cadena de conexión *pooled*.
-2. **Migraciones**: `DATABASE_URL=... npm run db:migrate` (y opcionalmente `npm run db:seed` para la demo).
-3. **Email**: crea una cuenta en [Resend](https://resend.com), verifica tu dominio y genera una API key.
-4. **Vercel**: importa el repositorio y en *Root Directory* elige `votaya`. Variables de entorno:
-   - `DATABASE_URL`, `AUTH_SECRET` (`openssl rand -base64 32`), `NEXT_PUBLIC_SITE_URL` (p. ej. `https://votaya.app`)
-   - `RESEND_API_KEY`, `MAIL_FROM` (p. ej. `VotaYa <hola@votaya.app>`), `ADMIN_EMAILS`
-5. Despliega. Vercel envía el país del visitante (`x-vercel-ip-country`), que se usa para votos anónimos.
+1. **Base de datos**: crea un proyecto en [Neon](https://neon.tech) (región Europa) y copia la cadena de conexión.
+2. **Vercel**: *Add New → Project*, importa el repositorio y en *Root Directory* elige `votaya`.
+   Tras crearlo, en *Settings → Git → Production Branch* pon la rama donde está VotaYa (`votaya-mvp` mientras no se fusione).
+3. **Variables de entorno** (*Settings → Environment Variables*):
 
-Funciona igual en cualquier hosting Node (Railway, Render, Fly.io, un VPS con `npm run build && npm start`).
+| Variable | Valor |
+| --- | --- |
+| `DATABASE_URL` | cadena de conexión de Neon |
+| `AUTH_SECRET` | texto aleatorio largo (`openssl rand -base64 32`) |
+| `NEXT_PUBLIC_SITE_URL` | URL pública, p. ej. `https://votaya.vercel.app` |
+| `ADMIN_EMAILS` | tu email (tendrás acceso a `/admin`) |
+| `SEED_DEMO` | `1` para cargar las encuestas demo la primera vez |
+| `DEV_SHOW_CODES` | `1` solo para demos sin email: muestra el código en pantalla (nunca a cuentas admin) |
+| `RESEND_API_KEY`, `MAIL_FROM` | envío real de códigos ([Resend](https://resend.com)); necesario para entrar como admin |
+
+4. **Deploy**. El script `vercel-build` aplica las migraciones (y la demo si `SEED_DEMO=1`) antes de compilar.
+
+Para el lanzamiento público: verifica un dominio en Resend, configura `MAIL_FROM` con él y quita `DEV_SHOW_CODES`.
+Funciona igual en cualquier hosting Node (Railway, Render, Fly.io, VPS con `npm run build && npm start`).
 
 ## Estructura
 
