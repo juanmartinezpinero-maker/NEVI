@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c0a1d",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -31,20 +31,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="es" className={`${display.variable} ${body.variable}`}>
       <body className="font-sans antialiased">
-        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:text-ink">
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-ink focus:px-3 focus:py-2 focus:text-white">
           Saltar al contenido
         </a>
         <Header />
-        <main id="main" className="mx-auto max-w-6xl px-4 pb-28 pt-4 sm:pb-12">
+        <main id="main" className="mx-auto max-w-7xl px-4 pb-28 pt-5 lg:pb-12">
           {children}
         </main>
-        <footer className="mx-auto max-w-6xl px-4 pb-28 text-xs text-muted sm:pb-8">
-          <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-line/60 pt-6">
-            <span>© {new Date().getFullYear()} VotaYa</span>
-            <Link href="/privacidad">Privacidad</Link>
-            <Link href="/terminos">Condiciones</Link>
-            <Link href="/empresas">Empresas y marcas</Link>
-            <span>Las votaciones populares no son estudios representativos.</span>
+        <footer className="border-t border-line bg-white pb-24 lg:pb-0">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-5 text-xs text-muted">
+            <span className="font-display text-base font-extrabold text-ink">VotaYa</span>
+            <span>El mundo opina. ¿Y tú?</span>
+            <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Pie de página">
+              <Link href="/recompensas">Cómo funcionan los puntos</Link>
+              <Link href="/empresas">Empresas y marcas</Link>
+              <Link href="/privacidad">Privacidad</Link>
+              <Link href="/terminos">Términos</Link>
+            </nav>
+            <span className="lg:ml-auto">Las votaciones populares no son estudios representativos.</span>
           </div>
         </footer>
         <BottomNav />

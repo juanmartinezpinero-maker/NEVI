@@ -29,11 +29,11 @@ export function LoginForm({ next }: { next: string }) {
             inputMode="email"
             defaultValue={email}
             placeholder="tu@email.com"
-            className="w-full rounded-2xl border border-line bg-ink-2 px-4 py-3.5 text-base outline-none focus:border-fuchsia-400"
+            className="w-full rounded-2xl border border-line bg-white px-4 py-3.5 text-base outline-none focus:border-rose-300"
           />
         </label>
         {reqState.error && (
-          <p role="alert" className="text-sm text-rose-300">
+          <p role="alert" className="text-sm text-rose-600">
             {reqState.error}
           </p>
         )}
@@ -60,7 +60,7 @@ export function LoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="email" value={email} />
       <p className="text-sm text-muted">
-        Hemos enviado un código a <strong className="text-white">{email}</strong>.
+        Hemos enviado un código a <strong className="text-ink">{email}</strong>.
       </p>
       {reqState.devCode && (
         <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm" data-testid="dev-code">
@@ -78,11 +78,11 @@ export function LoginForm({ next }: { next: string }) {
           maxLength={6}
           autoFocus
           placeholder="••••••"
-          className="w-full rounded-2xl border border-line bg-ink-2 px-4 py-3.5 text-center font-display text-3xl tracking-[0.5em] outline-none focus:border-fuchsia-400"
+          className="w-full rounded-2xl border border-line bg-white px-4 py-3.5 text-center font-display text-3xl tracking-[0.5em] outline-none focus:border-rose-300"
         />
       </label>
       {verState.error && (
-        <p role="alert" className="text-sm text-rose-300">
+        <p role="alert" className="text-sm text-rose-600">
           {verState.error}
         </p>
       )}

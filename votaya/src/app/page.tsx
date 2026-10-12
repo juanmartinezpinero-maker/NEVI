@@ -1,185 +1,152 @@
 import Link from "next/link";
-import { PollCard, PollGrid } from "@/components/PollCard";
-import { PollVoter } from "@/components/PollVoter";
+import { gte, sql } from "drizzle-orm";
+import { getDb, schema } from "@/db";
+import { CategoryChips } from "@/components/CategoryChips";
+import { Photo } from "@/components/Photo";
+import { PollCard } from "@/components/PollCard";
+import { CommunityBox, CountriesBox, TrendingBox } from "@/components/Sidebar";
 import { TrackView } from "@/components/TrackView";
 import { getCurrentUser } from "@/lib/auth";
-import { CATEGORIES, getCategory } from "@/lib/categories";
-import { countryFlag, countryName } from "@/lib/demographics";
-import { findExistingVote, getCountryRanking, getFeaturedPoll, getResults, getSiteTotals, getVotedPollIds, listPolls, listTrending } from "@/lib/polls";
-import { getAnonId, getBaseUrl } from "@/lib/request";
+import { HERO_IMAGE } from "@/lib/site";
+import { listRewards } from "@/lib/points";
+import { getFeaturedPoll, getVotedPollIds, listPolls, listTrending } from "@/lib/polls";
+import { getAnonId } from "@/lib/request";
 import { formatCount } from "@/lib/text";
+
+async function weeklyVotes() {
+  const db = await getDb();
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(schema.votes)
+    .where(gte(schema.votes.createdAt, new Date(Date.now() - 7 * 864e5)));
+  return n;
+}
 
 export default async function Home() {
   const [user, anonId] = await Promise.all([getCurrentUser(), getAnonId()]);
-  const [featured, trending, latest, sponsored, countries, totals, votedIds] = await Promise.all([
+  const [featured, trending, latest, week, votedIds, rewards] = await Promise.all([
     getFeaturedPoll(),
-    listTrending(24, 6),
+    listTrending(24, 9),
     listPolls({ order: "new", limit: 6, sponsored: false }),
-    listPolls({ sponsored: true, limit: 3 }),
-    getCountryRanking(5),
-    getSiteTotals(),
+    weeklyVotes(),
     getVotedPollIds(user?.id ?? null, anonId),
+    listRewards(),
   ]);
-  const existing = featured ? await findExistingVote(featured.id, user?.id ?? null, anonId) : null;
-  const initial = featured && existing ? { results: await getResults(featured.id), myOptionId: existing.optionId, myWriteInId: existing.writeInId } : null;
-  const base = await getBaseUrl();
-  const cat = featured ? getCategory(featured.category) : null;
+  const seen = new Set<string>();
+  const grid = [featured, ...trending].filter((p): p is NonNullable<typeof p> => {
+    if (!p || seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  }).slice(0, 9);
+  const fresh = latest.filter((p) => !seen.has(p.id)).slice(0, 3);
 
   return (
-    <div className="space-y-10">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <TrackView path="/" />
-      <section className="grid items-start gap-6 lg:grid-cols-[1.1fr_1fr]">
-        <div className="space-y-4 pt-2 lg:pt-8">
-          <h1 className="font-display text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
-            El mundo opina.
-            <br />
-            <span className="text-gradient">¿Y tú?</span>
-          </h1>
-          <p className="hidden max-w-md text-lg text-muted sm:block">
-            Vota preguntas divertidas y polémicas en un toque, mira al instante qué piensa la gente y compártelo.
-          </p>
-          <dl className="hidden gap-6 text-sm sm:flex">
-            <div>
-              <dt className="text-muted">Votos</dt>
-              <dd className="font-display text-2xl font-extrabold">{formatCount(totals.votes)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">Encuestas</dt>
-              <dd className="font-display text-2xl font-extrabold">{formatCount(totals.polls)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">Países</dt>
-              <dd className="font-display text-2xl font-extrabold">{totals.countries}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {featured ? (
-          <article className="card relative overflow-hidden p-5 sm:p-6" aria-labelledby="featured-title">
-            <div className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider">
-              <span className="bg-brand-gradient rounded-full px-3 py-1 text-white">⭐ Pregunta del día</span>
-              <span className="text-muted">
-                {cat?.emoji} {cat?.name}
-              </span>
-            </div>
-            <h2 id="featured-title" className="mb-4 font-display text-2xl font-extrabold leading-tight sm:text-3xl">
-              <Link href={`/p/${featured.slug}`}>{featured.title}</Link>
-            </h2>
-            <PollVoter
-              poll={featured}
-              initial={initial}
-              verified={Boolean(user?.profileCompleted)}
-              shareUrl={`${base}/p/${featured.slug}`}
-              compact
-            />
-            {featured.isDemo && <p className="mt-3 text-center text-[11px] text-amber-300/80">Datos de demostración ficticios</p>}
-          </article>
-        ) : (
-          <div className="card p-6 text-center text-muted">Aún no hay encuestas publicadas.</div>
-        )}
-      </section>
-
-      <form action="/buscar" role="search" className="relative">
-        <label htmlFor="home-search" className="sr-only">
-          Buscar encuestas
-        </label>
-        <input
-          id="home-search"
-          name="q"
-          placeholder="Busca: Messi, pizza, series, países…"
-          className="w-full rounded-2xl border border-line bg-ink-2 px-5 py-4 pl-12 text-base outline-none focus:border-fuchsia-400"
-        />
-        <span className="absolute left-4 top-1/2 -translate-y-1/2" aria-hidden>
-          🔍
-        </span>
-      </form>
-
-      <section aria-labelledby="cats">
-        <h2 id="cats" className="sr-only">
-          Categorías
-        </h2>
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:flex-wrap">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/c/${c.slug}`}
-              className={`shrink-0 rounded-full bg-gradient-to-r ${c.gradient} px-4 py-2 text-sm font-bold text-white shadow`}
-            >
-              {c.emoji} {c.name}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section aria-labelledby="trending" className="space-y-4">
-        <div className="flex items-end justify-between">
-          <h2 id="trending" className="font-display text-2xl font-extrabold">
-            🔥 En tendencia
-          </h2>
-          <Link href="/rankings" className="text-sm font-bold text-fuchsia-300">
-            Ver rankings →
-          </Link>
-        </div>
-        <PollGrid polls={trending} votedIds={votedIds} />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-4">
-          <div className="flex items-end justify-between">
-            <h2 className="font-display text-2xl font-extrabold">🆕 Últimas preguntas</h2>
-            <Link href="/descubrir" className="text-sm font-bold text-fuchsia-300">
-              Modo descubrir ⚡
-            </Link>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-            {latest.map((p) => (
-              <PollCard key={p.id} poll={p} voted={votedIds.has(p.id)} />
-            ))}
-          </div>
-        </div>
-        <aside className="card h-fit space-y-3 p-5" aria-labelledby="world">
-          <h2 id="world" className="font-display text-xl font-extrabold">
-            🌍 Ranking mundial
-          </h2>
-          <p className="text-sm text-muted">Países que más votan</p>
-          <ol className="space-y-2">
-            {countries.map((c, i) => (
-              <li key={c.country} className="flex items-center gap-3">
-                <span className="w-5 text-right font-black text-muted">{i + 1}</span>
-                <span className="text-2xl" aria-hidden>
-                  {countryFlag(c.country)}
-                </span>
-                <span className="flex-1 font-semibold">{countryName(c.country)}</span>
-                <span className="text-sm text-muted">{formatCount(c.n)}</span>
-              </li>
-            ))}
-          </ol>
-          <Link href="/rankings" className="block pt-2 text-sm font-bold text-fuchsia-300">
-            Todas las clasificaciones →
-          </Link>
-        </aside>
-      </section>
-
-      <section aria-labelledby="sponsored" className="space-y-4">
-        <h2 id="sponsored" className="font-display text-2xl font-extrabold">
-          🤝 Encuestas patrocinadas
-        </h2>
-        {sponsored.length ? (
-          <PollGrid polls={sponsored} votedIds={votedIds} />
-        ) : (
-          <div className="card flex flex-col items-center gap-3 p-6 text-center sm:flex-row sm:text-left">
-            <span className="text-4xl" aria-hidden>
-              📣
-            </span>
-            <p className="flex-1 text-muted">
-              Próximamente: marcas y creadores lanzarán aquí sus preguntas, siempre señalizadas como patrocinadas.
+      <div className="min-w-0 space-y-6">
+        <section className="bg-hero relative overflow-hidden rounded-3xl px-6 py-8 text-white sm:px-10 sm:py-10">
+          <div className="relative z-10 max-w-md space-y-4">
+            <h1 className="font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl">
+              El mundo opina
+              <br />
+              <span className="text-gradient">¿Y tú?</span>
+            </h1>
+            <p className="text-sm text-white/85 sm:text-base">
+              Vota en las mejores encuestas, descubre lo que piensa la gente de todo el mundo, gana puntos y comparte tus resultados.
             </p>
-            <Link href="/empresas" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-ink">
-              Soy una marca
+            <Link
+              href={featured ? `/p/${featured.slug}` : "/encuestas"}
+              className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-bold shadow-lg shadow-black/20 hover:bg-brand-dark"
+            >
+              Empieza a votar →
             </Link>
           </div>
+          <div className="pointer-events-none absolute -right-10 top-1/2 hidden h-72 w-72 -translate-y-1/2 sm:block md:right-6 md:h-80 md:w-80" aria-hidden>
+            <Photo src={HERO_IMAGE} alt="" emoji="🌍" gradient="from-indigo-400 to-fuchsia-500" className="h-full w-full rounded-full shadow-2xl shadow-fuchsia-900/50 [&>span]:text-8xl" />
+            {[
+              ["❤️", "left-2 top-6", "0s"],
+              ["🤔", "right-6 top-0", "1s"],
+              ["😊", "-left-6 bottom-16", "2s"],
+              ["🔥", "right-0 bottom-20", "1.5s"],
+            ].map(([e, pos, delay]) => (
+              <span key={e} className={`animate-float absolute ${pos} flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-lg`} style={{ animationDelay: delay }}>
+                {e}
+              </span>
+            ))}
+          </div>
+          <div className="relative z-10 mt-6 inline-flex items-center gap-3 rounded-2xl bg-black/30 px-4 py-2.5 backdrop-blur sm:absolute sm:bottom-6 sm:right-6 sm:mt-0">
+            <span className="text-2xl" aria-hidden>
+              👥
+            </span>
+            <span>
+              <span className="block font-display text-xl font-extrabold leading-none">{formatCount(week)}</span>
+              <span className="text-xs text-white/80">votos esta semana</span>
+            </span>
+          </div>
+        </section>
+
+        <CategoryChips />
+
+        <section aria-label="Encuestas destacadas">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {grid.map((p) => (
+              <PollCard key={p.id} poll={p} voted={votedIds.has(p.id)} highlight={p.id === featured?.id ? "⭐ Pregunta del día" : undefined} />
+            ))}
+          </div>
+          <div className="mt-4 text-center">
+            <Link href="/encuestas" className="inline-block rounded-full border border-line bg-white px-6 py-2.5 text-sm font-bold hover:border-rose-300">
+              Ver todas las encuestas →
+            </Link>
+          </div>
+        </section>
+
+        {rewards.length > 0 && (
+          <section className="card overflow-hidden" aria-labelledby="rewards-teaser">
+            <div className="flex flex-wrap items-end justify-between gap-2 border-b border-line bg-gradient-to-r from-amber-50 to-rose-50 px-5 py-4">
+              <div>
+                <h2 id="rewards-teaser" className="font-display text-xl font-extrabold">
+                  🎁 Vota, suma puntos y gana premios
+                </h2>
+                <p className="text-sm text-muted">Cada voto suma puntos. Canjéalos por premios de las marcas que patrocinan encuestas.</p>
+              </div>
+              <Link href="/recompensas" className="text-sm font-bold text-brand hover:underline">
+                Ver todos los premios →
+              </Link>
+            </div>
+            <ul className="grid gap-px bg-line sm:grid-cols-3">
+              {rewards.slice(0, 3).map((r) => (
+                <li key={r.id} className="flex items-center gap-3 bg-white p-4">
+                  <Photo src={r.imageUrl} alt="" emoji="🎁" gradient="from-amber-300 to-rose-400" className="h-14 w-14 shrink-0 rounded-xl [&>span]:text-2xl" />
+                  <div className="min-w-0">
+                    <p className="truncate font-bold">{r.title}</p>
+                    <p className="text-xs text-muted">{r.sponsor}</p>
+                    <p className="text-sm font-bold text-amber-700">⭐ {r.costPoints} puntos</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
-      </section>
+
+        {fresh.length > 0 && (
+          <section className="space-y-3" aria-labelledby="latest">
+            <h2 id="latest" className="font-display text-xl font-extrabold">
+              🆕 Últimas preguntas
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {fresh.map((p) => (
+                <PollCard key={p.id} poll={p} voted={votedIds.has(p.id)} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+
+      <aside className="space-y-4">
+        <TrendingBox />
+        <CountriesBox />
+        <CommunityBox />
+      </aside>
     </div>
   );
 }

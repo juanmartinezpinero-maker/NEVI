@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../src/db/connect";
 import * as schema from "../src/db/schema";
 import { compactKey, normalize, slugify } from "../src/lib/text";
+import { PHOTOS } from "./demo-photos";
 
 type Opt = [label: string, emoji: string, weight: number];
 type DemoPoll = {
@@ -19,13 +20,55 @@ type DemoPoll = {
   writeIns?: [string, number][];
   sponsored?: boolean;
   description?: string;
+  /** Claves de PHOTOS: portada y una por opción (en orden). */
+  cover?: string;
+  images?: (string | null)[];
+  reward?: { title: string; description: string; cost: number; stock: number; cover?: string };
+  sponsorName?: string;
 };
 
 const POLLS: DemoPoll[] = [
-  { title: "¿Pepsi o Coca-Cola?", category: "marcas", emoji: "🥤", votes: 3200, options: [["Coca-Cola", "🔴", 62], ["Pepsi", "🔵", 38]] },
-  { title: "¿Messi o Cristiano?", category: "deportes", emoji: "🐐", votes: 4100, options: [["Messi", "🇦🇷", 57], ["Cristiano", "🇵🇹", 43]] },
   {
-    title: "¿Cuál es la mejor serie de la historia?",
+    title: "¿Pizza o hamburguesa?",
+    category: "comida",
+    emoji: "🍕",
+    votes: 1800,
+    images: ["pizza", "burger"],
+    options: [["Pizza", "🍕", 62], ["Hamburguesa", "🍔", 38]],
+    sponsored: true,
+    description: "Encuesta patrocinada de ejemplo. La pizzería es ficticia.",
+    sponsorName: "Pizzería Napoli (demo)",
+    reward: { title: "Pizza mediana gratis", description: "Canjeable en Pizzería Napoli (marca ficticia de demostración).", cost: 300, stock: 50, cover: "pizza" },
+  },
+  {
+    title: "¿Deberíamos tener una semana laboral de 4 días?",
+    category: "politica",
+    emoji: "📅",
+    votes: 1500,
+    cover: "workweek",
+    options: [["Sí, con el mismo sueldo", "✅", 71], ["No, no es viable", "❌", 18], ["Solo en algunos sectores", "⚖️", 11]],
+  },
+  {
+    title: "¿Debería ser obligatorio votar en las elecciones?",
+    category: "politica",
+    emoji: "🗳️",
+    votes: 1200,
+    cover: "ballot",
+    options: [["Sí", "👍", 34], ["No", "👎", 58], ["No lo tengo claro", "🤷", 8]],
+  },
+  {
+    title: "¿Qué compras más por internet?",
+    category: "productos",
+    emoji: "🛍️",
+    votes: 900,
+    allowOther: true,
+    options: [["Ropa y calzado", "👟", 34], ["Tecnología", "💻", 24], ["Comida y súper", "🛒", 18], ["Libros", "📚", 12], ["Belleza", "💄", 12]],
+    writeIns: [["Juguetes", 20], ["Videojuegos", 25]],
+  },
+  { title: "¿Pepsi o Coca-Cola?", images: ["colaRed", "colaBlue"], category: "marcas", emoji: "🥤", votes: 3200, options: [["Coca-Cola", "🔴", 62], ["Pepsi", "🔵", 38]] },
+  { title: "¿Messi o Cristiano?", cover: "stadium", images: ["player10", "player7"], category: "deportes", emoji: "🐐", votes: 4100, options: [["Messi", "🇦🇷", 57], ["Cristiano", "🇵🇹", 43]] },
+  {
+    title: "¿Cuál es la mejor serie de la historia?", cover: "series",
     category: "entretenimiento",
     emoji: "📺",
     votes: 2600,
@@ -34,7 +77,7 @@ const POLLS: DemoPoll[] = [
     writeIns: [["The Office", 60], ["the office", 25], ["Succession", 40], ["Dark", 55], ["Stranger Things", 70], ["stranger thing", 12], ["Peaky Blinders", 45]],
   },
   {
-    title: "¿En qué país se come mejor?",
+    title: "¿En qué país se come mejor?", cover: "worldFood",
     category: "paises",
     emoji: "🍽️",
     votes: 3500,
@@ -42,9 +85,9 @@ const POLLS: DemoPoll[] = [
     options: [["España", "🇪🇸", 26], ["Italia", "🇮🇹", 27], ["México", "🇲🇽", 20], ["Japón", "🇯🇵", 14], ["Francia", "🇫🇷", 6], ["Perú", "🇵🇪", 7]],
     writeIns: [["Turquía", 40], ["Tailandia", 35], ["Grecia", 30], ["Corea del Sur", 22]],
   },
-  { title: "¿Playa o montaña?", category: "estilo-de-vida", emoji: "🏖️", votes: 2900, options: [["Playa", "🏖️", 58], ["Montaña", "🏔️", 42]] },
+  { title: "¿Playa o montaña?", images: ["beach", "mountain"], category: "estilo-de-vida", emoji: "🏖️", votes: 2900, options: [["Playa", "🏖️", 58], ["Montaña", "🏔️", 42]] },
   {
-    title: "¿Cuál es la mejor película de todos los tiempos?",
+    title: "¿Cuál es la mejor película de todos los tiempos?", cover: "cinema", sponsored: true, sponsorName: "Cines Estrella (demo)", reward: { title: "Entrada de cine 2x1", description: "En Cines Estrella (marca ficticia de demostración).", cost: 600, stock: 30, cover: "cinema" },
     category: "entretenimiento",
     emoji: "🎬",
     votes: 2200,
@@ -61,11 +104,11 @@ const POLLS: DemoPoll[] = [
     options: [["Brasil", "🇧🇷", 22], ["Colombia", "🇨🇴", 19], ["Italia", "🇮🇹", 16], ["Suecia", "🇸🇪", 12], ["Argentina", "🇦🇷", 14], ["España", "🇪🇸", 17]],
     writeIns: [["Venezuela", 55], ["Corea", 30]],
   },
-  { title: "¿Tortilla de patatas con o sin cebolla?", category: "comida", emoji: "🥔", votes: 3900, options: [["Con cebolla", "🧅", 66], ["Sin cebolla", "🚫", 34]] },
-  { title: "¿iPhone o Android?", category: "tecnologia", emoji: "📱", votes: 3100, options: [["iPhone", "🍎", 49], ["Android", "🤖", 51]] },
-  { title: "¿Piña en la pizza?", category: "comida", emoji: "🍍", votes: 2800, options: [["Sí, por supuesto", "✅", 41], ["Jamás", "❌", 59]] },
+  { title: "¿Tortilla de patatas con o sin cebolla?", images: ["tortillaOnion", "tortillaPlain"], category: "comida", emoji: "🥔", votes: 3900, options: [["Con cebolla", "🧅", 66], ["Sin cebolla", "🚫", 34]] },
+  { title: "¿iPhone o Android?", images: ["phoneA", "phoneB"], category: "tecnologia", emoji: "📱", votes: 3100, options: [["iPhone", "🍎", 49], ["Android", "🤖", 51]] },
+  { title: "¿Piña en la pizza?", images: ["pizzaPineapple", "pizzaMargherita"], category: "comida", emoji: "🍍", votes: 2800, options: [["Sí, por supuesto", "✅", 41], ["Jamás", "❌", 59]] },
   {
-    title: "¿Cuál es la mejor comida del mundo?",
+    title: "¿Cuál es la mejor comida del mundo?", cover: "worldFood", images: ["pizza", null, null, null, "burger"],
     category: "comida",
     emoji: "🌮",
     votes: 1900,
@@ -73,11 +116,11 @@ const POLLS: DemoPoll[] = [
     options: [["Pizza", "🍕", 22], ["Sushi", "🍣", 18], ["Tacos", "🌮", 17], ["Paella", "🥘", 12], ["Hamburguesa", "🍔", 14]],
     writeIns: [["Ceviche", 40], ["Lasaña", 30], ["Asado", 45], ["Ramen", 25]],
   },
-  { title: "¿Café o té?", category: "estilo-de-vida", emoji: "☕", votes: 2100, options: [["Café", "☕", 71], ["Té", "🍵", 29]] },
+  { title: "¿Café o té?", images: ["coffee", "tea"], sponsored: true, sponsorName: "Cafetería Aroma (demo)", reward: { title: "Café de especialidad gratis", description: "En Cafetería Aroma (marca ficticia de demostración).", cost: 150, stock: 100, cover: "coffee" }, category: "estilo-de-vida", emoji: "☕", votes: 2100, options: [["Café", "☕", 71], ["Té", "🍵", 29]] },
   { title: "¿Netflix o HBO Max?", category: "entretenimiento", emoji: "🍿", votes: 1700, options: [["Netflix", "🟥", 55], ["HBO Max", "🟪", 45]] },
-  { title: "¿Real Madrid o Barcelona?", category: "deportes", emoji: "⚽", votes: 4400, options: [["Real Madrid", "⚪", 51], ["Barcelona", "🔵", 49]] },
+  { title: "¿Real Madrid o Barcelona?", cover: "stadium", category: "deportes", emoji: "⚽", votes: 4400, options: [["Real Madrid", "⚪", 51], ["Barcelona", "🔵", 49]] },
   {
-    title: "¿Cuál es la mejor red social?",
+    title: "¿Cuál es la mejor red social?", cover: "social",
     category: "tecnologia",
     emoji: "💬",
     votes: 1600,
@@ -85,10 +128,10 @@ const POLLS: DemoPoll[] = [
     options: [["Instagram", "📸", 30], ["TikTok", "🎵", 32], ["YouTube", "▶️", 22], ["X (Twitter)", "✖️", 8], ["Facebook", "👍", 4]],
     writeIns: [["Reddit", 35], ["Twitch", 18], ["WhatsApp", 20]],
   },
-  { title: "¿Perros o gatos?", category: "estilo-de-vida", emoji: "🐶", votes: 3300, options: [["Perros", "🐶", 60], ["Gatos", "🐱", 40]] },
+  { title: "¿Perros o gatos?", images: ["dog", "cat"], category: "estilo-de-vida", emoji: "🐶", votes: 3300, options: [["Perros", "🐶", 60], ["Gatos", "🐱", 40]] },
   { title: "¿Nike o Adidas?", category: "marcas", emoji: "👟", votes: 2000, options: [["Nike", "✔️", 54], ["Adidas", "〰️", 46]] },
   {
-    title: "¿Qué inteligencia artificial usas más?",
+    title: "¿Qué inteligencia artificial usas más?", cover: "ai",
     category: "tecnologia",
     emoji: "🤖",
     votes: 1400,
@@ -98,7 +141,7 @@ const POLLS: DemoPoll[] = [
   },
   { title: "¿Verano o invierno?", category: "estilo-de-vida", emoji: "☀️", votes: 1800, options: [["Verano", "☀️", 63], ["Invierno", "❄️", 37]] },
   {
-    title: "¿Cuál es el mejor deporte para ver?",
+    title: "¿Cuál es el mejor deporte para ver?", cover: "stadium",
     category: "deportes",
     emoji: "🏟️",
     votes: 1500,
@@ -106,7 +149,7 @@ const POLLS: DemoPoll[] = [
   },
   { title: "¿McDonald's o Burger King?", category: "marcas", emoji: "🍟", votes: 2300, options: [["McDonald's", "🟡", 52], ["Burger King", "👑", 48]] },
   {
-    title: "¿Cuál es la ciudad más bonita del mundo?",
+    title: "¿Cuál es la ciudad más bonita del mundo?", cover: "city",
     category: "paises",
     emoji: "🏙️",
     votes: 1300,
@@ -155,11 +198,22 @@ async function main() {
   }
   if (existing.length) {
     await db.delete(schema.polls).where(eq(schema.polls.isDemo, true));
-    await db.delete(schema.sponsors).where(eq(schema.sponsors.name, "Marca Demo (ficticia)"));
+    await db.delete(schema.rewards).where(eq(schema.rewards.isDemo, true));
+    for (const name of ["Marca Demo (ficticia)", ...POLLS.map((p) => p.sponsorName).filter(Boolean)]) {
+      await db.delete(schema.sponsors).where(eq(schema.sponsors.name, name as string));
+    }
     console.log("Encuestas demo anteriores eliminadas");
   }
 
-  const [sponsor] = await db.insert(schema.sponsors).values({ name: "Marca Demo (ficticia)", status: "active" }).returning();
+  const sponsorIds = new Map<string, string>();
+  async function sponsorId(name: string) {
+    if (!sponsorIds.has(name)) {
+      const [row] = await db.insert(schema.sponsors).values({ name, status: "active" }).returning();
+      sponsorIds.set(name, row.id);
+    }
+    return sponsorIds.get(name)!;
+  }
+  const photo = (key?: string | null) => (key ? (PHOTOS[key] ?? null) : null);
   const today = new Date().toISOString().slice(0, 10);
   let totalVotes = 0;
 
@@ -179,14 +233,28 @@ async function main() {
         status: "published",
         isDemo: true,
         featuredOn: index === 0 ? today : null,
-        sponsorId: p.sponsored ? sponsor.id : null,
+        sponsorId: p.sponsored ? await sponsorId(p.sponsorName ?? "Marca Demo (ficticia)") : null,
+        imageUrl: photo(p.cover),
         publishedAt,
       })
       .returning();
     const options = await db
       .insert(schema.pollOptions)
-      .values(p.options.map(([label, emoji], i) => ({ pollId: poll.id, label, emoji, normalizedLabel: normalize(label), position: i })))
+      .values(p.options.map(([label, emoji], i) => ({ pollId: poll.id, label, emoji, normalizedLabel: normalize(label), position: i, imageUrl: photo(p.images?.[i]) })))
       .returning();
+
+    if (p.reward) {
+      await db.insert(schema.rewards).values({
+        title: p.reward.title,
+        description: p.reward.description,
+        costPoints: p.reward.cost,
+        stock: p.reward.stock,
+        imageUrl: photo(p.reward.cover),
+        isDemo: true,
+        pollId: poll.id,
+        sponsorId: await sponsorId(p.sponsorName ?? "Marca Demo (ficticia)"),
+      });
+    }
 
     // Respuestas libres: las variantes («the office» / «The Office») se agrupan en una sola entrada.
     const writeInIds = new Map<string, string>();

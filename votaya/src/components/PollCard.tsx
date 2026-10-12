@@ -2,56 +2,79 @@ import Link from "next/link";
 import { getCategory } from "@/lib/categories";
 import type { PollCard as PollCardData } from "@/lib/polls";
 import { formatCount } from "@/lib/text";
+import { timeAgo } from "@/lib/time";
+import { Photo } from "./Photo";
+import { ShareIconButton } from "./ShareIconButton";
 
-export function PollCard({ poll, rank, voted }: { poll: PollCardData; rank?: number; voted?: boolean }) {
+export function PollCard({ poll, voted, highlight }: { poll: PollCardData; voted?: boolean; highlight?: string }) {
   const cat = getCategory(poll.category);
-  const duel = poll.options.length === 2;
+  const [a, b] = poll.options;
+  const extra = poll.options.length - 2;
+  const leader = a && b ? (a.count >= b.count ? a.id : b.id) : null;
   return (
-    <Link
-      href={`/p/${poll.slug}`}
-      className="card group relative flex h-full flex-row overflow-hidden transition sm:flex-col hover:-translate-y-0.5 hover:border-fuchsia-400/60"
-    >
-      <div className={`relative flex w-24 shrink-0 items-center justify-center bg-gradient-to-br sm:h-24 sm:w-auto ${cat?.gradient ?? "from-violet-500 to-fuchsia-600"}`}>
-        {poll.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={poll.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70" loading="lazy" />
-        ) : null}
-        <span className="relative text-4xl drop-shadow-lg sm:text-5xl transition group-hover:scale-110" aria-hidden>
-          {poll.emoji ?? cat?.emoji ?? "🗳️"}
-        </span>
-        {rank ? (
-          <span className="absolute left-1.5 top-1.5 rounded-full bg-black/40 px-2 sm:left-3 sm:top-3 sm:px-2.5 py-0.5 text-sm font-black">#{rank}</span>
-        ) : null}
-        {poll.sponsored ? (
-          <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-2 py-0.5 text-[9px] font-bold uppercase sm:bottom-auto sm:left-auto sm:right-3 sm:top-3 sm:translate-x-0 sm:text-[11px]">Patrocinada</span>
-        ) : voted ? (
-          <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-bold sm:bottom-auto sm:left-auto sm:right-3 sm:top-3 sm:translate-x-0 sm:text-[11px]">✓ Votada</span>
-        ) : null}
+    <article className="card flex h-full flex-col gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <Link href={`/encuestas?cat=${poll.category}`} className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-ink/80 hover:bg-slate-200">
+          <span aria-hidden>{cat?.emoji}</span> {cat?.name}
+        </Link>
+        <span className="text-muted">{highlight ?? timeAgo(poll.publishedAt)}</span>
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1 p-3 sm:gap-2 sm:p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{cat?.name}</p>
-        <h3 className="font-display text-base font-bold leading-snug sm:text-lg">{poll.title}</h3>
-        {duel ? (
-          <p className="truncate text-sm text-muted">
-            {poll.options[0].emoji} {poll.options[0].label} <span className="font-black text-fuchsia-400">vs</span> {poll.options[1].emoji}{" "}
-            {poll.options[1].label}
-          </p>
-        ) : (
-          <p className="text-sm text-muted">{poll.options.length} opciones{poll.allowOther ? " + la tuya" : ""}</p>
-        )}
-        <div className="mt-auto flex items-center justify-between pt-1 text-sm sm:pt-2">
-          <span className="text-muted">{formatCount(poll.voteCount)} votos</span>
-          <span className="font-bold text-fuchsia-300 group-hover:text-white">Votar →</span>
+      <h3 className="font-display text-lg font-bold leading-snug text-ink">
+        <Link href={`/p/${poll.slug}`} className="hover:text-brand">
+          {poll.title}
+        </Link>
+      </h3>
+      {poll.sponsorName && (
+        <p className="-mt-1 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800">Patrocinada por {poll.sponsorName}</span>
+          {poll.reward && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">🎁 {poll.reward.title}</span>}
+        </p>
+      )}
+      {a && b && (
+        <Link href={`/p/${poll.slug}`} className="grid grid-cols-2 gap-2" tabIndex={-1} aria-hidden>
+          {[a, b].map((o) => (
+            <div key={o.id} className="relative">
+              <Photo src={o.imageUrl ?? (o === a ? poll.imageUrl : null)} alt={o.label} emoji={o.emoji ?? poll.emoji} gradient={cat?.gradient} className="aspect-[4/3] w-full rounded-xl" />
+              {o === b && extra > 0 && (
+                <span className="absolute right-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-bold text-white">+{extra} opciones</span>
+              )}
+            </div>
+          ))}
+        </Link>
+      )}
+      {a && b && (
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          {[a, b].map((o) => (
+            <div key={o.id}>
+              <p className="truncate font-bold text-ink">{o.label}</p>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <div className={`h-full rounded-full ${o.id === leader ? "bg-brand" : "bg-slate-400"}`} style={{ width: `${o.pct}%` }} />
+                </div>
+                <span className="w-8 text-right font-semibold tabular-nums text-ink/80">{o.pct}%</span>
+              </div>
+            </div>
+          ))}
         </div>
+      )}
+      <p className="text-xs text-muted">{formatCount(poll.voteCount)} votos</p>
+      <div className="mt-auto flex items-center gap-2">
+        <Link
+          href={`/p/${poll.slug}`}
+          className={`flex-1 rounded-xl py-2.5 text-center text-sm font-bold ${voted ? "border border-line text-ink hover:bg-slate-50" : "bg-brand text-white hover:bg-brand-dark"}`}
+        >
+          {voted ? "✓ Ver resultados" : "Votar"}
+        </Link>
+        <ShareIconButton slug={poll.slug} title={poll.title} />
       </div>
-    </Link>
+    </article>
   );
 }
 
-export function PollGrid({ polls, votedIds }: { polls: PollCardData[]; votedIds?: Set<string> }) {
+export function PollGrid({ polls, votedIds, cols = 3 }: { polls: PollCardData[]; votedIds?: Set<string>; cols?: 2 | 3 }) {
   if (!polls.length) return <p className="card p-6 text-center text-muted">Todavía no hay encuestas aquí.</p>;
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+    <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${cols === 3 ? "xl:grid-cols-3" : ""}`}>
       {polls.map((p) => (
         <PollCard key={p.id} poll={p} voted={votedIds?.has(p.id)} />
       ))}

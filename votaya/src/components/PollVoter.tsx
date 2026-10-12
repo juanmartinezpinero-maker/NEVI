@@ -39,6 +39,7 @@ export function PollVoter({
   const [otherOpen, setOtherOpen] = useState(false);
   const [otherText, setOtherText] = useState("");
   const [pending, startTransition] = useTransition();
+  const [earned, setEarned] = useState(0);
   const otherRef = useRef<HTMLInputElement>(null);
   const duel = poll.options.length === 2 && !poll.allowOther;
 
@@ -53,6 +54,7 @@ export function PollVoter({
       const res = await voteAction(poll.id, choice);
       if (res.ok) {
         setState({ results: res.results, myOptionId: res.myOptionId, myWriteInId: res.myWriteInId });
+        setEarned(res.points);
         if (navigator.vibrate) navigator.vibrate(30);
         if (!compact) router.refresh();
       } else {
@@ -66,7 +68,16 @@ export function PollVoter({
   }
 
   if (state) {
-    return <ResultsView poll={poll} state={state} verified={verified} shareUrl={shareUrl} nextHref={nextHref} compact={compact} />;
+    return (
+      <>
+        {earned > 0 && (
+          <p role="status" className="animate-pop mb-3 rounded-2xl bg-amber-50 p-3 text-center font-bold text-amber-800 ring-1 ring-amber-200">
+            ⭐ +{earned} puntos · ¡sigue votando para conseguir premios!
+          </p>
+        )}
+        <ResultsView poll={poll} state={state} verified={verified} shareUrl={shareUrl} nextHref={nextHref} compact={compact} />
+      </>
+    );
   }
 
   return (
@@ -79,21 +90,24 @@ export function PollVoter({
               onClick={() => vote({ optionId: o.id })}
               disabled={pending}
               aria-label={`Votar ${o.label}`}
-              className={`relative flex aspect-[4/5] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl p-4 text-center font-display text-xl font-extrabold shadow-xl transition active:scale-95 disabled:opacity-80 sm:aspect-square sm:text-2xl ${
-                i === 0 ? "bg-gradient-to-br from-violet-600 to-indigo-700" : "bg-gradient-to-br from-pink-500 to-orange-500"
-              } ${selected === o.id ? "animate-pop ring-4 ring-white" : ""}`}
+              className={`group relative flex aspect-[4/5] flex-col items-center justify-end overflow-hidden rounded-2xl p-4 text-center font-display text-xl font-extrabold text-white shadow-lg transition hover:shadow-xl active:scale-95 disabled:opacity-80 sm:aspect-[4/3] sm:text-2xl ${
+                i === 0 ? "bg-gradient-to-br from-violet-500 to-indigo-600" : "bg-gradient-to-br from-rose-500 to-orange-500"
+              } ${selected === o.id ? "animate-pop ring-4 ring-brand" : ""}`}
             >
               {o.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={o.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-              ) : null}
-              <span className="relative text-6xl sm:text-7xl" aria-hidden>
-                {o.emoji ?? (i === 0 ? "🅰️" : "🅱️")}
-              </span>
+                <img src={o.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105" />
+              ) : (
+                <span className="absolute inset-0 flex items-center justify-center text-7xl" aria-hidden>
+                  {o.emoji ?? (i === 0 ? "🅰️" : "🅱️")}
+                </span>
+              )}
+              <span className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/75 to-transparent" aria-hidden />
               <span className="relative leading-tight drop-shadow">{o.label}</span>
+              <span className="relative mt-2 rounded-full bg-white px-4 py-1.5 text-sm font-bold text-brand opacity-90 group-hover:opacity-100">Votar</span>
             </button>
           ))}
-          <span className="pointer-events-none absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-ink bg-white font-display text-lg font-black text-ink shadow-2xl">
+          <span className="pointer-events-none absolute left-1/2 top-[40%] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-brand font-display text-lg font-black text-white shadow-xl">
             VS
           </span>
         </div>
@@ -104,13 +118,13 @@ export function PollVoter({
               <button
                 onClick={() => vote({ optionId: o.id })}
                 disabled={pending}
-                className={`flex w-full items-center gap-3 rounded-2xl border border-line bg-ink-3 px-4 py-3.5 text-left text-base font-bold transition hover:border-fuchsia-400 hover:bg-line active:scale-[0.98] disabled:opacity-70 ${
-                  selected === o.id ? "animate-pop border-fuchsia-400 bg-line" : ""
+                className={`flex w-full items-center gap-3 rounded-2xl border border-line bg-white px-3 py-3 text-left text-base font-bold shadow-sm transition hover:border-rose-300 hover:bg-rose-50 active:scale-[0.98] disabled:opacity-70 ${
+                  selected === o.id ? "animate-pop border-brand bg-rose-50" : ""
                 }`}
               >
                 {o.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={o.imageUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                  <img src={o.imageUrl} alt="" className="h-14 w-16 rounded-xl object-cover" />
                 ) : (
                   <span className="text-2xl" aria-hidden>
                     {o.emoji ?? "•"}
@@ -131,7 +145,7 @@ export function PollVoter({
                     e.preventDefault();
                     if (otherText.trim()) vote({ otherText: otherText.trim() });
                   }}
-                  className="flex items-center gap-2 rounded-2xl border-2 border-fuchsia-400 bg-ink-3 p-2 pl-4"
+                  className="flex items-center gap-2 rounded-2xl border-2 border-rose-300 bg-slate-100 p-2 pl-4"
                 >
                   <span className="text-2xl" aria-hidden>
                     ✍️
@@ -159,7 +173,7 @@ export function PollVoter({
               ) : (
                 <button
                   onClick={() => setOtherOpen(true)}
-                  className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-3.5 text-left text-base font-bold text-muted hover:border-fuchsia-400 hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-line px-4 py-3.5 text-left text-base font-bold text-muted hover:border-rose-300 hover:text-ink"
                 >
                   <span className="text-2xl" aria-hidden>
                     ✍️
@@ -173,10 +187,10 @@ export function PollVoter({
       )}
       {pending && <p className="text-center text-sm text-muted">Contando tu voto…</p>}
       {error && (
-        <div role="alert" className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm">
+        <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           <p>{error.message}</p>
           {error.code === "needs_signup" && (
-            <Link href={`/entrar?next=/p/${poll.slug}`} className="mt-2 inline-block font-bold text-amber-300 underline">
+            <Link href={`/entrar?next=/p/${poll.slug}`} className="mt-2 inline-block font-bold text-amber-700 underline">
               Registrarme gratis →
             </Link>
           )}
@@ -221,7 +235,7 @@ function ResultsView({
   return (
     <div className="animate-rise space-y-4" aria-live="polite">
       {myRow && (
-        <p className="text-center text-sm font-semibold text-fuchsia-200">
+        <p className="text-center text-sm font-semibold text-brand">
           ✓ Tu voto: <strong>{myWriteIn?.label ?? myRow.label}</strong>
           {myRow.pct ? ` · coincides con el ${myWriteIn ? Math.round((myWriteIn.count / results.total) * 100) : myRow.pct}%` : ""}
         </p>
@@ -230,12 +244,12 @@ function ResultsView({
       {duel ? (
         <div>
           <div className="flex justify-between font-display text-3xl font-black sm:text-4xl">
-            <span className="text-violet-300">{results.rows[0].pct}%</span>
-            <span className="text-pink-300">{results.rows[1].pct}%</span>
+            <span className="text-violet">{results.rows[0].pct}%</span>
+            <span className="text-brand">{results.rows[1].pct}%</span>
           </div>
-          <div className="mt-2 flex h-6 overflow-hidden rounded-full bg-ink-3" role="img" aria-label={`${results.rows[0].label} ${results.rows[0].pct}%, ${results.rows[1].label} ${results.rows[1].pct}%`}>
-            <div className="bg-gradient-to-r from-violet-600 to-violet-400 transition-all duration-1000" style={{ width: animate ? `${results.rows[0].pct}%` : "50%" }} />
-            <div className="flex-1 bg-gradient-to-r from-pink-400 to-orange-400" />
+          <div className="mt-2 flex h-6 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${results.rows[0].label} ${results.rows[0].pct}%, ${results.rows[1].label} ${results.rows[1].pct}%`}>
+            <div className="bg-gradient-to-r from-violet to-violet-400 transition-all duration-1000" style={{ width: animate ? `${results.rows[0].pct}%` : "50%" }} />
+            <div className="flex-1 bg-gradient-to-r from-rose-400 to-brand" />
           </div>
           <div className="mt-2 flex justify-between text-sm font-bold">
             <span>
@@ -252,9 +266,9 @@ function ResultsView({
           {results.rows.map((r, i) => {
             const mine = myWriteInId ? r.isOther : r.id === myOptionId;
             return (
-              <li key={r.id} className={`relative overflow-hidden rounded-2xl border bg-ink-3 ${mine ? "border-fuchsia-400" : "border-line"}`}>
+              <li key={r.id} className={`relative overflow-hidden rounded-2xl border bg-white ${mine ? "border-brand ring-1 ring-brand" : "border-line"}`}>
                 <div
-                  className={`absolute inset-y-0 left-0 ${BAR_COLORS[i % BAR_COLORS.length]} opacity-30 transition-all duration-1000 ease-out`}
+                  className={`absolute inset-y-0 left-0 ${BAR_COLORS[i % BAR_COLORS.length]} opacity-25 transition-all duration-1000 ease-out`}
                   style={{ width: animate ? `${r.pct}%` : "0%" }}
                   aria-hidden
                 />
@@ -265,7 +279,7 @@ function ResultsView({
                   <span className="flex-1 font-bold">
                     {r.label}
                     {r === leader && <span className="ml-1" aria-label="ganando">👑</span>}
-                    {mine && <span className="ml-2 rounded-full bg-fuchsia-500 px-2 py-0.5 text-[11px] font-black uppercase">Tu voto</span>}
+                    {mine && <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-[11px] font-black uppercase text-white">Tu voto</span>}
                   </span>
                   <span className="font-display text-lg font-black tabular-nums">{r.pct}%</span>
                 </div>
@@ -276,11 +290,11 @@ function ResultsView({
       )}
 
       {results.writeIns.length > 0 && (
-        <details className="rounded-2xl border border-line bg-ink-2 p-3 text-sm" open={!compact && Boolean(myWriteInId)}>
+        <details className="rounded-2xl border border-line bg-white p-3 text-sm" open={!compact && Boolean(myWriteInId)}>
           <summary className="cursor-pointer font-bold">✍️ Respuestas escritas por la comunidad ({results.writeIns.length})</summary>
           <ul className="mt-2 flex flex-wrap gap-2">
             {results.writeIns.slice(0, 12).map((w) => (
-              <li key={w.id} className={`rounded-full px-3 py-1 ${w.id === myWriteInId ? "bg-fuchsia-500" : "bg-ink-3"}`}>
+              <li key={w.id} className={`rounded-full px-3 py-1 ${w.id === myWriteInId ? "bg-brand text-white" : "bg-slate-100"}`}>
                 {w.label} <span className="text-muted">· {w.count}</span>
               </li>
             ))}
@@ -295,22 +309,22 @@ function ResultsView({
       {!verified && (
         <Link
           href={`/entrar?next=/p/${poll.slug}`}
-          className="block rounded-2xl border border-fuchsia-400/50 bg-fuchsia-500/10 p-4 text-center"
+          className="block rounded-2xl border border-rose-300 bg-rose-50 p-4 text-center"
         >
           <span className="block font-display text-lg font-extrabold">🔒 Guarda tu voto</span>
-          <span className="text-sm text-muted">Regístrate en 30 segundos y descubre qué opina tu país, tu edad y tu género.</span>
+          <span className="text-sm text-muted">Regístrate en 30 segundos, gana 50 puntos y descubre qué opina tu país, tu edad y tu género.</span>
         </Link>
       )}
 
       {compact ? (
-        <Link href={`/p/${poll.slug}`} className="block rounded-2xl bg-white py-3 text-center font-extrabold text-ink">
+        <Link href={`/p/${poll.slug}`} className="block rounded-2xl bg-ink py-3 text-center font-extrabold text-white">
           Ver resultados completos y compartir →
         </Link>
       ) : (
         <>
           <ShareBar pollId={poll.id} slug={poll.slug} url={shareUrl} text={shareText} />
           {nextHref && (
-            <Link href={nextHref} className="block rounded-2xl bg-white py-3.5 text-center text-base font-extrabold text-ink">
+            <Link href={nextHref} className="block rounded-2xl bg-ink py-3.5 text-center text-base font-extrabold text-white">
               Siguiente pregunta →
             </Link>
           )}

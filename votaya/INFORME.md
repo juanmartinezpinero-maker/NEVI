@@ -32,6 +32,23 @@ Leyenda de verificación: **E2E** = cubierto por Playwright en navegador móvil 
 Resultado de la última ejecución: `tsc` sin errores, ESLint sin avisos, `next build` correcto,
 **17 pruebas unitarias/integración** y **8 pruebas E2E** en verde.
 
+## 1b. Versión 2 (rediseño)
+
+| Área | Funcionalidad | Verificación |
+| --- | --- | --- |
+| Diseño | Estilo claro con fotos: cabecera con pestañas (Inicio, Encuestas, Rankings, Tendencias, Premios), héroe morado, tarjetas con dos fotos y porcentajes, barra lateral con tendencias, ranking de países y comunidad | MANUAL (capturas) |
+| Encuestas | Página con todas las encuestas, filtro por categoría (incluye Política y sociedad y Productos), buscador, orden (más votadas, nuevas, tendencia) y «Cargar más» | E2E |
+| Rankings / Tendencias | Ranking histórico, semanal y diario con filtro por categoría; tendencias del día y de la semana | MANUAL |
+| Puntos | +10 por encuesta votada (una vez por encuesta), +50 al registrarse, +100 si se publica tu pregunta, tope de 200 al día; solo cuentas verificadas | INT + E2E |
+| Perfil | Contador de encuestas votadas, saldo de puntos, nivel (Novato → Leyenda) con barra de progreso, movimientos | E2E |
+| Premios | Catálogo de premios de marcas patrocinadoras ligados a encuestas, canje atómico (saldo, stock, código), historial de canjes; panel admin para crear premios, pausar y marcar entregas o devolver puntos | INT + E2E |
+| Fotos | 29 fotos realistas generadas con IA (sin logos ni personas reales), alojadas en Higgsfield | MANUAL |
+
+**Importante sobre premios reales**: en esta versión todo funciona en **modo demostración** (marcas ficticias, cupones sin valor).
+Antes de activar premios reales (`REWARDS_MODE=live`) hace falta: acuerdo con cada marca, bases legales de la promoción
+(en España, promociones con premio requieren bases y revisar fiscalidad de premios), y reforzar el antifraude (teléfono verificado,
+detección de cuentas duplicadas) porque los puntos pasan a tener valor.
+
 ## 2. Pendiente o solo preparado
 
 | Tema | Estado | Siguiente paso |

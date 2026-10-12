@@ -27,12 +27,19 @@ test.describe.configure({ mode: "serial" });
 test("portada: pregunta del día, tendencias, categorías y buscador", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /El mundo opina/ })).toBeVisible();
-  await expect(page.getByText("Pregunta del día")).toBeVisible();
-  await expect(page.getByRole("heading", { name: /En tendencia/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Deportes/ }).first()).toBeVisible();
-  await page.locator("#home-search").fill("messi");
-  await page.locator("#home-search").press("Enter");
-  await expect(page).toHaveURL(/buscar\?q=messi/);
+  await expect(page.getByText("⭐ Pregunta del día")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Encuestas en tendencia/ })).toBeVisible();
+  // Sección Encuestas: filtro por categoría y buscador.
+  await page.getByRole("link", { name: "Encuestas", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/encuestas/);
+  await page.getByRole("navigation", { name: "Filtrar por categoría" }).getByRole("link", { name: /Política/ }).click();
+  await expect(page).toHaveURL(/cat=politica/);
+  await expect(page.getByRole("heading", { name: /semana laboral de 4 días/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "¿Messi o Cristiano?" })).toHaveCount(0);
+  await page.goto("/encuestas");
+  await page.locator("#polls-q").fill("messi");
+  await page.locator("#polls-q").press("Enter");
+  await expect(page).toHaveURL(/q=messi/);
   await expect(page.getByRole("heading", { name: "¿Messi o Cristiano?" })).toBeVisible();
 });
 
@@ -76,6 +83,9 @@ test("registro sin contraseña guarda los votos anónimos y desbloquea desgloses
   await page.goto("/perfil");
   await expect(page.getByText("¿Playa o montaña?")).toBeVisible();
   await expect(page.getByText("Votaste: Playa")).toBeVisible();
+  // Puntos: 50 de bienvenida + 10 por el voto guardado.
+  await expect(page.getByText("⭐ 60").first()).toBeVisible();
+  await expect(page.getByText("encuestas votadas")).toBeVisible();
 });
 
 test("crear pregunta → moderación por admin → publicada y encontrable", async ({ page, browser }) => {
@@ -157,4 +167,25 @@ test("imágenes para compartir (Stories 9:16 y Open Graph) y metadatos", async (
   expect(ogRes.status()).toBe(200);
   expect((await ogRes.body()).readUInt32BE(16)).toBe(1200);
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Pepsi o Coca-Cola/);
+});
+
+test("puntos por votar y canje de un premio (modo demo)", async ({ page }) => {
+  await login(page, "puntos@e2e.test", "/recompensas");
+  await completeProfile(page);
+  await expect(page).toHaveURL(/\/recompensas/);
+  await expect(page.getByText("⭐ 50").first()).toBeVisible();
+  // Votar suma 10 puntos por encuesta.
+  const duels = ["perros-o-gatos", "cafe-o-te", "verano-o-invierno", "nike-o-adidas", "pepsi-o-coca-cola", "iphone-o-android", "real-madrid-o-barcelona", "pina-en-la-pizza", "tortilla-de-patatas-con-o-sin-cebolla", "mcdonald-s-o-burger-king"];
+  for (const slug of duels) {
+    await page.goto(`/p/${slug}`);
+    await page.locator("button[aria-label^='Votar ']").first().click();
+    await expect(page.getByText("+10 puntos")).toBeVisible();
+  }
+  await page.goto("/recompensas");
+  await expect(page.getByText("⭐ 150").first()).toBeVisible();
+  const card = page.locator("article", { hasText: "Café de especialidad gratis" });
+  await card.getByRole("button", { name: "Canjear" }).click();
+  await expect(card.getByText(/DEMO-[A-Z0-9]{8}/)).toBeVisible();
+  await page.goto("/perfil");
+  await expect(page.getByText("⭐ 0").first()).toBeVisible();
 });

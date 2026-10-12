@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
+import { awardOnce, POINTS } from "@/lib/points";
 import { todayISO } from "@/lib/polls";
 import { normalize, slugify } from "@/lib/text";
 
@@ -21,7 +22,12 @@ export async function moderatePollAction(form: FormData) {
   const decision = form.get("decision");
   const db = await getDb();
   if (decision === "approve") {
-    await db.update(polls).set({ status: "published", publishedAt: new Date(), moderationNote: null }).where(eq(polls.id, pollId));
+    const [poll] = await db
+      .update(polls)
+      .set({ status: "published", publishedAt: new Date(), moderationNote: null })
+      .where(eq(polls.id, pollId))
+      .returning({ authorId: polls.authorId });
+    if (poll?.authorId) await awardOnce(poll.authorId, "poll_approved", POINTS.pollApproved, pollId);
   } else if (decision === "reject") {
     await db
       .update(polls)

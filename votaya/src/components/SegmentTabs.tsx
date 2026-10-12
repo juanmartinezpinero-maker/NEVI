@@ -22,7 +22,7 @@ export function SegmentTabs({ tabs, options, minVotes }: { tabs: Tab[]; options:
             role="tab"
             aria-selected={t.id === active}
             onClick={() => setActive(t.id)}
-            className={`rounded-full px-4 py-2 text-sm font-bold ${t.id === active ? "bg-white text-ink" : "bg-ink-3 text-muted"}`}
+            className={`rounded-full px-4 py-2 text-sm font-bold ${t.id === active ? "bg-ink text-white" : "bg-slate-100 text-muted"}`}
           >
             {t.label}
           </button>
@@ -43,11 +43,11 @@ export function SegmentTabs({ tabs, options, minVotes }: { tabs: Tab[]; options:
                     {s.label}
                   </span>
                   <span className="text-muted">
-                    gana <strong className="text-white">{labelOf(s.rows[0].id)}</strong> · {s.total} votos
+                    gana <strong className="text-ink">{labelOf(s.rows[0].id)}</strong> · {s.total} votos
                   </span>
                 </div>
                 <div
-                  className="flex h-3 overflow-hidden rounded-full bg-ink-3"
+                  className="flex h-3 overflow-hidden rounded-full bg-slate-100"
                   role="img"
                   aria-label={s.rows.map((r) => `${labelOf(r.id)} ${r.pct}%`).join(", ")}
                 >

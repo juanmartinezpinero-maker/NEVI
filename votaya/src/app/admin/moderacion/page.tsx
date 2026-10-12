@@ -29,12 +29,12 @@ export default async function ModerationPage() {
           {poll.description && <p className="text-sm text-muted">{poll.description}</p>}
           <ul className="flex flex-wrap gap-2 text-sm">
             {options.filter((o) => o.pollId === poll.id).map((o) => (
-              <li key={o.id} className="rounded-full bg-ink-3 px-3 py-1">{o.emoji} {o.label}</li>
+              <li key={o.id} className="rounded-full bg-slate-100 px-3 py-1">{o.emoji} {o.label}</li>
             ))}
             {poll.allowOther && <li className="rounded-full border border-dashed border-line px-3 py-1">✍️ Otra</li>}
           </ul>
           {similar[i].filter((s) => s.id !== poll.id).length > 0 && (
-            <p className="text-sm text-amber-200">
+            <p className="text-sm text-amber-700">
               Posible duplicado de: {similar[i].filter((s) => s.id !== poll.id).map((s) => s.title).join(" · ")}
             </p>
           )}
@@ -47,7 +47,7 @@ export default async function ModerationPage() {
             <form action={moderatePollAction} className="flex flex-1 gap-2">
               <input type="hidden" name="id" value={poll.id} />
               <input type="hidden" name="decision" value="reject" />
-              <input name="note" placeholder="Motivo del rechazo" aria-label="Motivo del rechazo" className="min-w-0 flex-1 rounded-full border border-line bg-ink-2 px-4 text-sm" />
+              <input name="note" placeholder="Motivo del rechazo" aria-label="Motivo del rechazo" className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 text-sm" />
               <button className="rounded-full bg-rose-600 px-4 py-2 text-sm font-bold">Rechazar</button>
             </form>
           </div>

@@ -24,9 +24,9 @@ export default async function LinksPage() {
   return (
     <div className="space-y-6">
       <form action={createShareLinkAction} className="card grid gap-3 p-5 sm:grid-cols-[1fr_1fr_1.5fr_auto]">
-        <input name="label" required placeholder="Creador (p. ej. @lucia_tiktok)" aria-label="Nombre del creador" className="rounded-xl border border-line bg-ink-2 px-3 py-2" />
-        <input name="code" placeholder="código (opcional)" aria-label="Código" className="rounded-xl border border-line bg-ink-2 px-3 py-2" />
-        <select name="pollId" aria-label="Encuesta de destino" className="rounded-xl border border-line bg-ink-2 px-3 py-2">
+        <input name="label" required placeholder="Creador (p. ej. @lucia_tiktok)" aria-label="Nombre del creador" className="rounded-xl border border-line bg-white px-3 py-2" />
+        <input name="code" placeholder="código (opcional)" aria-label="Código" className="rounded-xl border border-line bg-white px-3 py-2" />
+        <select name="pollId" aria-label="Encuesta de destino" className="rounded-xl border border-line bg-white px-3 py-2">
           <option value="">Portada</option>
           {polls.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
         </select>
@@ -37,7 +37,7 @@ export default async function LinksPage() {
           <li key={l.code} className="flex flex-wrap items-center gap-3 p-4 text-sm">
             <div className="min-w-0 flex-1">
               <p className="font-bold">{l.label}</p>
-              <code className="select-all text-xs text-fuchsia-200">{base}/r/{l.code}</code>
+              <code className="select-all text-xs text-brand">{base}/r/{l.code}</code>
               <p className="text-xs text-muted">Destino: {l.slug ? `/p/${l.slug}` : "portada"}</p>
             </div>
             <span>{l.clicks} clics</span><span>{l.votes} votos</span><span>{l.signups} registros</span>

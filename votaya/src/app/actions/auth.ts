@@ -11,6 +11,7 @@ import { AGE_RANGES, COUNTRY_CODES, GENDER_VALUES } from "@/lib/demographics";
 import { demoCodesAllowed, sendLoginCode } from "@/lib/mail";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAnonId, getIpHash, getRefCode } from "@/lib/request";
+import { awardOnce, POINTS } from "@/lib/points";
 import { claimAnonVotes } from "@/lib/votes";
 
 export type AuthState = { step: "email" | "code"; email?: string; error?: string; devCode?: string; next?: string };
@@ -132,6 +133,7 @@ export async function saveProfileAction(_prev: ProfileState, form: FormData): Pr
       marketingOptIn: form.get("marketing") === "on",
     })
     .where(eq(schema.users.id, user.id));
+  await awardOnce(user.id, "welcome", POINTS.welcome);
   await claimAnonVotes(user.id, await getAnonId());
   redirect(safeNext(form.get("next")));
 }

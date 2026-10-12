@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { compactKey, containsBlockedWords, findEquivalent } from "./text";
+import { awardVotePoints } from "./points";
 import { rateLimit } from "./rate-limit";
 
 const { polls, pollOptions, votes, writeIns } = schema;
@@ -27,7 +28,7 @@ export type VoteError =
   | "rate_limited"
   | "needs_signup";
 
-export type VoteResult = { ok: true; optionId: string | null; writeInId: string | null } | { ok: false; error: VoteError };
+export type VoteResult = { ok: true; optionId: string | null; writeInId: string | null; points: number } | { ok: false; error: VoteError };
 
 /** Resuelve el texto de «Otra»: lo asigna a una opción existente, a una respuesta agrupada o crea una nueva. */
 export async function resolveWriteIn(pollId: string, text: string): Promise<{ optionId: string | null; writeInId: string | null } | null> {
@@ -123,7 +124,9 @@ export async function castVote(pollId: string, choice: { optionId?: string; othe
     }
     throw err;
   }
-  return { ok: true, optionId, writeInId };
+  // Puntos solo para cuentas verificadas (los anónimos los reciben al registrarse).
+  const points = verified && voter.userId ? await awardVotePoints(voter.userId, pollId) : 0;
+  return { ok: true, optionId, writeInId, points };
 }
 
 /**
@@ -134,7 +137,7 @@ export async function claimAnonVotes(userId: string, anonId: string | null) {
   const db = await getDb();
   const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId));
   if (!user) return 0;
-  return db.transaction(async (tx) => {
+  const claimed = await db.transaction(async (tx) => {
     let claimed = 0;
     if (anonId) {
       const anon = await tx.select().from(votes).where(and(eq(votes.anonId, anonId), isNull(votes.userId)));
@@ -160,4 +163,17 @@ export async function claimAnonVotes(userId: string, anonId: string | null) {
     }
     return claimed;
   });
+  // Los votos hechos antes de registrarse también suman puntos (respetando el tope diario).
+  if (user.profileCompleted) {
+    const pending = await db
+      .select({ pollId: votes.pollId })
+      .from(votes)
+      .leftJoin(
+        schema.pointsLedger,
+        and(eq(schema.pointsLedger.userId, userId), eq(schema.pointsLedger.pollId, votes.pollId), eq(schema.pointsLedger.reason, "vote")),
+      )
+      .where(and(eq(votes.userId, userId), isNull(schema.pointsLedger.id)));
+    for (const { pollId } of pending) if (!(await awardVotePoints(userId, pollId))) break;
+  }
+  return claimed;
 }

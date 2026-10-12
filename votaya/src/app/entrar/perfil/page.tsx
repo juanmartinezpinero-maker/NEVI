@@ -13,7 +13,7 @@ export default async function ProfilePage(props: PageProps<"/entrar/perfil">) {
   return (
     <div className="card mx-auto mt-4 max-w-md space-y-5 p-6 sm:mt-10 sm:p-8">
       <div>
-        <p className="text-sm font-bold text-fuchsia-300">Último paso</p>
+        <p className="text-sm font-bold text-brand">Último paso</p>
         <h1 className="font-display text-3xl font-extrabold">Cuéntanos un poco de ti</h1>
         <p className="mt-1 text-sm text-muted">Sirve para mostrar qué opina cada país, edad y género. Nunca mostramos datos individuales.</p>
       </div>

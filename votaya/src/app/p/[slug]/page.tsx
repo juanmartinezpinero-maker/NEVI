@@ -54,21 +54,21 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
   const optionList = [...poll.options.map((o) => ({ id: o.id, label: o.label })), { id: "other", label: "Otra" }];
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_340px]">
+    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <TrackView pollId={poll.id} />
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         {poll.status !== "published" && (
-          <p className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm">
+          <p className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             Vista previa · Estado: <strong>{poll.status === "pending" ? "pendiente de moderación" : poll.status}</strong>
           </p>
         )}
         <article className="card p-5 sm:p-7">
           <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted" aria-label="Categoría">
-            <Link href={`/c/${poll.category}`} className="rounded-full bg-ink-3 px-3 py-1 hover:text-white">
+            <Link href={`/encuestas?cat=${poll.category}`} className="rounded-full bg-slate-100 px-3 py-1 hover:text-ink">
               {cat?.emoji} {cat?.name}
             </Link>
-            {poll.sponsored && <span className="rounded-full bg-amber-400/20 px-3 py-1 text-amber-200">Patrocinada</span>}
-            <span className="rounded-full bg-ink-3 px-3 py-1" title="Cualquiera puede votar: no es una muestra representativa">
+            {poll.sponsored && <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">Patrocinada{poll.sponsorName ? ` por ${poll.sponsorName}` : ""}</span>}
+            <span className="rounded-full bg-slate-100 px-3 py-1" title="Cualquiera puede votar: no es una muestra representativa">
               {poll.kind === "study" ? "📊 Estudio representativo" : "🗳️ Votación popular"}
             </span>
             <span>{formatCount(results?.total ?? poll.voteCount)} votos</span>
@@ -78,8 +78,19 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
             {poll.title}
           </h1>
           {poll.description && <p className="mt-2 text-muted">{poll.description}</p>}
+          {poll.reward && (
+            <Link href="/recompensas" className="mt-3 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-amber-50 p-3 ring-1 ring-emerald-200">
+              <span className="text-2xl" aria-hidden>
+                🎁
+              </span>
+              <span className="text-sm">
+                <strong className="block text-emerald-900">{poll.reward.title}</strong>
+                <span className="text-emerald-800">Vota, suma puntos y canjéalo por ⭐ {poll.reward.costPoints} puntos</span>
+              </span>
+            </Link>
+          )}
           {poll.isDemo && (
-            <p className="mt-3 rounded-xl bg-amber-400/10 px-3 py-2 text-xs text-amber-200">
+            <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
               ⚠️ Encuesta de demostración: los votos iniciales son datos ficticios generados para mostrar la plataforma.
             </p>
           )}
@@ -126,14 +137,14 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
                   {["🇪🇸 España", "🇲🇽 México", "🇦🇷 Argentina"].map((c) => (
                     <div key={c}>
                       <p className="mb-1 text-sm font-bold">{c}</p>
-                      <div className="flex h-3 overflow-hidden rounded-full bg-ink-3">
-                        <div className="w-3/5 bg-violet-500" />
-                        <div className="w-2/5 bg-pink-500" />
+                      <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
+                        <div className="w-3/5 bg-violet" />
+                        <div className="w-2/5 bg-brand" />
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ink/60 text-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/60 text-center">
                   <p className="font-bold">Resultados por país, edad y género</p>
                   <Link href={`/entrar?next=/p/${poll.slug}`} className="bg-brand-gradient rounded-full px-5 py-2 font-bold text-white">
                     Regístrate gratis para verlos

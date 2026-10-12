@@ -16,7 +16,7 @@ const MESSAGES: Record<VoteError, string> = {
 };
 
 export type VoteActionResult =
-  | { ok: true; results: Results; myOptionId: string | null; myWriteInId: string | null }
+  | { ok: true; results: Results; myOptionId: string | null; myWriteInId: string | null; points: number }
   | { ok: false; error: VoteError; message: string; results?: Results };
 
 export async function voteAction(pollId: string, choice: { optionId?: string; otherText?: string }): Promise<VoteActionResult> {
@@ -41,5 +41,5 @@ export async function voteAction(pollId: string, choice: { optionId?: string; ot
     refCode: voter.refCode,
     meta: { verified: Boolean(voter.profile), other: Boolean(res.writeInId) },
   });
-  return { ok: true, results: await getResults(pollId), myOptionId: res.optionId, myWriteInId: res.writeInId };
+  return { ok: true, results: await getResults(pollId), myOptionId: res.optionId, myWriteInId: res.writeInId, points: res.points };
 }

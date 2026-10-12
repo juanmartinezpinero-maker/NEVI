@@ -54,7 +54,7 @@ export function ShareBar({ pollId, slug, url, text }: { pollId: string; slug: st
       <button
         onClick={nativeShare}
         disabled={busy}
-        className="bg-brand-gradient w-full rounded-2xl py-3.5 text-base font-extrabold text-white shadow-lg shadow-fuchsia-900/40 disabled:opacity-70"
+        className="bg-brand-gradient w-full rounded-2xl py-3.5 text-base font-extrabold text-white shadow-lg shadow-rose-200 disabled:opacity-70"
       >
         {busy ? "Preparando…" : "📤 Compartir resultado"}
       </button>
@@ -77,12 +77,12 @@ export function ShareBar({ pollId, slug, url, text }: { pollId: string; slug: st
           href={storyUrl}
           download={`votaya-${slug}-story.png`}
           onClick={() => trackShare(pollId, "story_download")}
-          className="rounded-xl border border-line bg-ink-3 py-2.5 text-center hover:bg-line"
+          className="rounded-xl border border-line bg-slate-100 py-2.5 text-center hover:bg-slate-200"
           title="Imagen vertical 9:16 para Stories de Instagram y TikTok"
         >
           📲 Imagen para Stories
         </a>
-        <button onClick={copy} className="rounded-xl border border-line bg-ink-3 py-2.5 hover:bg-line">
+        <button onClick={copy} className="rounded-xl border border-line bg-slate-100 py-2.5 hover:bg-slate-200">
           {copied ? "✓ Copiado" : "🔗 Copiar enlace"}
         </button>
       </div>

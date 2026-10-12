@@ -17,7 +17,7 @@ export default async function AdminPolls(props: PageProps<"/admin/encuestas">) {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {STATUSES.map((s) => (
-          <Link key={s} href={`/admin/encuestas?estado=${s}`} className={`rounded-full px-3 py-1.5 text-sm font-bold ${s === status ? "bg-white text-ink" : "bg-ink-3"}`}>
+          <Link key={s} href={`/admin/encuestas?estado=${s}`} className={`rounded-full px-3 py-1.5 text-sm font-bold ${s === status ? "bg-ink text-white" : "bg-slate-100"}`}>
             {LABEL[s]}
           </Link>
         ))}
@@ -40,16 +40,16 @@ export default async function AdminPolls(props: PageProps<"/admin/encuestas">) {
               <input type="hidden" name="id" value={p.id} />
               {status === "published" &&
                 (p.featuredOn === today ? (
-                  <button name="action" value="unfeature" className="rounded-full bg-ink-3 px-3 py-1.5">Quitar destacada</button>
+                  <button name="action" value="unfeature" className="rounded-full bg-slate-100 px-3 py-1.5">Quitar destacada</button>
                 ) : (
                   <button name="action" value="feature" className="rounded-full bg-amber-500 px-3 py-1.5 text-ink">⭐ Destacar hoy</button>
                 ))}
               {status === "published" ? (
-                <button name="action" value="archive" className="rounded-full bg-ink-3 px-3 py-1.5">Archivar</button>
+                <button name="action" value="archive" className="rounded-full bg-slate-100 px-3 py-1.5">Archivar</button>
               ) : (
                 <button name="action" value="publish" className="rounded-full bg-emerald-600 px-3 py-1.5">Publicar</button>
               )}
-              <Link href={`/p/${p.slug}`} className="rounded-full bg-ink-3 px-3 py-1.5">Ver</Link>
+              <Link href={`/p/${p.slug}`} className="rounded-full bg-slate-100 px-3 py-1.5">Ver</Link>
             </form>
           </li>
         ))}

@@ -222,3 +222,57 @@ export const businessLeads = pgTable("business_leads", {
 export type Poll = typeof polls.$inferSelect;
 export type PollOption = typeof pollOptions.$inferSelect;
 export type User = typeof users.$inferSelect;
+
+// Programa de puntos: cada movimiento queda registrado (saldo = suma de amount).
+export const pointsLedger = pgTable(
+  "points_ledger",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    reason: text("reason", { enum: ["vote", "poll_approved", "welcome", "redeem", "refund", "adjust"] }).notNull(),
+    pollId: uuid("poll_id"),
+    redemptionId: uuid("redemption_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("points_user_idx").on(t.userId, t.createdAt),
+    // Como máximo una vez los puntos de voto por encuesta y usuario.
+    uniqueIndex("points_vote_uq").on(t.userId, t.pollId, t.reason),
+  ],
+);
+
+// Premios que financian las marcas patrocinadoras. is_demo = premio ficticio sin valor real.
+export const rewards = pgTable("rewards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sponsorId: uuid("sponsor_id").references(() => sponsors.id, { onDelete: "set null" }),
+  pollId: uuid("poll_id").references(() => polls.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  costPoints: integer("cost_points").notNull(),
+  stock: integer("stock").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  isDemo: boolean("is_demo").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+export const redemptions = pgTable(
+  "redemptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rewardId: uuid("reward_id")
+      .notNull()
+      .references(() => rewards.id, { onDelete: "cascade" }),
+    points: integer("points").notNull(),
+    code: text("code").notNull().unique(),
+    status: text("status", { enum: ["pending", "delivered", "cancelled"] }).notNull().default("pending"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("redemptions_user_idx").on(t.userId)],
+);

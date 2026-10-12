@@ -7,7 +7,7 @@ import { CATEGORIES } from "@/lib/categories";
 
 type Opt = { key: number; label: string; emoji: string; imageUrl: string };
 
-const input = "w-full rounded-xl border border-line bg-ink-2 px-4 py-3 text-base outline-none focus:border-fuchsia-400";
+const input = "w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none focus:border-rose-300";
 
 export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
   const [state, action, pending] = useActionState<CreatePollState, FormData>(createPollAction, {});
@@ -55,7 +55,7 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
             ))}
           </ul>
           <label className="mt-2 flex items-center gap-2">
-            <input type="checkbox" name="confirmDuplicate" className="accent-fuchsia-500" /> La mía es diferente, enviarla igualmente
+            <input type="checkbox" name="confirmDuplicate" className="accent-rose-600" /> La mía es diferente, enviarla igualmente
           </label>
         </div>
       )}
@@ -93,7 +93,7 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
               <input name="optionEmoji" aria-label={`Emoji opción ${i + 1}`} value={o.emoji} onChange={(e) => update(o.key, { emoji: e.target.value })} maxLength={8} placeholder="🙂" className={`${input} w-16 px-2 text-center`} />
               <input name="optionLabel" aria-label={`Opción ${i + 1}`} value={o.label} onChange={(e) => update(o.key, { label: e.target.value })} maxLength={60} required={i < 2} placeholder={`Opción ${i + 1}`} className={input} />
               {opts.length > 2 && (
-                <button type="button" aria-label={`Quitar opción ${i + 1}`} onClick={() => setOpts((x) => x.filter((y) => y.key !== o.key))} className="rounded-xl px-3 text-muted hover:text-white">
+                <button type="button" aria-label={`Quitar opción ${i + 1}`} onClick={() => setOpts((x) => x.filter((y) => y.key !== o.key))} className="rounded-xl px-3 text-muted hover:text-ink">
                   ✕
                 </button>
               )}
@@ -107,18 +107,18 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
         ))}
         <div className="flex flex-wrap gap-2">
           {opts.length < 10 && (
-            <button type="button" onClick={() => setOpts((x) => [...x, { key: Date.now(), label: "", emoji: "", imageUrl: "" }])} className="rounded-full bg-ink-3 px-4 py-2 text-sm font-bold">
+            <button type="button" onClick={() => setOpts((x) => [...x, { key: Date.now(), label: "", emoji: "", imageUrl: "" }])} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold">
               + Añadir opción
             </button>
           )}
-          <button type="button" onClick={() => setShowImages((v) => !v)} className="rounded-full bg-ink-3 px-4 py-2 text-sm font-bold">
+          <button type="button" onClick={() => setShowImages((v) => !v)} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold">
             🖼️ {showImages ? "Ocultar imágenes" : "Añadir imágenes"}
           </button>
         </div>
       </fieldset>
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="allowOther" checked={meta.allowOther} onChange={(e) => setMeta({ ...meta, allowOther: e.target.checked })} className="h-4 w-4 accent-fuchsia-500" />
+        <input type="checkbox" name="allowOther" checked={meta.allowOther} onChange={(e) => setMeta({ ...meta, allowOther: e.target.checked })} className="h-4 w-4 accent-rose-600" />
         Permitir «Otra» (los votantes pueden escribir su respuesta)
       </label>
       {showImages && (
@@ -129,7 +129,7 @@ export function CreatePollForm({ isAdmin }: { isAdmin: boolean }) {
       )}
 
       {state.error && (
-        <p role="alert" className="text-sm text-rose-300">
+        <p role="alert" className="text-sm text-rose-600">
           {state.error}
         </p>
       )}

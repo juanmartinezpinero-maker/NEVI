@@ -16,7 +16,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           {AGE_RANGES.map((a) => (
             <label key={a} className="cursor-pointer">
               <input type="radio" name="ageRange" value={a} defaultChecked={defaults.ageRange === a} className="peer sr-only" required />
-              <span className="block rounded-xl border border-line bg-ink-2 py-2.5 text-center text-sm font-bold peer-checked:border-fuchsia-400 peer-checked:bg-fuchsia-500/20 peer-focus-visible:ring-2 peer-focus-visible:ring-fuchsia-300">
+              <span className="block rounded-xl border border-line bg-white py-2.5 text-center text-sm font-bold peer-checked:border-rose-300 peer-checked:bg-rose-50 peer-focus-visible:ring-2 peer-focus-visible:ring-rose-300">
                 {a}
               </span>
             </label>
@@ -29,7 +29,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           {GENDERS.map((g) => (
             <label key={g.value} className="cursor-pointer">
               <input type="radio" name="gender" value={g.value} defaultChecked={defaults.gender === g.value} className="peer sr-only" required />
-              <span className="block rounded-xl border border-line bg-ink-2 py-2.5 text-center text-sm font-bold peer-checked:border-fuchsia-400 peer-checked:bg-fuchsia-500/20 peer-focus-visible:ring-2 peer-focus-visible:ring-fuchsia-300">
+              <span className="block rounded-xl border border-line bg-white py-2.5 text-center text-sm font-bold peer-checked:border-rose-300 peer-checked:bg-rose-50 peer-focus-visible:ring-2 peer-focus-visible:ring-rose-300">
                 {g.label}
               </span>
             </label>
@@ -42,7 +42,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           name="country"
           required
           defaultValue={defaults.country ?? ""}
-          className="w-full rounded-xl border border-line bg-ink-2 px-4 py-3 text-base outline-none focus:border-fuchsia-400"
+          className="w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none focus:border-rose-300"
         >
           <option value="" disabled>
             Elige tu país
@@ -56,7 +56,7 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
       </label>
       <div className="space-y-2 text-sm">
         <label className="flex items-start gap-2">
-          <input type="checkbox" name="terms" required className="mt-1 h-4 w-4 accent-fuchsia-500" />
+          <input type="checkbox" name="terms" required className="mt-1 h-4 w-4 accent-rose-600" />
           <span>
             Tengo 16 años o más y acepto las{" "}
             <Link href="/terminos" target="_blank" className="underline">
@@ -70,12 +70,12 @@ export function ProfileForm({ next, defaults }: { next: string; defaults: { ageR
           </span>
         </label>
         <label className="flex items-start gap-2 text-muted">
-          <input type="checkbox" name="marketing" className="mt-1 h-4 w-4 accent-fuchsia-500" />
+          <input type="checkbox" name="marketing" className="mt-1 h-4 w-4 accent-rose-600" />
           <span>Quiero recibir por email las preguntas más virales (opcional).</span>
         </label>
       </div>
       {state.error && (
-        <p role="alert" className="text-sm text-rose-300">
+        <p role="alert" className="text-sm text-rose-600">
           {state.error}
         </p>
       )}

@@ -7,7 +7,7 @@ const { polls, pollOptions, votes, writeIns } = schema;
 
 export const MIN_SEGMENT = Number(process.env.MIN_SEGMENT_VOTES ?? 20);
 
-export type OptionView = { id: string; label: string; emoji: string | null; imageUrl: string | null; position: number };
+export type OptionView = { id: string; label: string; emoji: string | null; imageUrl: string | null; position: number; count: number; pct: number };
 
 export type PollCard = {
   id: string;
@@ -19,6 +19,8 @@ export type PollCard = {
   voteCount: number;
   isDemo: boolean;
   sponsored: boolean;
+  sponsorName: string | null;
+  reward: { title: string; costPoints: number } | null;
   kind: "popular" | "study";
   allowOther: boolean;
   publishedAt: Date | null;
@@ -56,21 +58,48 @@ const cardColumns = {
   publishedAt: polls.publishedAt,
 };
 
-async function attachOptions<T extends { id: string; sponsorId: string | null }>(rows: T[]): Promise<(Omit<T, "sponsorId"> & { sponsored: boolean; options: OptionView[] })[]> {
+async function attachOptions<T extends { id: string; sponsorId: string | null }>(
+  rows: T[],
+): Promise<(Omit<T, "sponsorId"> & Pick<PollCard, "sponsored" | "sponsorName" | "reward" | "options">)[]> {
   if (!rows.length) return [];
   const db = await getDb();
-  const opts = await db
-    .select()
-    .from(pollOptions)
-    .where(inArray(pollOptions.pollId, rows.map((r) => r.id)))
-    .orderBy(asc(pollOptions.position));
-  return rows.map(({ sponsorId, ...r }) => ({
-    ...r,
-    sponsored: Boolean(sponsorId),
-    options: opts
-      .filter((o) => o.pollId === r.id)
-      .map((o) => ({ id: o.id, label: o.label, emoji: o.emoji, imageUrl: o.imageUrl, position: o.position })),
-  }));
+  const ids = rows.map((r) => r.id);
+  const sponsorIds = [...new Set(rows.map((r) => r.sponsorId).filter(Boolean))] as string[];
+  const [opts, counts, sponsors, rewards] = await Promise.all([
+    db.select().from(pollOptions).where(inArray(pollOptions.pollId, ids)).orderBy(asc(pollOptions.position)),
+    db
+      .select({ pollId: votes.pollId, optionId: votes.optionId, n: sql<number>`count(*)::int` })
+      .from(votes)
+      .where(inArray(votes.pollId, ids))
+      .groupBy(votes.pollId, votes.optionId),
+    sponsorIds.length ? db.select().from(schema.sponsors).where(inArray(schema.sponsors.id, sponsorIds)) : [],
+    db
+      .select({ pollId: schema.rewards.pollId, title: schema.rewards.title, costPoints: schema.rewards.costPoints })
+      .from(schema.rewards)
+      .where(and(inArray(schema.rewards.pollId, ids), eq(schema.rewards.active, true))),
+  ]);
+  return rows.map(({ sponsorId, ...r }) => {
+    const mine = opts.filter((o) => o.pollId === r.id);
+    const total = counts.filter((c) => c.pollId === r.id).reduce((a, c) => a + c.n, 0);
+    const optCounts = mine.map((o) => counts.find((c) => c.pollId === r.id && c.optionId === o.id)?.n ?? 0);
+    const pcts = total ? optCounts.map((c) => Math.round((c / total) * 100)) : optCounts.map(() => 0);
+    const reward = rewards.find((x) => x.pollId === r.id);
+    return {
+      ...r,
+      sponsored: Boolean(sponsorId),
+      sponsorName: sponsors.find((x) => x.id === sponsorId)?.name ?? null,
+      reward: reward ? { title: reward.title, costPoints: reward.costPoints } : null,
+      options: mine.map((o, i) => ({
+        id: o.id,
+        label: o.label,
+        emoji: o.emoji,
+        imageUrl: o.imageUrl,
+        position: o.position,
+        count: optCounts[i],
+        pct: pcts[i],
+      })),
+    };
+  });
 }
 
 const published = eq(polls.status, "published");
