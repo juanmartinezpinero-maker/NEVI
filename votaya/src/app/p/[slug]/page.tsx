@@ -5,6 +5,7 @@ import { cache } from "react";
 import { PollCard } from "@/components/PollCard";
 import { PollVoter } from "@/components/PollVoter";
 import { SegmentTabs } from "@/components/SegmentTabs";
+import { ShareButton } from "@/components/ShareSheet";
 import { TrackView } from "@/components/TrackView";
 import { getCurrentUser } from "@/lib/auth";
 import { getCategory } from "@/lib/categories";
@@ -72,7 +73,15 @@ export default async function PollPage(props: PageProps<"/p/[slug]">) {
             <span title="Cualquiera puede votar: no es una muestra representativa">{poll.kind === "study" ? "Estudio representativo" : "Votación popular"}</span>
             <span>{formatCount(results?.total ?? poll.voteCount)} votos</span>
           </nav>
-          <h1 className="text-[34px] font-black leading-[1.02] tracking-[-0.05em] sm:text-[48px]">{poll.title}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-[34px] font-black leading-[1.02] tracking-[-0.05em] sm:text-[48px]">{poll.title}</h1>
+            <ShareButton
+              target={{ pollId: poll.id, slug: poll.slug, title: poll.title }}
+              className="mt-1 shrink-0 rounded-full bg-pink px-4 py-2.5 text-sm font-extrabold text-white"
+            >
+              Compartir
+            </ShareButton>
+          </div>
           {poll.description && <p className="mt-3 text-lg text-ink-2">{poll.description}</p>}
           {poll.reward && rewardsEnabled() && (
             <Link href="/recompensas" className="mt-3 flex items-center gap-3 rounded-[18px] bg-lime p-3">

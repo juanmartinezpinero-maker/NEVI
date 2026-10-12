@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { voteAction, type Progress } from "@/app/actions/vote";
 import type { PollCard, Results } from "@/lib/polls";
 import { Photo } from "./Photo";
+import { ShareSheet } from "./ShareSheet";
 
 const AUTO_MS = 2600;
 
@@ -19,14 +20,20 @@ export function StoryFeed({
   tones,
   categoryNames,
   loggedIn,
+  category,
+  topicsOpen = false,
   className = "",
 }: {
   polls: PollCard[];
   tones: Record<string, string>;
   categoryNames: Record<string, string>;
   loggedIn: boolean;
+  category?: string;
+  topicsOpen?: boolean;
   className?: string;
 }) {
+  const [topics, setTopics] = useState(Boolean(category) || topicsOpen);
+  const [sharing, setSharing] = useState(false);
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState<Done | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,15 +50,16 @@ export function StoryFeed({
     setOtherOpen(false);
     setOtherText("");
     setPaused(false);
+    setSharing(false);
     setIndex((i) => i + 1);
   }, []);
 
   // Paso automático a la siguiente historia tras votar.
   useEffect(() => {
-    if (!done || paused) return;
+    if (!done || paused || sharing) return;
     const t = setTimeout(next, AUTO_MS);
     return () => clearTimeout(t);
-  }, [done, paused, next]);
+  }, [done, paused, sharing, next]);
 
   function vote(choice: { optionId?: string; otherText?: string }, label: string) {
     setError(null);
@@ -73,23 +81,46 @@ export function StoryFeed({
 
   const shell = `fixed inset-x-0 top-0 bottom-14 z-[35] flex flex-col bg-ink text-white lg:static lg:mx-auto lg:h-[min(820px,calc(100dvh-9rem))] lg:max-w-[420px] lg:overflow-hidden lg:rounded-[28px] ${className}`;
 
+  const chips = [{ slug: "", name: "Todas" }, ...Object.entries(categoryNames).map(([slug, name]) => ({ slug, name }))];
   const topBar = (
-    <div className="flex items-center justify-between px-4 pt-3">
-      <div className="flex gap-4 text-[15px] font-bold">
-        <Link href="/" className="text-white/55">
-          Inicio
-        </Link>
-        <span className="text-lime">Para ti</span>
-        <Link href="/encuestas" className="text-white/55">
-          Explorar
-        </Link>
+    <div className="px-4 pt-3">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 rounded-full bg-white/10 p-1 text-[14px] font-bold" role="tablist" aria-label="Tipo de encuestas">
+          <Link href="/descubrir" role="tab" aria-selected={!topics} onClick={() => setTopics(false)} className={`rounded-full px-3.5 py-1.5 ${!topics ? "bg-lime text-ink" : "text-white/70"}`}>
+            Rápidas
+          </Link>
+          <button role="tab" aria-selected={topics} onClick={() => setTopics(true)} className={`rounded-full px-3.5 py-1.5 ${topics ? "bg-lime text-ink" : "text-white/70"}`}>
+            Por temas
+          </button>
+        </div>
+        {loggedIn ? (
+          <span className="text-xs font-bold tabular-nums text-white/80">{done?.progress ? `${done.progress.streak}d · ${done.progress.votes} votos` : ""}</span>
+        ) : (
+          <Link href="/entrar" className="text-xs font-bold underline">
+            Entrar
+          </Link>
+        )}
       </div>
-      {loggedIn ? (
-        <span className="text-xs font-bold tabular-nums text-white/80">{done?.progress ? `${done.progress.streak}d · ${done.progress.votes} votos` : ""}</span>
-      ) : (
-        <Link href="/entrar" className="text-xs font-bold underline">
-          Entrar
-        </Link>
+      {topics && (
+        <nav aria-label="Filtrar por tema" className="no-scrollbar -mx-4 mt-2.5 flex gap-1.5 overflow-x-auto px-4">
+          {chips.map((c) => {
+            const on = (category ?? "") === c.slug;
+            return (
+              <Link
+                key={c.slug || "all"}
+                href={c.slug ? `/descubrir?cat=${c.slug}` : "/descubrir?temas=1"}
+                aria-current={on ? "page" : undefined}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold ${on ? "bg-white text-ink" : "bg-white/10 text-white/85"}`}
+              >
+                {c.slug && <span className="h-2 w-2 rounded-full" style={{ background: tones[c.slug] }} aria-hidden />}
+                {c.name}
+              </Link>
+            );
+          })}
+          <Link href={category ? `/encuestas?cat=${category}` : "/encuestas"} className="shrink-0 rounded-full border border-white/30 px-3 py-1.5 text-[13px] font-bold text-white/85">
+            Ver en lista
+          </Link>
+        </nav>
       )}
     </div>
   );
@@ -100,7 +131,7 @@ export function StoryFeed({
         {topBar}
         <div className="grid flex-1 place-items-center p-6 text-center">
           <div>
-            <h1 className="text-4xl font-black tracking-[-0.05em]">Has votado todo</h1>
+            <h1 className="text-4xl font-black tracking-[-0.05em]">{category ? `Has votado todo en ${categoryNames[category]}` : "Has votado todo"}</h1>
             <p className="mb-5 mt-2 text-white/70">Vuelve mañana para mantener tu racha o crea tu propia pregunta.</p>
             <Link href="/crear" className="rounded-full bg-lime px-5 py-3 font-extrabold text-ink">
               Crear una pregunta
@@ -146,7 +177,14 @@ export function StoryFeed({
       {topBar}
       <div className="flex items-baseline justify-between px-4 pt-3">
         <span className="kicker !text-white/70">{categoryNames[poll.category]}</span>
-        <span className="kicker !text-white/70 tabular-nums">{total.toLocaleString("es-ES")} votos</span>
+        <span className="flex items-center gap-3">
+          <span className="kicker !text-white/70 tabular-nums">{total.toLocaleString("es-ES")} votos</span>
+          <button onClick={() => setSharing(true)} aria-label="Compartir esta encuesta" className="grid h-8 w-8 place-items-center rounded-full bg-white/10">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+            </svg>
+          </button>
+        </span>
       </div>
       <h1 key={poll.id} className="animate-rise px-4 pb-3 pt-1.5 text-[30px] font-extrabold leading-[1.05] tracking-[-0.045em]">
         {poll.title}
@@ -161,6 +199,7 @@ export function StoryFeed({
                 <button
                   key={o.id}
                   onClick={() => !done && vote({ optionId: o.id }, o.label)}
+                  data-option=""
                   disabled={pending || Boolean(done)}
                   aria-label={done ? `${o.label} ${pctOf(o.id)}%` : `Votar ${o.label}`}
                   className="relative min-h-0 overflow-hidden rounded-[20px] text-left disabled:cursor-default"
@@ -193,6 +232,7 @@ export function StoryFeed({
                 <button
                   key={r.id}
                   onClick={() => !done && vote({ optionId: r.id }, r.label)}
+                  data-option=""
                   disabled={pending || Boolean(done)}
                   className="relative z-[1] flex w-full shrink-0 items-center justify-between gap-3 overflow-hidden rounded-full bg-white px-[18px] py-3.5 text-left text-base font-extrabold text-ink disabled:cursor-default"
                 >
@@ -259,6 +299,9 @@ export function StoryFeed({
               </p>
             )}
             <div className="grid grid-cols-3 gap-1.5">
+              <button onClick={() => setSharing(true)} className="rounded-full bg-pink py-2.5 text-center text-[13px] font-extrabold">
+                Compartir
+              </button>
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(`Yo voté «${done.label}» en «${poll.title}» ¿Y tú? ${typeof window !== "undefined" ? window.location.origin : ""}/p/${poll.slug}?src=reto`)}`}
                 target="_blank"
@@ -268,15 +311,16 @@ export function StoryFeed({
               >
                 Retar
               </a>
-              <Link href={`/p/${poll.slug}`} onClick={() => setPaused(true)} className="rounded-full border border-white/50 py-2.5 text-center text-[13px] font-bold">
-                Detalle
-              </Link>
               <button onClick={next} className="rounded-full bg-white py-2.5 text-[13px] font-extrabold text-ink">
                 Siguiente
               </button>
             </div>
+            <Link href={`/p/${poll.slug}`} onClick={() => setPaused(true)} className="-mt-0.5 text-center text-xs font-semibold text-white/70 underline">
+              Ver resultados por país, edad y género
+            </Link>
           </div>
         )}
+        {sharing && <ShareSheet target={{ pollId: poll.id, slug: poll.slug, title: poll.title, myLabel: done && done.label !== "ya votaste" ? done.label : null }} onClose={() => setSharing(false)} />}
         {error && (
           <p role="alert" className="absolute inset-x-3 bottom-3.5 z-20 rounded-2xl bg-white p-3 text-sm text-ink">
             {error}{" "}

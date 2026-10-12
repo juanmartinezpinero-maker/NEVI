@@ -37,9 +37,10 @@ test("portada móvil: resumen de la web y sección Encuestas a pantalla completa
   await page.getByRole("navigation", { name: "Navegación inferior" }).getByRole("link", { name: "Encuestas" }).click();
   await expect(page).toHaveURL(/\/descubrir/);
   const feed = page.getByRole("region", { name: "Historias" });
-  await expect(feed.getByText("Para ti")).toBeVisible();
+  await expect(feed.getByRole("tab", { name: "Rápidas" })).toBeVisible();
   // Explorar: filtro por categoría y buscador.
-  await feed.getByRole("link", { name: "Explorar" }).click();
+  await feed.getByRole("tab", { name: "Por temas" }).click();
+  await feed.getByRole("link", { name: "Ver en lista" }).click();
   await expect(page).toHaveURL(/\/encuestas/);
   await expect(page.getByRole("heading", { name: "Tendencias hoy" })).toBeVisible();
   await page.getByRole("navigation", { name: "Filtrar por categoría" }).getByRole("link", { name: "Sociedad" }).click();
@@ -69,7 +70,16 @@ test("voto anónimo en un duelo: resultados inmediatos, persistentes y sin doble
   await page.getByRole("button", { name: "Votar Messi" }).click();
   await expect(page.getByText("✓ Tu voto:")).toBeVisible();
   await expect(page.getByText(/votación popular, no representativa/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Compartir resultado/ })).toBeVisible();
+  // Compartir: bloque con todas las redes y hoja desde el botón de la cabecera.
+  const shareBlock = page.getByRole("region", { name: "Compartir resultado" });
+  await expect(shareBlock.getByRole("button", { name: "Compartir en Instagram" })).toBeVisible();
+  await expect(shareBlock.getByRole("button", { name: "Compartir en TikTok" })).toBeVisible();
+  await page.getByRole("button", { name: "Compartir", exact: true }).click();
+  const sheet = page.getByRole("dialog", { name: "Compartir encuesta" });
+  await expect(sheet.getByText("Tu voto: Messi")).toHaveCount(0);
+  await expect(sheet.getByRole("button", { name: "Compartir en WhatsApp" })).toBeVisible();
+  await sheet.getByRole("button", { name: "Cerrar" }).click();
+  await expect(sheet).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Reta a un amigo por WhatsApp/ })).toHaveAttribute("href", /wa\.me/);
   // Tras recargar, sigue viendo resultados (no puede volver a votar).
   await page.reload();
@@ -213,7 +223,7 @@ test("puntos por votar y canje de un premio (modo demo)", async ({ page }) => {
 test("modo historias: pantalla completa, «Otra» y paso automático a la siguiente", async ({ page }) => {
   await page.goto("/descubrir");
   const feed = page.getByRole("region", { name: "Historias" });
-  await expect(feed.getByText("Para ti")).toBeVisible();
+  await expect(feed.getByRole("tab", { name: "Rápidas" })).toBeVisible();
   const title = feed.locator("h1");
   // Ocupa toda la pantalla (salvo la barra inferior).
   const box = (await feed.boundingBox())!;
@@ -221,15 +231,20 @@ test("modo historias: pantalla completa, «Otra» y paso automático a la siguie
 
   // Primera: votar y pasar con «Siguiente».
   const first = await title.textContent();
-  await feed.locator("button").first().click();
+  await feed.locator("button[data-option]").first().click();
   await expect(feed.getByText("Tu voto:")).toBeVisible();
   await feed.getByRole("button", { name: "Siguiente" }).click();
   await expect(title).not.toHaveText(first!);
 
+  // Compartir desde el feed abre la hoja con las redes y pausa el paso automático.
+  await feed.getByRole("button", { name: "Compartir esta encuesta" }).click();
+  await expect(page.getByRole("dialog", { name: "Compartir encuesta" }).getByRole("button", { name: "Compartir en Instagram" })).toBeVisible();
+  await page.getByRole("dialog", { name: "Compartir encuesta" }).getByRole("button", { name: "Cerrar" }).click();
+
   // Avanza hasta una pregunta con «Otra» y escribe una respuesta propia; luego pasa sola.
   for (let i = 0; i < 12; i++) {
     if (await feed.getByRole("button", { name: /escribe la tuya/ }).count()) break;
-    await feed.locator("button").first().click();
+    await feed.locator("button[data-option]").first().click();
     await expect(feed.getByText("Tu voto:")).toBeVisible();
     await feed.getByRole("button", { name: "Siguiente" }).click();
   }
@@ -239,6 +254,13 @@ test("modo historias: pantalla completa, «Otra» y paso automático a la siguie
   await feed.getByRole("button", { name: "Votar", exact: true }).click();
   await expect(feed.getByText("Tu voto:")).toBeVisible();
   await expect(title).not.toHaveText(withOther!, { timeout: 6_000 });
+
+  // Por temas: filtra el feed por categoría.
+  await feed.getByRole("tab", { name: "Por temas" }).click();
+  await feed.getByRole("navigation", { name: "Filtrar por tema" }).getByRole("link", { name: "Deportes" }).click();
+  await expect(page).toHaveURL(/cat=deportes/);
+  await expect(page.getByRole("region", { name: "Historias" }).getByText("Deportes").first()).toBeVisible();
+  await expect(page.getByRole("region", { name: "Historias" }).locator("h1")).toHaveText(/Messi|Real Madrid|Has votado todo en Deportes|mejor deporte/);
 });
 
 test("tras votar con cuenta: racha, progreso de nivel y reto por WhatsApp", async ({ page }) => {

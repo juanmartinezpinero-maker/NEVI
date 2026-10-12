@@ -7,6 +7,7 @@ import { voteAction, type Progress } from "@/app/actions/vote";
 import type { OptionView, Results } from "@/lib/polls";
 import { Photo } from "./Photo";
 import { ShareBar } from "./ShareBar";
+import { ShareButton } from "./ShareSheet";
 
 type PollProps = { id: string; slug: string; title: string; allowOther: boolean; imageUrl?: string | null; options: OptionView[] };
 type State = { results: Results; myOptionId: string | null; myWriteInId: string | null };
@@ -233,9 +234,14 @@ export function PollVoter({
             </Link>
           )}
           {compact ? (
-            <Link href={`/p/${poll.slug}`} className="rounded-full bg-ink py-3 text-center font-extrabold text-lime">
-              Ver resultados completos
-            </Link>
+            <div className="grid grid-cols-2 gap-2">
+              <ShareButton target={{ pollId: poll.id, slug: poll.slug, title: poll.title, myLabel }} className="rounded-full bg-pink py-3 text-center font-extrabold text-white">
+                Compartir
+              </ShareButton>
+              <Link href={`/p/${poll.slug}`} className="rounded-full bg-ink py-3 text-center font-extrabold text-lime">
+                Ver resultados
+              </Link>
+            </div>
           ) : (
             <>
               <a
@@ -246,7 +252,7 @@ export function PollVoter({
               >
                 Reta a un amigo por WhatsApp
               </a>
-              <ShareBar pollId={poll.id} slug={poll.slug} url={shareUrl} text={`${myLabel ? `He votado «${myLabel}» en «${poll.title}». ` : `«${poll.title}». `}¿Y tú?`} />
+              <ShareBar target={{ pollId: poll.id, slug: poll.slug, title: poll.title, myLabel }} />
               {nextHref && (
                 <Link href={nextHref} className="rounded-full bg-ink py-3.5 text-center text-base font-extrabold text-lime">
                   Siguiente pregunta
