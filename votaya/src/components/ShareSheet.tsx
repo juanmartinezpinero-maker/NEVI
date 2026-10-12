@@ -18,7 +18,21 @@ function shareText(t: ShareTarget) {
 }
 
 /** Botones de compartir por red: enlaces directos y, para Instagram/TikTok, la imagen 9:16 del resultado. */
-export function ShareChannels({ target, onDone, dark = false }: { target: ShareTarget; onDone?: () => void; dark?: boolean }) {
+export function ShareChannels({
+  target,
+  onDone,
+  onMore,
+  dark = false,
+  only,
+}: {
+  target: ShareTarget;
+  onDone?: () => void;
+  /** Si se pasa, «Más» abre esto (p. ej. la hoja completa) en lugar del menú del sistema. */
+  onMore?: () => void;
+  dark?: boolean;
+  /** Muestra solo estas redes, en fila compacta. */
+  only?: string[];
+}) {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const origin = typeof window === "undefined" ? "" : window.location.origin;
@@ -89,16 +103,17 @@ export function ShareChannels({ target, onDone, dark = false }: { target: ShareT
     { id: "facebook", label: "Facebook", brand: "facebook", bg: BRANDS.facebook.hex, run: () => open("facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url("fb"))}`) },
     { id: "telegram", label: "Telegram", brand: "telegram", bg: BRANDS.telegram.hex, run: () => open("telegram", `https://t.me/share/url?url=${encodeURIComponent(url("tg"))}&text=${encodeURIComponent(text)}`) },
     { id: "copy", label: "Copiar enlace", bg: dark ? "#3b3a42" : "#222128", run: copy },
-    { id: "more", label: "Más", bg: dark ? "#3b3a42" : "#e7e6e1", run: more },
+    { id: "more", label: "Más", bg: dark ? "#3b3a42" : "#e7e6e1", run: onMore ?? more },
   ];
+  const shown = only ? items.filter((it) => only.includes(it.id)) : items;
 
   return (
     <div>
-      <ul className="grid grid-cols-4 gap-x-2 gap-y-3">
-        {items.map((it) => (
+      <ul className={only ? "flex justify-between gap-1" : "grid grid-cols-4 gap-x-2 gap-y-3"}>
+        {shown.map((it) => (
           <li key={it.id}>
             <button onClick={it.run} disabled={busy === it.id} className="flex w-full flex-col items-center gap-1.5 text-[12px] font-semibold disabled:opacity-60" aria-label={`Compartir en ${it.label}`}>
-              <span className="grid h-[52px] w-[52px] place-items-center rounded-full text-white" style={{ background: it.bg }}>
+              <span className={`grid place-items-center rounded-full text-white ${only ? "h-11 w-11" : "h-[52px] w-[52px]"}`} style={{ background: it.bg }}>
                 {it.brand ? (
                   <BrandIcon name={it.brand} />
                 ) : it.id === "copy" ? (

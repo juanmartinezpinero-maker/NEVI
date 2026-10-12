@@ -39,8 +39,11 @@ test("portada móvil: resumen de la web y sección Encuestas a pantalla completa
   const feed = page.getByRole("region", { name: "Historias" });
   await expect(feed.getByRole("tab", { name: "Rápidas" })).toBeVisible();
   // Explorar: filtro por categoría y buscador.
+  // Los temas están siempre a la vista y «Por temas» abre el selector grande.
+  await expect(feed.getByRole("navigation", { name: "Filtrar por tema" }).getByRole("link", { name: "Deportes" })).toBeVisible();
   await feed.getByRole("tab", { name: "Por temas" }).click();
-  await feed.getByRole("link", { name: "Ver en lista" }).click();
+  await expect(feed.getByRole("heading", { name: "Elige un tema" })).toBeVisible();
+  await feed.getByRole("link", { name: "Ver todas las encuestas en lista" }).click();
   await expect(page).toHaveURL(/\/encuestas/);
   await expect(page.getByRole("heading", { name: "Tendencias hoy" })).toBeVisible();
   await page.getByRole("navigation", { name: "Filtrar por categoría" }).getByRole("link", { name: "Sociedad" }).click();
@@ -74,7 +77,7 @@ test("voto anónimo en un duelo: resultados inmediatos, persistentes y sin doble
   const shareBlock = page.getByRole("region", { name: "Compartir resultado" });
   await expect(shareBlock.getByRole("button", { name: "Compartir en Instagram" })).toBeVisible();
   await expect(shareBlock.getByRole("button", { name: "Compartir en TikTok" })).toBeVisible();
-  await page.getByRole("button", { name: "Compartir", exact: true }).click();
+  await page.getByRole("button", { name: "Compartir", exact: true }).first().click();
   const sheet = page.getByRole("dialog", { name: "Compartir encuesta" });
   await expect(sheet.getByText("Tu voto: Messi")).toHaveCount(0);
   await expect(sheet.getByRole("button", { name: "Compartir en WhatsApp" })).toBeVisible();
@@ -238,6 +241,7 @@ test("modo historias: pantalla completa, «Otra» y paso automático a la siguie
 
   // Compartir desde el feed abre la hoja con las redes y pausa el paso automático.
   await feed.getByRole("button", { name: "Compartir esta encuesta" }).click();
+  await expect(page.getByRole("dialog", { name: "Compartir encuesta" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Compartir encuesta" }).getByRole("button", { name: "Compartir en Instagram" })).toBeVisible();
   await page.getByRole("dialog", { name: "Compartir encuesta" }).getByRole("button", { name: "Cerrar" }).click();
 
@@ -257,7 +261,7 @@ test("modo historias: pantalla completa, «Otra» y paso automático a la siguie
 
   // Por temas: filtra el feed por categoría.
   await feed.getByRole("tab", { name: "Por temas" }).click();
-  await feed.getByRole("navigation", { name: "Filtrar por tema" }).getByRole("link", { name: "Deportes" }).click();
+  await feed.getByRole("link", { name: "Deportes" }).click();
   await expect(page).toHaveURL(/cat=deportes/);
   await expect(page.getByRole("region", { name: "Historias" }).getByText("Deportes").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "Historias" }).locator("h1")).toHaveText(/Messi|Real Madrid|Has votado todo en Deportes|mejor deporte/);
