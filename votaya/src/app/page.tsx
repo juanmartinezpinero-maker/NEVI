@@ -4,13 +4,16 @@ import { getDb, schema } from "@/db";
 import { CategoryChips } from "@/components/CategoryChips";
 import { Photo } from "@/components/Photo";
 import { PollCard } from "@/components/PollCard";
+import { PollVoter } from "@/components/PollVoter";
+import { TrendCarousel } from "@/components/TrendCarousel";
+import { getCategory } from "@/lib/categories";
 import { CommunityBox, CountriesBox, TrendingBox } from "@/components/Sidebar";
 import { TrackView } from "@/components/TrackView";
 import { getCurrentUser } from "@/lib/auth";
 import { HERO_IMAGE, rewardsEnabled } from "@/lib/site";
 import { listRewards } from "@/lib/points";
-import { getFeaturedPoll, getVotedPollIds, listPolls, listTrending } from "@/lib/polls";
-import { getAnonId } from "@/lib/request";
+import { findExistingVote, getFeaturedPoll, getResults, getVotedPollIds, listPolls, listTrending } from "@/lib/polls";
+import { getAnonId, getBaseUrl } from "@/lib/request";
 import { formatCount } from "@/lib/text";
 
 async function weeklyVotes() {
@@ -39,26 +42,44 @@ export default async function Home() {
     return true;
   }).slice(0, 9);
   const fresh = latest.filter((p) => !seen.has(p.id)).slice(0, 3);
+  const existing = featured ? await findExistingVote(featured.id, user?.id ?? null, anonId) : null;
+  const initial = featured && existing ? { results: await getResults(featured.id), myOptionId: existing.optionId, myWriteInId: existing.writeInId } : null;
+  const base = await getBaseUrl();
+  const fcat = featured ? getCategory(featured.category) : null;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <TrackView path="/" />
-      <div className="min-w-0 space-y-6">
-        <section className="bg-hero relative overflow-hidden rounded-3xl px-6 py-8 text-white sm:px-10 sm:py-10">
+      <div className="min-w-0 space-y-5 lg:space-y-6">
+        {featured && (
+          <section className="card p-4 lg:hidden" aria-labelledby="daily">
+            <div className="mb-2 flex items-center justify-between text-xs font-bold">
+              <span className="rounded-full bg-brand px-2.5 py-1 text-white">⭐ Pregunta del día</span>
+              <span className="text-muted">
+                {fcat?.emoji} {fcat?.name}
+              </span>
+            </div>
+            <h1 id="daily" className="mb-3 font-display text-2xl font-extrabold leading-tight">
+              {featured.title}
+            </h1>
+            <PollVoter poll={featured} initial={initial} verified={Boolean(user?.profileCompleted)} shareUrl={`${base}/p/${featured.slug}`} compact />
+          </section>
+        )}
+        <section className="bg-hero relative overflow-hidden rounded-3xl px-5 py-5 text-white sm:px-10 sm:py-10">
           <div className="relative z-10 max-w-md space-y-4">
-            <h1 className="font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl">
+            <h2 className="font-display text-2xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl">
               El mundo opina
               <br />
               <span className="text-gradient">¿Y tú?</span>
-            </h1>
-            <p className="text-sm text-white/85 sm:text-base">
+            </h2>
+            <p className="hidden text-white/85 sm:block">
               Vota en las mejores encuestas, descubre lo que piensa la gente de todo el mundo, gana puntos y comparte tus resultados.
             </p>
             <Link
-              href={featured ? `/p/${featured.slug}` : "/encuestas"}
+              href="/descubrir"
               className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-bold shadow-lg shadow-black/20 hover:bg-brand-dark"
             >
-              Empieza a votar →
+              ⚡ Empieza a votar
             </Link>
           </div>
           <div className="pointer-events-none absolute -right-10 top-1/2 hidden h-72 w-72 -translate-y-1/2 sm:block md:right-6 md:h-80 md:w-80" aria-hidden>
@@ -74,7 +95,7 @@ export default async function Home() {
               </span>
             ))}
           </div>
-          <div className="relative z-10 mt-6 inline-flex items-center gap-3 rounded-2xl bg-black/30 px-4 py-2.5 backdrop-blur sm:absolute sm:bottom-6 sm:right-6 sm:mt-0">
+          <div className="relative z-10 mt-4 hidden items-center gap-3 rounded-2xl bg-black/30 px-4 py-2.5 backdrop-blur sm:absolute sm:bottom-6 sm:right-6 sm:mt-0 sm:inline-flex">
             <span className="text-2xl" aria-hidden>
               👥
             </span>
@@ -85,12 +106,22 @@ export default async function Home() {
           </div>
         </section>
 
-        <CategoryChips />
+        <TrendCarousel polls={trending.slice(0, 8)} />
+
+        <div className="sticky top-16 z-20 -mx-4 bg-page/95 px-4 py-2 backdrop-blur lg:static lg:mx-0 lg:bg-transparent lg:p-0">
+          <CategoryChips />
+        </div>
 
         <section aria-label="Encuestas destacadas">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {grid.map((p) => (
-              <PollCard key={p.id} poll={p} voted={votedIds.has(p.id)} highlight={p.id === featured?.id ? "⭐ Pregunta del día" : undefined} />
+              <PollCard
+                key={p.id}
+                poll={p}
+                voted={votedIds.has(p.id)}
+                highlight={p.id === featured?.id ? "⭐ Pregunta del día" : undefined}
+                className={p.id === featured?.id ? "hidden lg:flex" : ""}
+              />
             ))}
           </div>
           <div className="mt-4 text-center">
@@ -143,7 +174,9 @@ export default async function Home() {
       </div>
 
       <aside className="space-y-4">
-        <TrendingBox />
+        <div className="hidden lg:block">
+          <TrendingBox />
+        </div>
         <CountriesBox />
         <CommunityBox />
       </aside>

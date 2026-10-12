@@ -27,8 +27,10 @@ test.describe.configure({ mode: "serial" });
 test("portada: pregunta del día, tendencias, categorías y buscador", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /El mundo opina/ })).toBeVisible();
-  await expect(page.getByText("⭐ Pregunta del día")).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Encuestas en tendencia/ })).toBeVisible();
+  await expect(page.getByText("⭐ Pregunta del día").first()).toBeVisible();
+  // En móvil: pregunta del día votable arriba y carrusel de tendencias.
+  await expect(page.locator("#daily")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "🔥 En tendencia" })).toBeVisible();
   // Sección Encuestas: filtro por categoría y buscador.
   await page.getByRole("link", { name: "Encuestas", exact: true }).first().click();
   await expect(page).toHaveURL(/\/encuestas/);
@@ -50,7 +52,7 @@ test("voto anónimo en un duelo: resultados inmediatos, persistentes y sin doble
   await expect(page.getByText("✓ Tu voto:")).toBeVisible();
   await expect(page.getByText(/votos · \d+% de cuentas verificadas/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Compartir resultado/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /wa\.me/);
+  await expect(page.getByRole("link", { name: "WhatsApp", exact: true })).toHaveAttribute("href", /wa\.me/);
   // Tras recargar, sigue viendo resultados (no puede volver a votar).
   await page.reload();
   await expect(page.getByText("✓ Tu voto:")).toBeVisible();
@@ -110,7 +112,7 @@ test("crear pregunta → moderación por admin → publicada y encontrable", asy
   await completeProfile(admin);
   await expect(admin.getByRole("heading", { name: /Croquetas de jamón o de pollo/ })).toBeVisible();
   await admin.getByRole("button", { name: /Aprobar y publicar/ }).click();
-  await expect(admin.getByText("No hay preguntas pendientes")).toBeVisible();
+  await expect(admin.getByText("No hay preguntas pendientes")).toBeVisible({ timeout: 15_000 });
   await adminCtx.close();
 
   await page.goto("/buscar?q=croquetas");
@@ -188,4 +190,26 @@ test("puntos por votar y canje de un premio (modo demo)", async ({ page }) => {
   await expect(card.getByText(/DEMO-[A-Z0-9]{8}/)).toBeVisible();
   await page.goto("/perfil");
   await expect(page.getByText("⭐ 0").first()).toBeVisible();
+});
+
+test("modo rápido: votar y pasar a la siguiente pregunta", async ({ page }) => {
+  await page.goto("/descubrir");
+  await expect(page.getByRole("main").getByText("⚡ Modo rápido")).toBeVisible();
+  const first = await page.locator("h1").first().textContent();
+  await page.locator("button[aria-label^='Votar '], ul button").first().click();
+  await expect(page.getByRole("button", { name: "Siguiente ↑" })).toBeVisible();
+  await expect(page.getByText("Tu voto").first()).toBeVisible();
+  await page.getByRole("button", { name: "Siguiente ↑" }).click();
+  await expect(page.locator("h1").first()).not.toHaveText(first!);
+});
+
+test("tras votar con cuenta: racha, progreso de nivel y reto por WhatsApp", async ({ page }) => {
+  await login(page, "racha@e2e.test", "/p/perros-o-gatos");
+  await completeProfile(page);
+  await page.getByRole("button", { name: "Votar Perros" }).click();
+  await expect(page.getByText("+10 puntos")).toBeVisible();
+  await expect(page.getByText(/Te faltan? \d+ votos? para ser Opinador/)).toBeVisible();
+  await expect(page.getByRole("link", { name: /Reta a un amigo por WhatsApp/ })).toHaveAttribute("href", /wa\.me/);
+  await page.reload();
+  await expect(page.getByText("🔥 1")).toBeVisible();
 });

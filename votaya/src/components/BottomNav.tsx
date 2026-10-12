@@ -7,14 +7,14 @@ const ITEMS = [
   { href: "/", label: "Inicio", icon: "🏠" },
   { href: "/encuestas", label: "Encuestas", icon: "🗳️" },
   { href: "/crear", label: "Crear", icon: "＋", primary: true },
-  { href: "/recompensas", label: "Premios", icon: "🎁" },
+  { href: "/descubrir", label: "Rápido", icon: "⚡" },
   { href: "/perfil", label: "Perfil", icon: "👤" },
 ];
 
 export function BottomNav({ rewards = false }: { rewards?: boolean }) {
   const path = usePathname();
   if (path.startsWith("/admin")) return null;
-  const items = rewards ? ITEMS : ITEMS.map((it) => (it.href === "/recompensas" ? { href: "/rankings", label: "Rankings", icon: "🏆" } : it));
+  const items = rewards ? ITEMS.map((it) => (it.href === "/descubrir" ? { href: "/recompensas", label: "Premios", icon: "🎁" } : it)) : ITEMS;
   return (
     <nav aria-label="Navegación inferior" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       <ul className="grid grid-cols-5">

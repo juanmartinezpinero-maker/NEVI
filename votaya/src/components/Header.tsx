@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { getBalance } from "@/lib/points";
+import { getBalance, getStreak } from "@/lib/points";
 import { Logo } from "./Logo";
 import { NavLinks } from "./NavLinks";
 import { rewardsEnabled } from "@/lib/site";
 
 export async function Header() {
   const user = await getCurrentUser();
-  const points = user?.profileCompleted ? await getBalance(user.id) : null;
+  const [points, streak] = user?.profileCompleted ? await Promise.all([getBalance(user.id), getStreak(user.id)]) : [null, 0];
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4" aria-label="Principal">
@@ -42,6 +42,11 @@ export async function Header() {
           )}
           {user ? (
             <>
+              {streak > 0 && (
+                <span className="rounded-full bg-orange-50 px-2.5 py-1.5 text-sm font-bold text-orange-700 ring-1 ring-orange-200" title={`${streak} días seguidos votando`}>
+                  🔥 {streak}
+                </span>
+              )}
               {points !== null && (
                 <Link href={rewardsEnabled() ? "/recompensas" : "/perfil"} className="rounded-full bg-amber-50 px-3 py-1.5 text-sm font-bold text-amber-700 ring-1 ring-amber-200" title="Tus puntos">
                   ⭐ {points.toLocaleString("es-ES")}

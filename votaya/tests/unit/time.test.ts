@@ -10,3 +10,14 @@ describe("timeAgo", () => {
     expect(timeAgo(null, now)).toBe("");
   });
 });
+
+describe("racha de días", async () => {
+  const { streakFrom } = await import("@/lib/streak");
+  const today = new Date("2026-10-12T10:00:00Z");
+  it("cuenta días seguidos hasta hoy o ayer", () => {
+    expect(streakFrom(["2026-10-12", "2026-10-11", "2026-10-10", "2026-10-08"], today)).toBe(3);
+    expect(streakFrom(["2026-10-11", "2026-10-10"], today)).toBe(2);
+    expect(streakFrom(["2026-10-09"], today)).toBe(0);
+    expect(streakFrom([], today)).toBe(0);
+  });
+});

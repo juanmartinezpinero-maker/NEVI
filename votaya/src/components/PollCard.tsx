@@ -7,20 +7,20 @@ import { Photo } from "./Photo";
 import { rewardsEnabled } from "@/lib/site";
 import { ShareIconButton } from "./ShareIconButton";
 
-export function PollCard({ poll, voted, highlight }: { poll: PollCardData; voted?: boolean; highlight?: string }) {
+export function PollCard({ poll, voted, highlight, className = "" }: { poll: PollCardData; voted?: boolean; highlight?: string; className?: string }) {
   const cat = getCategory(poll.category);
   const [a, b] = poll.options;
   const extra = poll.options.length - 2;
   const leader = a && b ? (a.count >= b.count ? a.id : b.id) : null;
   return (
-    <article className="card flex h-full flex-col gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+    <article className={`card h-full flex-col gap-2.5 p-3.5 transition hover:-translate-y-0.5 hover:shadow-lg sm:gap-3 sm:p-4 ${className || "flex"}`}>
       <div className="flex items-center justify-between gap-2 text-xs">
         <Link href={`/encuestas?cat=${poll.category}`} className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-ink/80 hover:bg-slate-200">
           <span aria-hidden>{cat?.emoji}</span> {cat?.name}
         </Link>
         <span className="text-muted">{highlight ?? timeAgo(poll.publishedAt)}</span>
       </div>
-      <h3 className="font-display text-lg font-bold leading-snug text-ink">
+      <h3 className="font-display text-[17px] font-bold leading-snug text-ink sm:text-lg">
         <Link href={`/p/${poll.slug}`} className="hover:text-brand">
           {poll.title}
         </Link>
@@ -35,7 +35,7 @@ export function PollCard({ poll, voted, highlight }: { poll: PollCardData; voted
         <Link href={`/p/${poll.slug}`} className="grid grid-cols-2 gap-2" tabIndex={-1} aria-hidden>
           {[a, b].map((o) => (
             <div key={o.id} className="relative">
-              <Photo src={o.imageUrl ?? (o === a ? poll.imageUrl : null)} alt={o.label} emoji={o.emoji ?? poll.emoji} gradient={cat?.gradient} className="aspect-[4/3] w-full rounded-xl" />
+              <Photo src={o.imageUrl ?? (o === a ? poll.imageUrl : null)} alt={o.label} emoji={o.emoji ?? poll.emoji} gradient={cat?.gradient} className="aspect-square w-full rounded-xl sm:aspect-[4/3]" />
               {o === b && extra > 0 && (
                 <span className="absolute right-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-bold text-white">+{extra} opciones</span>
               )}
@@ -58,7 +58,7 @@ export function PollCard({ poll, voted, highlight }: { poll: PollCardData; voted
           ))}
         </div>
       )}
-      <p className="text-xs text-muted">{formatCount(poll.voteCount)} votos</p>
+      <p className="hidden text-xs text-muted sm:block">{formatCount(poll.voteCount)} votos</p>
       <div className="mt-auto flex items-center gap-2">
         <Link
           href={`/p/${poll.slug}`}

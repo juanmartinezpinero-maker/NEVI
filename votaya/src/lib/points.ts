@@ -2,6 +2,7 @@ import "server-only";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb, schema, type DB } from "@/db";
 import { randomToken } from "./crypto";
+import { streakFrom } from "./streak";
 
 const { pointsLedger, rewards, redemptions, votes } = schema;
 
@@ -135,4 +136,16 @@ export async function redeem(userId: string, rewardId: string): Promise<{ ok: tr
     await tx.update(rewards).set({ stock: sql`${rewards.stock} - 1` }).where(eq(rewards.id, rewardId));
     return { ok: true as const, code };
   });
+}
+
+/** Días seguidos con al menos un voto (cuenta hoy o, si hoy aún no votó, hasta ayer). */
+export async function getStreak(userId: string): Promise<number> {
+  const db = await getDb();
+  const rows = await db
+    .selectDistinct({ day: sql<string>`to_char(${votes.createdAt} at time zone 'UTC', 'YYYY-MM-DD')` })
+    .from(votes)
+    .where(eq(votes.userId, userId))
+    .orderBy(desc(sql`1`))
+    .limit(400);
+  return streakFrom(rows.map((r) => r.day));
 }

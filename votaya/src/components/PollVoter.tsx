@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { voteAction } from "@/app/actions/vote";
+import { voteAction, type Progress } from "@/app/actions/vote";
 import type { OptionView, Results } from "@/lib/polls";
 import { ShareBar } from "./ShareBar";
 
@@ -40,6 +40,7 @@ export function PollVoter({
   const [otherText, setOtherText] = useState("");
   const [pending, startTransition] = useTransition();
   const [earned, setEarned] = useState(0);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const otherRef = useRef<HTMLInputElement>(null);
   const duel = poll.options.length === 2 && !poll.allowOther;
 
@@ -55,6 +56,7 @@ export function PollVoter({
       if (res.ok) {
         setState({ results: res.results, myOptionId: res.myOptionId, myWriteInId: res.myWriteInId });
         setEarned(res.points);
+        setProgress(res.progress);
         if (navigator.vibrate) navigator.vibrate(30);
         if (!compact) router.refresh();
       } else {
@@ -72,7 +74,13 @@ export function PollVoter({
       <>
         {earned > 0 && (
           <p role="status" className="animate-pop mb-3 rounded-2xl bg-amber-50 p-3 text-center font-bold text-amber-800 ring-1 ring-amber-200">
-            ⭐ +{earned} puntos · ¡sigue votando para conseguir premios!
+            ⭐ +{earned} puntos
+            {progress && progress.streak > 1 && <> · 🔥 {progress.streak} días seguidos</>}
+            {progress?.next && (
+              <span className="block text-sm font-semibold">
+                Te {progress.remaining === 1 ? "falta 1 voto" : `faltan ${progress.remaining} votos`} para ser {progress.next}
+              </span>
+            )}
           </p>
         )}
         <ResultsView poll={poll} state={state} verified={verified} shareUrl={shareUrl} nextHref={nextHref} compact={compact} />
@@ -322,6 +330,14 @@ function ResultsView({
         </Link>
       ) : (
         <>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`${myRow ? `Yo voté «${myWriteIn?.label ?? myRow.label}». ` : ""}${poll.title} ¿Y tú? 👉 ${shareUrl}?src=reto`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-4 text-base font-extrabold text-white shadow-lg shadow-green-200"
+          >
+            💬 Reta a un amigo por WhatsApp
+          </a>
           <ShareBar pollId={poll.id} slug={poll.slug} url={shareUrl} text={shareText} />
           {nextHref && (
             <Link href={nextHref} className="block rounded-2xl bg-ink py-3.5 text-center text-base font-extrabold text-white">

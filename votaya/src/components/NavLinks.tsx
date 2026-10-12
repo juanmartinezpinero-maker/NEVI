@@ -8,6 +8,7 @@ export const MAIN_NAV = [
   { href: "/encuestas", label: "Encuestas" },
   { href: "/rankings", label: "Rankings" },
   { href: "/tendencias", label: "Tendencias" },
+  { href: "/descubrir", label: "⚡ Modo rápido" },
   { href: "/recompensas", label: "Premios" },
 ];
 
