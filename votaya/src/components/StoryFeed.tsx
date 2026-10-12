@@ -76,6 +76,9 @@ export function StoryFeed({
   const topBar = (
     <div className="flex items-center justify-between px-4 pt-3">
       <div className="flex gap-4 text-[15px] font-bold">
+        <Link href="/" className="text-white/55">
+          Inicio
+        </Link>
         <span className="text-lime">Para ti</span>
         <Link href="/encuestas" className="text-white/55">
           Explorar

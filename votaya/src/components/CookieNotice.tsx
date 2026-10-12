@@ -33,7 +33,7 @@ export function CookieNotice() {
   const path = usePathname();
   if (seen) return null;
   // En el feed a pantalla completa del móvil no tapamos la pregunta: el aviso sale en el resto de páginas.
-  const feed = path === "/" || path.startsWith("/descubrir");
+  const feed = path.startsWith("/descubrir");
   return (
     <div role="region" aria-label="Aviso de cookies" className={`fixed inset-x-3 bottom-[4.5rem] z-50 items-center gap-3 rounded-[18px] bg-white p-3 text-[13px] shadow-lg ring-1 ring-line lg:bottom-4 lg:left-auto lg:max-w-sm ${feed ? "hidden lg:flex" : "flex"}`}>
       <p className="text-muted">

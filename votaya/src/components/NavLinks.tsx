@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 
 export const MAIN_NAV = [
   { href: "/", label: "Inicio" },
+  { href: "/descubrir", label: "Encuestas" },
   { href: "/encuestas", label: "Explorar" },
   { href: "/rankings", label: "Rankings" },
-  { href: "/descubrir", label: "Modo historias" },
   { href: "/recompensas", label: "Premios" },
 ];
 

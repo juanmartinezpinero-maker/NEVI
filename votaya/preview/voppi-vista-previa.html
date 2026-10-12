@@ -264,6 +264,25 @@ h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 800; letter-sp
 .stats > div:nth-child(2) { background: var(--ink); color: #fff; }
 .stats > div:nth-child(2) b { color: var(--lime); }
 .stats > div:nth-child(2) .kicker { color: rgb(255 255 255 / .7); }
+.hero { display: grid; gap: 18px; margin: 4px 0 30px; align-items: end; }
+@container app (min-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr) 420px; } }
+.hero h1 { font-weight: 900; font-size: clamp(44px, 9cqi, 72px); line-height: .95; letter-spacing: -.06em; margin: 0; }
+.hero h1 i, .cta h2 i { font-style: normal; color: var(--pink); }
+.hero p { font-size: 17px; color: var(--ink-2, #3b3a42); margin: 12px 0 0; max-width: 560px; }
+.herobtns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.herobtns .btn { padding: 13px 22px; font-size: 15px; }
+.stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+.stats3 > div { border-radius: 20px; padding: 14px; background: var(--wash); }
+.stats3 > div:first-child { background: var(--lime); }
+.stats3 > div:nth-child(2) { background: var(--ink); color: rgb(255 255 255 / .7); }
+.stats3 > div:nth-child(2) dd { color: var(--lime); }
+.stats3 dd { margin: 0; font-weight: 900; font-size: 26px; letter-spacing: -.05em; white-space: nowrap; }
+.stats3 dt { font-size: 12px; font-weight: 600; color: inherit; opacity: .8; }
+.cta { display: grid; gap: 14px; background: var(--ink); color: #fff; border-radius: 28px; padding: 26px; margin-top: 34px; align-items: center; }
+@container app (min-width: 700px) { .cta { grid-template-columns: 1fr auto; } }
+.cta h2 { font-weight: 900; font-size: 32px; letter-spacing: -.05em; margin: 0; line-height: 1; }
+.cta p { margin: 8px 0 0; color: rgb(255 255 255 / .75); }
+.cta .btn { background: var(--lime); color: var(--ink); padding: 13px 22px; }
 .searchpill { display: flex; gap: 6px; background: var(--wash); border-radius: 999px; padding: 6px; margin-bottom: 14px; }
 .searchpill input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 0 12px; font-size: 16px; font-weight: 500; outline: none; }
 .stats b { display: block; font-weight: 900; font-size: 32px; letter-spacing: -.04em; }
@@ -293,15 +312,15 @@ footer .fl i { font-style: normal; color: var(--pink); }
 <div id="viewport"><div id="shell">
 <header class="top" id="top"><div class="in">
   <button class="brand" data-go="home" aria-label="voppi, inicio">voppi<span class="ex">!</span></button>
-  <nav class="nav" aria-label="Principal"><button data-go="home">Inicio</button><button data-go="explore">Explorar</button><button data-go="rankings">Rankings</button><button data-go="feed">Modo historias</button></nav>
+  <nav class="nav" aria-label="Principal"><button data-go="home">Inicio</button><button data-go="feed">Encuestas</button><button data-go="explore">Explorar</button><button data-go="rankings">Rankings</button></nav>
   <label class="search"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="hsearch" placeholder="Buscar encuestas" aria-label="Buscar encuestas"></label>
   <div class="right" id="hright"></div>
 </div></header>
 <main class="wrap" id="app"></main>
 <footer id="foot"><div class="in"><span class="fl">voppi<i>!</i></span><span>El mundo opina. ¿Y tú?</span><span>Empresas y marcas</span><span>Privacidad</span><span>Las votaciones populares no son estudios representativos. Datos de demostración.</span></div></footer>
 <nav class="tabbar" id="tabbar" aria-label="Navegación inferior"><ul>
-  <li><button data-go="feed"><svg class="ico" viewBox="0 0 24 24"><path d="M4 10.5L12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>Inicio</button></li>
-  <li><button data-go="explore"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Explorar</button></li>
+  <li><button data-go="home"><svg class="ico" viewBox="0 0 24 24"><path d="M4 10.5L12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>Inicio</button></li>
+  <li><button data-go="feed"><svg class="ico" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="3"/><path d="M9 8h6M9 12h4"/></svg>Encuestas</button></li>
   <li><button data-go="create" aria-label="Crear encuesta"><span class="plus"><svg class="ico" viewBox="0 0 24 24" style="width:20px"><path d="M12 5v14M5 12h14"/></svg></span></button></li>
   <li><button data-go="rankings"><svg class="ico" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Rankings</button></li>
   <li><button data-go="profile"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</button></li>
@@ -434,7 +453,7 @@ function renderFeed() {
   const root = $("#feedroot");
   if (!root) return;
   const p = feedPoll();
-  const tabs = `<div class="bar0"><div class="tabs2"><button aria-current="page">Para ti</button><button data-go="explore">Explorar</button></div>${user ? `<span class="mono" style="font-size:12px;opacity:.85">${streak() ? streak() + "d · " : ""}${balance()} pts</span>` : `<button class="mono" style="font-size:12px;text-decoration:underline" data-go="login">Entrar</button>`}</div>`;
+  const tabs = `<div class="bar0"><div class="tabs2"><button data-go="home">Inicio</button><button aria-current="page">Para ti</button><button data-go="explore">Explorar</button></div>${user ? `<span class="mono" style="font-size:12px;opacity:.85">${streak() ? streak() + "d · " : ""}${balance()} pts</span>` : `<button class="mono" style="font-size:12px;text-decoration:underline" data-go="login">Entrar</button>`}</div>`;
   if (!p) {
     root.innerHTML = `${tabs}<div class="done"><div><h1 style="padding:0 0 10px;font-size:40px">Has votado todo</h1><p style="opacity:.75;margin:0 0 18px">Vuelve mañana para mantener tu racha o crea tu propia pregunta.</p><button class="btn btn-a" data-go="create">Crear una pregunta</button> <button class="btn" style="border:1px solid #fff" data-go="explore">Explorar</button></div></div>`;
     return;
@@ -503,16 +522,26 @@ function optionList(p) {
 }
 
 /* ---------------- Páginas ---------------- */
+const tileImg = { comida: "pizza", deportes: "stadium", entretenimiento: "cinema", "estilo-de-vida": "beach", tecnologia: "phoneA", marcas: "colaRed", paises: "city", productos: "social", politica: "ballot" };
 const pages = {
   feed() { return `<div class="feed" id="feedroot"></div>`; },
   home() {
-    if (isMobile()) { view.name = "feed"; return pages.feed(); }
     const f = POLLS.find((p) => p.featured), v = votes[f.id];
     const cat = view.cat || "";
-    const list = POLLS.filter((p) => p !== f && (!cat || p.cat === cat)).sort((a, b) => b.votes - a.votes).slice(0, 9);
-    return `<div class="lead"><div class="daily"><span class="kicker">Pregunta del día · ${CATS[f.cat][0]}</span><h1>${esc(f.title)}</h1>${duelBig(f)}
-      <p class="muted" style="margin:12px 0 0;font-size:14px">${v ? `Has votado <b style="color:var(--ink)">${esc(myLabel(f))}</b>. ` : "Toca una foto para votar. "}<button style="text-decoration:underline" data-go="feed">Seguir en modo historias →</button></p></div>${sideBlocks()}</div>
-      <section class="sec"><div class="sechead"><h2>Encuestas populares</h2><button class="kicker" style="color:var(--ink)" data-go="explore">Ver todas →</button></div>${catChips(cat, "data-homecat")}<div class="grid">${list.map(card).join("") || '<p class="muted">No hay encuestas en esta categoría.</p>'}</div></section>`;
+    const counts = Object.fromEntries(Object.keys(CATS).map((k) => [k, POLLS.filter((p) => p.cat === k).length]));
+    const list = POLLS.filter((p) => p !== f && (!cat || p.cat === cat)).sort((a, b) => b.votes - a.votes).slice(0, 6);
+    const total = POLLS.reduce((a, p) => a + results(p).total, 0);
+    const top = [...POLLS].sort((a, b) => b.votes - a.votes).slice(0, 5);
+    return `<section class="hero"><div><h1>El mundo opina.<br>¿Y tú<i>?</i></h1><p>Vota en segundos, mira qué piensa la gente de tu país y reta a tus amigos. Gratis y sin contraseña.</p>
+        <div class="herobtns"><button class="btn btn-ink" data-go="feed">Empezar a votar</button><button class="btn btn-line" data-go="explore">Explorar encuestas</button></div></div>
+        <dl class="stats3"><div><dd>${fmt(total)}</dd><dt>votos</dt></div><div><dd>${POLLS.length}</dd><dt>encuestas</dt></div><div><dd>${COUNTRIES.length}</dd><dt>países</dt></div></dl></section>
+      <div class="lead"><div class="daily"><span class="kicker">Pregunta del día · ${CATS[f.cat][0]}</span><h1>${esc(f.title)}</h1>${duelBig(f)}
+      <p class="muted" style="margin:12px 0 0;font-size:14px">${v ? `Has votado <b style="color:var(--ink)">${esc(myLabel(f))}</b>. ` : "Toca una foto para votar. "}<button style="text-decoration:underline" data-go="feed">Seguir votando en Encuestas →</button></p></div>${sideBlocks()}</div>
+      <section class="sec"><div class="sechead"><h2>Tendencias hoy</h2><button class="kicker" style="color:var(--ink)" data-go="explore">Ver todas →</button></div><div class="hscroll">${trendingList(8).map((p) => `<button data-poll="${p.id}">${photo(coverOf(p), p.title, p.cat)}<span class="kicker" style="color:${CATS[p.cat][1]}">${CATS[p.cat][0]}</span><b>${esc(p.title)}</b><span class="mono muted" style="font-size:12px">${fmt(p.votes)} votos</span></button>`).join("")}</div></section>
+      <section class="sec"><div class="sechead"><h2>Categorías</h2><button class="kicker" style="color:var(--ink)" data-go="explore">Explorar →</button></div><div class="tiles">${Object.entries(CATS).map(([k, c]) => `<button data-cat="${k}">${photo(tileImg[k], c[0], k)}<b>${c[0]}</b><small>${counts[k]} encuestas</small></button>`).join("")}</div></section>
+      <section class="sec"><div class="sechead"><h2>Encuestas populares</h2><button class="kicker" style="color:var(--ink)" data-go="explore">Ver todas →</button></div>${catChips(cat, "data-homecat")}<div class="grid">${list.map(card).join("") || '<p class="muted">No hay encuestas en esta categoría.</p>'}</div></section>
+      <section class="sec"><div class="sechead"><h2>Ranking</h2><button class="kicker" style="color:var(--ink)" data-go="rankings">Ranking completo →</button></div><table class="ranktable"><tbody>${top.map((p, i) => `<tr data-poll="${p.id}" style="cursor:pointer"><td class="n">${String(i + 1).padStart(2, "0")}</td><td style="width:66px">${photo(coverOf(p), p.title, p.cat)}</td><td class="t"><span class="kicker" style="color:${CATS[p.cat][1]}">${CATS[p.cat][0]}</span><b>${esc(p.title)}</b></td><td class="v">${fmt(p.votes)}</td></tr>`).join("")}</tbody></table></section>
+      <section class="cta"><div><h2>¿Tienes una pregunta<i>?</i></h2><p>Propón tu encuesta y mira qué opina el mundo. La revisamos y la publicamos.</p></div><button class="btn" data-go="create">Crear encuesta</button></section>`;
   },
   explore() {
     const q = view.q || "", cat = view.cat || "";
@@ -521,7 +550,6 @@ const pages = {
     const filtered = POLLS.filter((p) => (!cat || p.cat === cat) && (!q || norm(p.title + p.options.map((o) => o.l).join(" ")).includes(norm(q))))
       .sort((a, b) => sort === "new" ? ageDays(a) - ageDays(b) : sort === "trend" ? b.votes / (1 + ageDays(b)) - a.votes / (1 + ageDays(a)) : b.votes - a.votes);
     const counts = Object.fromEntries(Object.keys(CATS).map((k) => [k, POLLS.filter((p) => p.cat === k).length]));
-    const tileImg = { comida: "pizza", deportes: "stadium", entretenimiento: "cinema", "estilo-de-vida": "beach", tecnologia: "phoneA", marcas: "colaRed", paises: "city", productos: "social", politica: "ballot" };
     return `${cat ? `<button class="kicker" data-cat="">← Explorar</button>` : ""}<h1 style="font-size:clamp(40px,8cqi,56px);margin:2px 0 14px;${cat ? `color:${CATS[cat][1]}` : ""}">${cat ? CATS[cat][0] : "Explorar"}</h1>
       <div class="searchpill"><input id="xq" value="${esc(q)}" placeholder="Busca: Messi, pizza, series, países…" aria-label="Buscar encuestas"><button class="btn btn-ink" data-go="explore" tabindex="-1">Buscar</button></div>
       ${!q && !cat ? `<section style="margin-bottom:30px"><div class="sechead"><h2>Tendencias hoy</h2><button class="kicker" style="color:var(--ink)" data-go="feed">Modo historias →</button></div><div class="hscroll">${trendingList(8).map((p) => `<button data-poll="${p.id}">${photo(coverOf(p), p.title, p.cat)}<span class="kicker" style="color:${CATS[p.cat][1]}">${CATS[p.cat][0]}</span><b>${esc(p.title)}</b><span class="mono muted" style="font-size:12px">${fmt(p.votes)} votos</span></button>`).join("")}</div></section>
@@ -597,11 +625,10 @@ function renderHeader() {
     : `<button class="iconbtn m" data-go="explore" aria-label="Buscar"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button><button class="btn d" data-go="login">Entrar</button><button class="btn btn-ink" data-go="login">Crear cuenta</button>`;
   const map = { home: "home", feed: isMobile() ? "feed" : "feed", explore: "explore", poll: "explore", rankings: "rankings", profile: "profile", login: "profile", create: "create" };
   document.querySelectorAll(".nav [data-go], .tabbar [data-go]").forEach((b) => (b.dataset.go === map[view.name] ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current")));
-  if (!isMobile()) { const h = document.querySelector('.nav [data-go="home"]'); if (view.name === "home") h.setAttribute("aria-current", "page"); }
+  if (["explore", "poll"].includes(view.name)) document.querySelector('.tabbar [data-go="feed"]').setAttribute("aria-current", "page");
 }
 function render() {
   clearTimer();
-  if (view.name === "home" && isMobile()) view.name = "feed";
   const inFeed = view.name === "feed";
   if (inFeed && (!feedQueue || feedIdx >= feedQueue.length && POLLS.some((p) => !votes[p.id]))) startFeed();
   $("#app").innerHTML = pages[view.name]();

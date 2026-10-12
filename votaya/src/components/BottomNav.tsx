@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconChart, IconHome, IconPlus, IconSearch, IconUser } from "./Icons";
+import { IconChart, IconHome, IconPlus, IconStories, IconUser } from "./Icons";
 
 const ITEMS = [
   { href: "/", label: "Inicio", Icon: IconHome },
-  { href: "/encuestas", label: "Explorar", Icon: IconSearch },
+  { href: "/descubrir", label: "Encuestas", Icon: IconStories },
   { href: "/crear", label: "Crear", Icon: IconPlus, primary: true },
   { href: "/rankings", label: "Rankings", Icon: IconChart },
   { href: "/perfil", label: "Perfil", Icon: IconUser },
@@ -16,7 +16,7 @@ export function BottomNav({ rewards = false }: { rewards?: boolean }) {
   const path = usePathname();
   if (path.startsWith("/admin")) return null;
   // En el feed de historias la barra se vuelve oscura.
-  const dark = path === "/" || path.startsWith("/descubrir");
+  const dark = path.startsWith("/descubrir");
   const items = rewards ? ITEMS.map((it) => (it.href === "/rankings" ? { ...it, href: "/recompensas", label: "Premios" } : it)) : ITEMS;
   return (
     <nav
@@ -25,7 +25,7 @@ export function BottomNav({ rewards = false }: { rewards?: boolean }) {
     >
       <ul className="grid h-14 grid-cols-5">
         {items.map(({ href, label, Icon, primary }) => {
-          const active = href === "/" ? path === "/" : path.startsWith(href);
+          const active = href === "/" ? path === "/" : href === "/descubrir" ? ["/descubrir", "/encuestas", "/p/"].some((x) => path.startsWith(x)) : path.startsWith(href);
           return (
             <li key={href}>
               <Link

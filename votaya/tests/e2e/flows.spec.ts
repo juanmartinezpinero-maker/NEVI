@@ -24,12 +24,20 @@ async function completeProfile(page: Page) {
 
 test.describe.configure({ mode: "serial" });
 
-test("portada móvil: feed de historias, explorar, categorías y buscador", async ({ page }) => {
+test("portada móvil: resumen de la web y sección Encuestas a pantalla completa", async ({ page }) => {
   await page.goto("/");
+  // La portada es un resumen, no el feed.
+  await expect(page.getByRole("heading", { name: /El mundo opina/ })).toBeVisible();
+  await expect(page.getByText(/Pregunta del día/).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tendencias hoy" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Categorías" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ranking" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Historias" })).toHaveCount(0);
+  // «Encuestas» abre el feed a pantalla completa.
+  await page.getByRole("navigation", { name: "Navegación inferior" }).getByRole("link", { name: "Encuestas" }).click();
+  await expect(page).toHaveURL(/\/descubrir/);
   const feed = page.getByRole("region", { name: "Historias" });
-  await expect(feed).toBeVisible();
   await expect(feed.getByText("Para ti")).toBeVisible();
-  await expect(feed.locator("h1")).toBeVisible();
   // Explorar: filtro por categoría y buscador.
   await feed.getByRole("link", { name: "Explorar" }).click();
   await expect(page).toHaveURL(/\/encuestas/);
@@ -51,7 +59,7 @@ test("portada escritorio: pregunta del día y encuestas populares", async ({ bro
   await page.goto("/");
   await expect(page.getByText(/Pregunta del día/).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Encuestas populares" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Historias" })).toBeHidden();
+  await expect(page.getByRole("region", { name: "Historias" })).toHaveCount(0);
   await ctx.close();
 });
 
